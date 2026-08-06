@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Tag 1 — Diagnose, Präsens & Satzstellung</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --paper: #eef1ef;
+    --paper-raised: #ffffff;
+    --ink: #14181a;
+    --ink-soft: #4b5652;
+    --rule: rgba(20,24,26,0.14);
+    --rule-strong: rgba(20,24,26,0.32);
+    --accent: #c1121f;
+    --accent-ink: #fff6f5;
+    --accent-soft: #f8dfdd;
+    --good: #206b45;
+    --good-soft: #dcefe2;
+    --focus: #14181a;
+    --shadow: 0 1px 0 rgba(20,24,26,0.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper: #14171a;
+      --paper-raised: #1c2023;
+      --ink: #e9ece9;
+      --ink-soft: #a7b0ac;
+      --rule: rgba(233,236,233,0.14);
+      --rule-strong: rgba(233,236,233,0.30);
+      --accent: #ff6b5e;
+      --accent-ink: #1c1010;
+      --accent-soft: #3a1c1a;
+      --good: #58c690;
+      --good-soft: #16332355;
+      --focus: #e9ece9;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #14171a; --paper-raised: #1c2023; --ink: #e9ece9; --ink-soft: #a7b0ac;
+    --rule: rgba(233,236,233,0.14); --rule-strong: rgba(233,236,233,0.30);
+    --accent: #ff6b5e; --accent-ink: #1c1010; --accent-soft: #3a1c1a;
+    --good: #58c690; --good-soft: #16332355; --focus: #e9ece9;
+  }
+  :root[data-theme="light"]{
+    --paper: #eef1ef; --paper-raised: #ffffff; --ink: #14181a; --ink-soft: #4b5652;
+    --rule: rgba(20,24,26,0.14); --rule-strong: rgba(20,24,26,0.32);
+    --accent: #c1121f; --accent-ink: #fff6f5; --accent-soft: #f8dfdd;
+    --good: #206b45; --good-soft: #dcefe2; --focus: #14181a;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-text-size-adjust: 100%; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+  .mono{
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    letter-spacing: 0.01em;
+  }
+  .display{
+    font-family: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+    font-stretch: condensed;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+  }
+  a{ color: inherit; }
+  input, textarea, button{ font: inherit; color: inherit; }
+  h1,h2,h3,p,ul,ol,dl,table{ margin: 0; }
+
+  /* ---------- Header / departures board ---------- */
+  .topbar{
+    position: sticky; top: 0; z-index: 30;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .topbar-inner{
+    max-width: 78rem; margin: 0 auto;
+    padding: 0.85rem 1.25rem;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .brand{ display:flex; align-items:baseline; gap:0.6rem; }
+  .brand .code{
+    background: var(--accent); color: var(--accent-ink);
+    padding: 0.15rem 0.45rem; border-radius: 2px;
+    font-weight: 800; font-size: 0.8rem; letter-spacing: 0.04em;
+  }
+  .brand h1{ font-size: 1.05rem; font-weight: 800; letter-spacing: 0.01em; }
+  .board{
+    display:flex; gap: 1.1rem; font-family: ui-monospace, "SF Mono", monospace;
+    font-size: 0.72rem; color: var(--ink-soft); flex-wrap: wrap;
+  }
+  .board strong{ color: var(--ink); font-weight: 700; }
+  .board .cell{ display:flex; flex-direction: column; gap:0.1rem; min-width: 3.6rem; }
+  .board .cell b{ font-size: 0.95rem; letter-spacing: 0.02em; }
+
+  /* ---------- Layout: rail + main ---------- */
+  .layout{
+    max-width: 78rem; margin: 0 auto;
+    display: grid; grid-template-columns: 15.5rem minmax(0,1fr);
+    gap: 0; align-items: start;
+  }
+  .rail{
+    position: sticky; top: 3.55rem;
+    align-self: start;
+    padding: 1.5rem 1rem 3rem 1.25rem;
+    border-right: 1px solid var(--rule);
+    height: calc(100svh - 3.55rem);
+    overflow-y: auto;
+  }
+  .rail ol{ list-style:none; padding:0; display:flex; flex-direction:column; }
+  .rail li{ position:relative; padding: 0 0 0 1.05rem; }
+  .rail li::before{
+    content:""; position:absolute; left:0.2rem; top:0.55rem; bottom:-0.05rem;
+    width:1px; background: var(--rule-strong);
+  }
+  .rail li:last-child::before{ display:none; }
+  .rail a{
+    display:block; text-decoration:none; padding: 0.7rem 0 0.7rem 0.6rem;
+    border-left: 2px solid transparent; margin-left:-0.05rem;
+    color: var(--ink-soft);
+  }
+  .rail li::after{
+    content:""; position:absolute; left:-0.03rem; top:1.05rem;
+    width:0.5rem; height:0.5rem; border-radius:50%;
+    background: var(--paper); border: 1.5px solid var(--rule-strong);
+  }
+  .rail li[data-active="true"]::after{ background: var(--accent); border-color: var(--accent); }
+  .rail li[data-active="true"] a{ border-left-color: var(--accent); color: var(--ink); }
+  .rail .time{
+    display:block; font-family: ui-monospace, monospace; font-size: 0.72rem;
+    color: var(--accent); font-weight: 700; letter-spacing: 0.03em; margin-bottom: 0.1rem;
+  }
+  .rail .label{ display:block; font-size: 0.86rem; font-weight: 650; }
+  .rail .sub{ display:block; font-size: 0.72rem; color: var(--ink-soft); margin-top:0.15rem; }
+
+  main{ min-width:0; padding: 0 1.5rem 6rem; }
+  section{ padding-top: 2.6rem; scroll-margin-top: 4rem; }
+  section + section{ border-top: 1px solid var(--rule); }
+  .section-head{ display:flex; align-items:baseline; gap:0.75rem; margin-bottom: 1.1rem; flex-wrap:wrap; }
+  .section-head .stop{
+    font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--accent); font-weight:700;
+  }
+  .section-head h2{ font-size: 1.5rem; }
+  .lede{ max-width: 42rem; color: var(--ink-soft); margin-bottom: 1.4rem; }
+  .lede strong{ color: var(--ink); }
+
+  .measure{ max-width: 42rem; }
+
+  /* ---------- Cards / items ---------- */
+  .card{
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    border-radius: 6px; padding: 1rem 1.1rem;
+  }
+  .cat-block{ margin-bottom: 1.6rem; }
+  .cat-block > .cat-title{
+    display:flex; align-items:center; gap: 0.6rem; margin-bottom: 0.6rem;
+  }
+  .cat-title h3{ font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); }
+  .cat-title .star{
+    display:none; align-items:center; gap:0.3rem; font-size: 0.68rem; font-weight:700;
+    color: var(--accent); background: var(--accent-soft); padding: 0.12rem 0.45rem; border-radius: 999px;
+  }
+  .cat-block[data-star="true"] .star{ display:inline-flex; }
+  .cat-title .tagref{ font-size:0.68rem; color: var(--ink-soft); font-family: ui-monospace, monospace; }
+
+  .item{
+    display:grid; grid-template-columns: 1.6rem 1fr; gap:0.5rem 0.7rem;
+    padding: 0.65rem 0; border-top: 1px solid var(--rule);
+  }
+  .cat-block .item:first-of-type{ border-top:none; }
+  .item .n{ font-family: ui-monospace, monospace; color: var(--ink-soft); font-size:0.85rem; padding-top:0.35rem; }
+  .item .body{ min-width:0; }
+  .item .prompt{ font-size: 0.98rem; }
+  .item .row2{ display:flex; align-items:center; gap:0.6rem; margin-top:0.45rem; flex-wrap: wrap; }
+  .item input[type="text"]{
+    flex: 1 1 12rem; min-width: 8rem;
+    background: transparent; border: none; border-bottom: 1.5px solid var(--rule-strong);
+    padding: 0.3rem 0.1rem; outline: none; color: var(--ink);
+  }
+  .item input[type="text"]:focus{ border-bottom-color: var(--focus); }
+  .unsure{ display:inline-flex; align-items:center; gap:0.3rem; font-size:0.74rem; color: var(--ink-soft); white-space:nowrap; }
+  .unsure input{ accent-color: var(--accent); }
+  .verdict{ font-family: ui-monospace, monospace; font-size:0.8rem; font-weight:700; min-width:1.1rem; text-align:center; }
+  .verdict.ok{ color: var(--good); }
+  .verdict.no{ color: var(--accent); }
+  .answer-key{ font-size:0.82rem; color: var(--ink-soft); margin-top:0.3rem; display:none; }
+  .answer-key b{ color: var(--ink); font-weight:650; }
+  [data-checked="true"] .answer-key{ display:block; }
+  [data-checked="true"] input[type="text"]{ pointer-events:none; opacity:0.85; }
+
+  button{
+    cursor:pointer; border: 1px solid var(--rule-strong); background: var(--paper-raised);
+    color: var(--ink); border-radius: 5px; padding: 0.55rem 1rem; font-size:0.86rem; font-weight:650;
+  }
+  button:hover{ border-color: var(--ink-soft); }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline: 2px solid var(--focus); outline-offset: 2px;
+  }
+  button.primary{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button.primary:hover{ opacity:0.88; }
+  button.ghost{ background:transparent; }
+  button.small{ padding:0.3rem 0.6rem; font-size:0.76rem; }
+  .actions{ display:flex; gap:0.6rem; align-items:center; margin-top:1.1rem; flex-wrap:wrap; }
+
+  .scorebox{
+    margin-top:1.3rem; padding: 1rem 1.1rem; border-radius: 6px;
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    display:none;
+  }
+  .scorebox[data-show="true"]{ display:block; }
+  .scoreline{ display:flex; align-items:baseline; gap:0.6rem; margin-bottom:0.5rem; }
+  .scoreline .big{ font-family: ui-monospace, monospace; font-size: 1.8rem; font-weight:700; }
+  .scoreline .of{ color: var(--ink-soft); font-size:0.9rem; }
+  .advice{ font-size:0.92rem; color: var(--ink-soft); max-width:40rem; }
+  .stardays{ margin-top:0.7rem; display:flex; gap:0.4rem; flex-wrap:wrap; }
+  .stardays span{
+    font-family: ui-monospace, monospace; font-size:0.72rem; background: var(--accent-soft); color: var(--accent);
+    padding:0.18rem 0.5rem; border-radius:999px; font-weight:700;
+  }
+
+  /* ---------- grammar tables ---------- */
+  .subhead{ font-size:1.05rem; font-weight:750; margin: 2rem 0 0.8rem; }
+  .subhead:first-child{ margin-top:0; }
+  .rule-box{
+    background: var(--paper-raised); border:1px solid var(--rule); border-radius:6px;
+    padding: 0.9rem 1.1rem; margin-bottom:1.1rem;
+  }
+  .rule-box p{ margin-bottom:0.5rem; }
+  .rule-box p:last-child{ margin-bottom:0; }
+  .note{
+    font-size:0.86rem; color: var(--ink-soft); border-left: 2px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 0.8rem; margin: 0.8rem 0;
+  }
+
+  .tablewrap{ overflow-x:auto; margin-bottom:1.1rem; -webkit-overflow-scrolling: touch; }
+  table{ border-collapse: collapse; width:100%; min-width: 22rem; }
+  th, td{ text-align:left; padding: 0.5rem 0.8rem; border-bottom:1px solid var(--rule); font-size:0.92rem; }
+  th{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color: var(--ink-soft); font-weight:650; border-bottom:1px solid var(--rule-strong); }
+  td.num, th.num{ font-family: ui-monospace, monospace; }
+
+  .klammer-ex{ margin-bottom:1rem; }
+  .klammer-ex .sent{ font-size:1.02rem; display:flex; gap:0.35rem; flex-wrap:wrap; align-items:flex-end; position:relative; padding-bottom: 0.9rem; }
+  .klammer-ex .v{ color: var(--accent); font-weight:750; }
+  .klammer-ex .bracket{
+    position:absolute; bottom:0; left:var(--bl,0); right:var(--br,0);
+    border-bottom: 1.5px solid var(--accent); border-left:1.5px solid var(--accent); border-right:1.5px solid var(--accent);
+    height:0.5rem; border-radius: 0 0 3px 3px; opacity:0.55;
+  }
+  .klammer-ex .cap{ font-size:0.78rem; color:var(--ink-soft); margin-top:0.15rem; }
+
+  .reveal-item{ padding:0.75rem 0; border-top:1px solid var(--rule); }
+  .cat-block .reveal-item:first-of-type, .reveal-list > .reveal-item:first-child{ border-top:none; }
+  .reveal-item .frag{ font-family: ui-monospace, monospace; font-size:0.86rem; color: var(--ink-soft); margin-bottom:0.4rem; }
+  .reveal-item textarea{
+    width:100%; resize:vertical; min-height:2.6rem; background:transparent; border:none;
+    border-bottom:1.5px solid var(--rule-strong); padding:0.3rem 0.1rem; outline:none;
+  }
+  .reveal-item textarea:focus{ border-bottom-color: var(--focus); }
+  .reveal-panel{ display:none; margin-top:0.55rem; padding:0.6rem 0.8rem; background: var(--paper); border-radius:5px; font-size:0.9rem; }
+  .reveal-item[data-open="true"] .reveal-panel{ display:block; }
+  .reveal-panel b{ font-weight:700; }
+  .self-mark{ display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center; }
+  .self-mark .tag{ font-size:0.74rem; color: var(--ink-soft); }
+  .self-mark button[data-picked="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ---------- vocab ---------- */
+  .vocab-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .vocab-stats{ font-family: ui-monospace, monospace; font-size:0.82rem; color: var(--ink-soft); }
+  .vocab-stats b{ color: var(--good); }
+  .vocab-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap:0.75rem; }
+  .flash{
+    position:relative; border:1px solid var(--rule); border-radius:6px; background: var(--paper-raised);
+    padding: 0.9rem 0.9rem 0.7rem; min-height: 6.6rem; display:flex; flex-direction:column; justify-content:space-between;
+    cursor:pointer; user-select:none;
+  }
+  .flash[data-mastered="true"]{ border-color: var(--good); }
+  .flash .badge{
+    position:absolute; top:0.55rem; right:0.55rem; font-size:0.62rem; font-weight:700; letter-spacing:0.04em;
+    text-transform:uppercase; color: var(--accent); background: var(--accent-soft); padding:0.1rem 0.4rem; border-radius:999px;
+  }
+  .flash .face{ font-size:1.0rem; font-weight:600; padding-right:3.2rem; }
+  .flash .hint{ font-size:0.7rem; color: var(--ink-soft); margin-top:0.4rem; }
+  .flash .rate{ display:none; gap:0.4rem; margin-top:0.5rem; }
+  .flash[data-flipped="true"] .rate{ display:flex; }
+  .flash .rate button{ flex:1; padding:0.3rem 0; font-size:0.72rem; }
+
+  /* ---------- production checklist ---------- */
+  .prod-grid{ display:grid; grid-template-columns: minmax(0,1fr) 15rem; gap:1.5rem; align-items:start; }
+  .prod-grid textarea{
+    width:100%; min-height:14rem; background: var(--paper-raised); border:1px solid var(--rule);
+    border-radius:6px; padding:0.9rem; outline:none; line-height:1.6; font-size:1rem;
+  }
+  .prod-grid textarea:focus{ border-color: var(--focus); }
+  .checklist{ display:flex; flex-direction:column; gap:0.7rem; position: sticky; top: 4.2rem; }
+  .check-row{ display:flex; align-items:flex-start; gap:0.55rem; font-size:0.86rem; }
+  .check-row .dot{
+    flex:none; width:1.1rem; height:1.1rem; border-radius:50%; border:1.5px solid var(--rule-strong);
+    display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:800; margin-top:0.1rem;
+  }
+  .check-row[data-met="true"] .dot{ background: var(--good); border-color: var(--good); color: var(--paper-raised); }
+  .check-row[data-met="true"] .dot::after{ content:"✓"; }
+  .check-row b.count{ font-family: ui-monospace, monospace; }
+  .bonus{ margin-top:1.4rem; font-size:0.86rem; color: var(--ink-soft); max-width:42rem; }
+
+  /* ---------- fehlerjournal ---------- */
+  .journal-table{ width:100%; }
+  .journal-table th:nth-child(4), .journal-table td:nth-child(4){ width:4rem; }
+  .journal-table td input{
+    width:100%; background:transparent; border:none; border-bottom:1px solid transparent; padding:0.25rem;
+  }
+  .journal-table tr:hover td input{ border-bottom-color: var(--rule); }
+  .journal-table td input:focus{ border-bottom-color: var(--focus); outline:none; }
+  .journal-table .del{ background:none; border:none; color: var(--ink-soft); cursor:pointer; font-size:0.9rem; padding:0.2rem 0.4rem; }
+  .journal-table .del:hover{ color: var(--accent); }
+  .add-row{ margin-top:0.8rem; }
+
+  /* ---------- selbstcheck ---------- */
+  .sc-item{ margin-bottom:1.3rem; }
+  .sc-item p.q{ font-weight:650; margin-bottom:0.5rem; }
+  .sc-item textarea{
+    width:100%; min-height:3.2rem; background: var(--paper-raised); border:1px solid var(--rule);
+    border-radius:6px; padding:0.6rem 0.8rem; outline:none; font-size:0.95rem;
+  }
+  .sc-item textarea:focus{ border-color: var(--focus); }
+
+  footer{
+    max-width:78rem; margin:0 auto; padding: 2rem 1.5rem 3rem; color: var(--ink-soft); font-size:0.82rem;
+    border-top:1px solid var(--rule);
+  }
+
+  @media (max-width: 860px){
+    .layout{ grid-template-columns: 1fr; }
+    .rail{
+      position: sticky; top: 3.4rem; height:auto; border-right:none; border-bottom:1px solid var(--rule);
+      padding: 0.7rem 1rem; overflow-x:auto; overflow-y:hidden; background: var(--paper);
+    }
+    .rail ol{ flex-direction:row; gap:1.2rem; }
+    .rail li{ padding-left:0; white-space:nowrap; }
+    .rail li::before, .rail li::after{ display:none; }
+    .rail a{ border-left:none; border-bottom:2px solid transparent; padding:0.2rem 0 0.4rem; }
+    .rail li[data-active="true"] a{ border-bottom-color: var(--accent); }
+    .rail .sub{ display:none; }
+    .board{ display:none; }
+    .prod-grid{ grid-template-columns: 1fr; }
+    .checklist{ position:static; flex-direction:row; flex-wrap:wrap; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ scroll-behavior:auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="code mono">TAG 01</span>
+      <h1 class="display">Diagnose · Präsens · Satzstellung</h1>
+    </div>
+    <div class="board" id="board">
+      <div class="cell"><span>Diagnose</span><b class="num" id="board-diag">–/20</b></div>
+      <div class="cell"><span>Konjugation</span><b class="num" id="board-konj">–/10</b></div>
+      <div class="cell"><span>Wortschatz</span><b class="num" id="board-vocab">–/28</b></div>
+      <div class="cell"><span>Produktion</span><b class="num" id="board-prod">–/4</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="rail" aria-label="Ablauf">
+    <ol>
+      <li data-target="diagnose"><a href="#diagnose"><span class="time">0:00</span><span class="label">Diagnose</span><span class="sub">20 Sätze</span></a></li>
+      <li data-target="grammatik"><a href="#grammatik"><span class="time">0:20</span><span class="label">Grammatik</span><span class="sub">Präsens & Verbklammer</span></a></li>
+      <li data-target="wortschatz"><a href="#wortschatz"><span class="time">0:40</span><span class="label">Wortschatz</span><span class="sub">Tagesablauf</span></a></li>
+      <li data-target="produktion"><a href="#produktion"><span class="time">0:52</span><span class="label">Produktion</span><span class="sub">10 Sätze</span></a></li>
+      <li data-target="abschluss"><a href="#abschluss"><span class="time">0:58</span><span class="label">Abschluss</span><span class="sub">Fehlerjournal · Selbstcheck</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ============ DIAGNOSE ============ -->
+    <section id="diagnose">
+      <div class="section-head"><span class="stop mono">0:00–0:20</span><h2>Diagnose — 20 Sätze</h2></div>
+      <p class="lede">Twenty gaps, each mapped to a later day. Write your answers down before checking. <strong>Don't guess silently</strong> — if you're unsure, tick <em>unsicher</em> even if you get it right. A lucky guess is still a gap.</p>
+
+      <div id="diagnose-items"></div>
+
+      <div class="actions">
+        <button class="primary" id="diag-check">Auswertung anzeigen</button>
+        <button class="ghost" id="diag-reset">Zurücksetzen</button>
+      </div>
+
+      <div class="scorebox" id="diag-score">
+        <div class="scoreline"><span class="big mono" id="diag-score-n">0</span><span class="of">/ 20</span></div>
+        <p class="advice" id="diag-advice"></p>
+        <div class="stardays" id="diag-stars"></div>
+      </div>
+    </section>
+
+    <!-- ============ GRAMMATIK ============ -->
+    <section id="grammatik">
+      <div class="section-head"><span class="stop mono">0:20–0:40</span><h2>Grammatik — Präsens & Verbklammer</h2></div>
+
+      <div class="subhead">Regel 1 — Verb an Position 2</div>
+      <div class="measure rule-box">
+        <p>The conjugated verb is the <strong>second element</strong>, always. Not the second word — the second <em>element</em>. Anything can occupy position 1, and the subject then slides behind the verb.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Position 1</th><th>Verb</th><th>Rest</th></tr></thead>
+          <tbody>
+            <tr><td>Ich</td><td class="v" style="color:var(--accent);font-weight:700">fahre</td><td>morgen nach Wien.</td></tr>
+            <tr><td>Morgen</td><td class="v" style="color:var(--accent);font-weight:700">fahre</td><td>ich nach Wien.</td></tr>
+            <tr><td>Nach Wien</td><td class="v" style="color:var(--accent);font-weight:700">fahre</td><td>ich morgen.</td></tr>
+            <tr><td>Mit meiner Frau</td><td class="v" style="color:var(--accent);font-weight:700">fahre</td><td>ich morgen nach Wien.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note measure">Common Anglophone error: <em>Morgen ich fahre…</em> — English lets you front an adverb without inverting. German doesn't.</p>
+
+      <div class="subhead">Regel 2 — Die Satzklammer</div>
+      <p class="measure" style="margin-bottom:1rem;">The second verb part goes to the very end, bracketing the sentence. Everything else piles up inside the bracket.</p>
+
+      <div class="klammer-ex">
+        <div class="sent"><span>Ich</span><span class="v">rufe</span><span>dich morgen</span><span class="v">an</span><span class="bracket" style="--bl:1.6rem;--br:0"></span></div>
+        <div class="cap">Trennbares Verb — <span class="mono">anrufen</span></div>
+      </div>
+      <div class="klammer-ex">
+        <div class="sent"><span>Ich</span><span class="v">muss</span><span>morgen früh</span><span class="v">aufstehen</span><span class="bracket" style="--bl:1.6rem;--br:0"></span></div>
+        <div class="cap">Modalverb — Infinitiv am Ende</div>
+      </div>
+      <div class="klammer-ex">
+        <div class="sent"><span>Ich</span><span class="v">habe</span><span>dich gestern</span><span class="v">angerufen</span><span class="bracket" style="--bl:1.6rem;--br:0"></span></div>
+        <div class="cap">Perfekt — Partizip am Ende</div>
+      </div>
+
+      <div class="subhead">Regel 3 — Stammveränderung (2./3. Person Singular)</div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Typ</th><th>Infinitiv</th><th>du</th><th>er/sie/es</th></tr></thead>
+          <tbody>
+            <tr><td>a → ä</td><td>fahren</td><td>fährst</td><td>fährt</td></tr>
+            <tr><td>a → ä</td><td>schlafen</td><td>schläfst</td><td>schläft</td></tr>
+            <tr><td>e → i</td><td>sprechen</td><td>sprichst</td><td>spricht</td></tr>
+            <tr><td>e → i</td><td>essen</td><td>isst</td><td>isst</td></tr>
+            <tr><td>e → i</td><td>geben</td><td>gibst</td><td>gibt</td></tr>
+            <tr><td>e → ie</td><td>sehen</td><td>siehst</td><td>sieht</td></tr>
+            <tr><td>e → ie</td><td>lesen</td><td>liest</td><td>liest</td></tr>
+            <tr><td>irregulär</td><td>nehmen</td><td>nimmst</td><td>nimmt</td></tr>
+            <tr><td>irregulär</td><td>wissen</td><td>weißt</td><td>weiß</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="measure" style="margin:0.9rem 0 0.5rem;font-size:0.86rem;color:var(--ink-soft)"><strong style="color:var(--ink)">sein / haben / werden</strong> — know these cold:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th>sein</th><th>haben</th><th>werden</th></tr></thead>
+          <tbody>
+            <tr><td>ich</td><td>bin</td><td>habe</td><td>werde</td></tr>
+            <tr><td>du</td><td>bist</td><td>hast</td><td>wirst</td></tr>
+            <tr><td>er/sie/es</td><td>ist</td><td>hat</td><td>wird</td></tr>
+            <tr><td>wir</td><td>sind</td><td>haben</td><td>werden</td></tr>
+            <tr><td>ihr</td><td>seid</td><td>habt</td><td>werdet</td></tr>
+            <tr><td>sie/Sie</td><td>sind</td><td>haben</td><td>werden</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Übung B -->
+      <div class="subhead">Übung B — Konjugiere</div>
+      <div id="konj-items" class="measure"></div>
+      <div class="actions">
+        <button class="primary" id="konj-check">Auswertung anzeigen</button>
+        <button class="ghost" id="konj-reset">Zurücksetzen</button>
+      </div>
+      <div class="scorebox" id="konj-score">
+        <div class="scoreline"><span class="big mono" id="konj-score-n">0</span><span class="of">/ 10</span></div>
+      </div>
+
+      <!-- Übung C -->
+      <div class="subhead">Übung C — Satzstellung</div>
+      <p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">Rewrite each sentence starting with the <strong style="color:var(--ink)">bold</strong> element. Word order has one right shape here, so self-check against the key.</p>
+      <div id="satzstellung-items" class="measure reveal-list"></div>
+
+      <!-- Übung D -->
+      <div class="subhead">Übung D — Satzklammer</div>
+      <p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">Build sentences from the fragments. Watch where the second verb part lands.</p>
+      <div id="satzklammer-items" class="measure reveal-list"></div>
+    </section>
+
+    <!-- ============ WORTSCHATZ ============ -->
+    <section id="wortschatz">
+      <div class="section-head"><span class="stop mono">0:40–0:52</span><h2>Wortschatz — Tagesablauf</h2></div>
+      <p class="lede">Read the German, say the English aloud before flipping. Then reverse the direction. Anything you flip <em>Nochmal</em> on twice belongs in the Fehlerjournal. Cards marked <span class="mono" style="color:var(--accent)">trennbar</span> are separable verbs — eleven built-in Satzklammer drills.</p>
+
+      <div class="vocab-toolbar">
+        <div class="vocab-stats">Sicher: <b id="vocab-mastered">0</b> / 28 · Richtung:
+          <button class="small ghost" id="vocab-dir">DE → EN</button>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="small ghost" id="vocab-shuffle">Mischen</button>
+          <button class="small ghost" id="vocab-reset">Zurücksetzen</button>
+        </div>
+      </div>
+      <div class="vocab-grid" id="vocab-grid"></div>
+    </section>
+
+    <!-- ============ PRODUKTION ============ -->
+    <section id="produktion">
+      <div class="section-head"><span class="stop mono">0:52–0:58</span><h2>Produktion — 10 Sätze</h2></div>
+      <p class="lede">Write 10 sentences describing a normal weekday, out loud as you write. Rough is fine — fluency now, accuracy later.</p>
+
+      <div class="prod-grid">
+        <textarea id="prod-text" placeholder="Um sieben Uhr wache ich auf. Danach…" spellcheck="true"></textarea>
+        <div class="checklist" id="prod-checklist">
+          <div class="check-row" data-key="sentences"><span class="dot"></span><span>Mindestens <b class="count">10</b> Sätze — aktuell <b class="count" id="cnt-sentences">0</b></span></div>
+          <div class="check-row" data-key="fronted"><span class="dot"></span><span>≥4 beginnen <em>nicht</em> mit dem Subjekt — <b class="count" id="cnt-fronted">0</b></span></div>
+          <div class="check-row" data-key="separable"><span class="dot"></span><span>≥4 mit trennbarem Verb (Präfix am Satzende) — <b class="count" id="cnt-separable">0</b></span></div>
+          <div class="check-row" data-key="modal"><span class="dot"></span><span>≥2 mit Modalverb — <b class="count" id="cnt-modal">0</b></span></div>
+          <div class="check-row" data-key="sequence"><span class="dot"></span><span>zuerst/dann/danach/schließlich verwendet</span></div>
+        </div>
+      </div>
+      <p class="bonus"><strong style="color:var(--ink)">Bonus, falls Zeit bleibt:</strong> repeat the same 10 sentences about your wife's day (<em>sie</em> forms — forces the stem changes) or your kids' (<em>sie</em> plural).</p>
+    </section>
+
+    <!-- ============ ABSCHLUSS ============ -->
+    <section id="abschluss">
+      <div class="section-head"><span class="stop mono">0:58–1:00</span><h2>Fehlerjournal & Selbstcheck</h2></div>
+
+      <div class="subhead">Fehlerjournal</div>
+      <p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">By Day 10 this doc <em>is</em> your syllabus for the intensive. Bring it to the course.</p>
+      <div class="tablewrap">
+        <table class="journal-table">
+          <thead><tr><th>Falsch</th><th>Richtig</th><th>Warum</th><th>Tag</th><th></th></tr></thead>
+          <tbody id="journal-body"></tbody>
+        </table>
+      </div>
+      <div class="actions add-row">
+        <button class="ghost small" id="journal-add">+ Zeile hinzufügen</button>
+      </div>
+
+      <div class="subhead">Selbstcheck</div>
+      <p class="measure" style="color:var(--ink-soft);margin-bottom:1rem;">Answer without looking back, then reveal.</p>
+
+      <div class="sc-item" data-q="1">
+        <p class="q">Why is <em>Gestern ich habe gearbeitet</em> wrong?</p>
+        <textarea placeholder="Deine Antwort…"></textarea>
+        <div class="actions"><button class="ghost small sc-reveal">Antwort zeigen</button></div>
+        <div class="reveal-panel">Position 1 is filled by <b>Gestern</b>, so the verb must sit in position 2 and the subject moves behind it: <b>Gestern habe ich gearbeitet.</b> Fronting an adverb without inverting is the classic English-speaker's V2 error.</div>
+      </div>
+      <div class="sc-item" data-q="2">
+        <p class="q">Where does the prefix of a separable verb go in a main clause? In a question?</p>
+        <textarea placeholder="Deine Antwort…"></textarea>
+        <div class="actions"><button class="ghost small sc-reveal">Antwort zeigen</button></div>
+        <div class="reveal-panel">To the very end of the clause, closing the Satzklammer — in a statement (<b>Ich rufe dich morgen an.</b>), in a Ja/Nein-question (<b>Kannst du mir helfen?</b> — well, that one's modal+infinitive, but the shape holds), and in a W-question (<b>Wann fängt der Kurs an?</b>). Only the finite verb moves to position 1/2; the prefix always stays last.</div>
+      </div>
+      <div class="sc-item" data-q="3">
+        <p class="q">Which three verbs must you know perfectly before anything else works?</p>
+        <textarea placeholder="Deine Antwort…"></textarea>
+        <div class="actions"><button class="ghost small sc-reveal">Antwort zeigen</button></div>
+        <div class="reveal-panel"><b>sein, haben, werden</b> — they carry the Perfekt, the passive, the future, and half the idioms in the language. Automatic recall, no hesitation.</div>
+      </div>
+
+      <p class="measure" style="margin-top:1.6rem;color:var(--ink-soft);font-size:0.9rem;">Then skim tomorrow's topic for two minutes: <strong style="color:var(--ink)">Nominativ & Akkusativ.</strong></p>
+    </section>
+
+  </main>
+</div>
+
+<footer>Tag 1 von 10 · Fehlerjournal-Einträge und Fortschritt werden lokal in diesem Browser gespeichert.</footer>
+
+<script>
+(function(){
+  "use strict";
+  var LS_PREFIX = "deutsch-tag01:";
+
+  function normalize(s){
+    return (s||"")
+      .toLowerCase()
+      .replace(/[.,!?;:]/g, "")
+      .replace(/ß/g, "ss")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  function wordsPresent(input, required){
+    var norm = normalize(input);
+    var tokens = norm.split(" ");
+    return required.every(function(r){
+      var rn = normalize(r);
+      return tokens.indexOf(rn) !== -1 || norm.indexOf(rn) !== -1;
+    });
+  }
+  function save(key, val){ try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); }catch(e){} }
+  function load(key, fallback){ try{ var v = localStorage.getItem(LS_PREFIX+key); return v===null? fallback : JSON.parse(v); }catch(e){ return fallback; } }
+
+  /* ================= DIAGNOSE ================= */
+  var diagnoseData = [
+    {cat:"Akkusativ", tag:"2", items:[
+      {n:1, prompt:"Ich habe ________ (ein Hund).", answers:["einen Hund"]},
+      {n:2, prompt:"Ohne ________ (mein Bruder) gehe ich nicht.", answers:["meinen Bruder"]}
+    ]},
+    {cat:"Dativ", tag:"3", items:[
+      {n:3, prompt:"Das Buch gehört ________ (die Lehrerin).", answers:["der Lehrerin"]},
+      {n:4, prompt:"Ich spiele mit ________ (die Kinder).", answers:["den Kindern"]}
+    ]},
+    {cat:"Präpositionen", tag:"4", items:[
+      {n:5, prompt:"Seit ________ (ein Jahr) wohne ich in Wien.", answers:["einem Jahr"]},
+      {n:6, prompt:"Ich gehe ________ Arzt. (zu + dem)", answers:["zum"]}
+    ]},
+    {cat:"Wechselpräpositionen", tag:"5", items:[
+      {n:7, prompt:"Die Lampe hängt über ________ Tisch.", answers:["dem"]},
+      {n:8, prompt:"Ich stelle die Flasche auf ________ Tisch.", answers:["den"]}
+    ]},
+    {cat:"Perfekt", tag:"6", items:[
+      {n:9, prompt:"Gestern ________ ich nach Graz ________ (fahren).", answers:["bin","gefahren"], display:"bin … gefahren"},
+      {n:10, prompt:"Wir ________ den Film schon ________ (sehen).", answers:["haben","gesehen"], display:"haben … gesehen"}
+    ]},
+    {cat:"Präteritum & Modalverben", tag:"7", items:[
+      {n:11, prompt:"Als Kind ________ ich nicht schwimmen. (können, Präteritum)", answers:["konnte"]},
+      {n:12, prompt:"Ich ________ gestern bis 20 Uhr arbeiten. (müssen, Präteritum)", answers:["musste"]}
+    ]},
+    {cat:"Adjektivendungen", tag:"8", items:[
+      {n:13, prompt:"Ich habe einen ________ Wagen gekauft. (neu)", answers:["neuen"]},
+      {n:14, prompt:"Der ________ Mann dort ist mein Onkel. (alt)", answers:["alte"]}
+    ]},
+    {cat:"Nebensätze", tag:"9", items:[
+      {n:15, prompt:"Ich komme nicht. Ich bin krank. → (weil)", answers:["weil","krank","bin"], display:"Ich komme nicht, weil ich krank bin.", freeform:true},
+      {n:16, prompt:"Er ist müde. Er sagt es. → Er sagt, ________", answers:["dass","müde","ist"], display:"dass er müde ist", freeform:true}
+    ]},
+    {cat:"Reflexiv & Konjunktiv II", tag:"10", items:[
+      {n:17, prompt:"Ich interessiere ________ für Musik.", answers:["mich"]},
+      {n:18, prompt:"________ Sie mir bitte helfen? (können, höflich)", answers:["könnten"]}
+    ]},
+    {cat:"Verben mit Präposition", tag:"10", items:[
+      {n:19, prompt:"Ich warte ________ den Bus.", answers:["auf"]},
+      {n:20, prompt:"Ich freue ________ ________ das Wochenende.", answers:["mich","auf"], display:"mich … auf"}
+    ]}
+  ];
+
+  var diagContainer = document.getElementById("diagnose-items");
+  diagnoseData.forEach(function(block){
+    var wrap = document.createElement("div");
+    wrap.className = "cat-block";
+    wrap.dataset.cat = block.cat;
+    var title = document.createElement("div");
+    title.className = "cat-title";
+    title.innerHTML = '<h3>'+block.cat+'</h3><span class="tagref mono">→ Tag '+block.tag+'</span><span class="star">★ diesen Tag vertiefen</span>';
+    wrap.appendChild(title);
+    block.items.forEach(function(item){
+      var row = document.createElement("div");
+      row.className = "item";
+      row.dataset.n = item.n;
+      row.innerHTML =
+        '<div class="n mono">'+item.n+'</div>'+
+        '<div class="body">'+
+          '<div class="prompt">'+item.prompt+'</div>'+
+          '<div class="row2">'+
+            '<input type="text" id="diag-in-'+item.n+'" placeholder="Antwort" autocomplete="off">'+
+            '<span class="verdict" id="diag-v-'+item.n+'"></span>'+
+            '<label class="unsure"><input type="checkbox" id="diag-u-'+item.n+'"> unsicher</label>'+
+          '</div>'+
+          '<div class="answer-key">Lösung: <b>'+(item.display||item.answers.join(" "))+'</b></div>'+
+        '</div>';
+      wrap.appendChild(row);
+    });
+    diagContainer.appendChild(wrap);
+  });
+
+  function diagState(){
+    var saved = load("diagnose", {});
+    diagnoseData.forEach(function(block){
+      block.items.forEach(function(item){
+        var inp = document.getElementById("diag-in-"+item.n);
+        var un = document.getElementById("diag-u-"+item.n);
+        if(saved[item.n]){ inp.value = saved[item.n].v || ""; un.checked = !!saved[item.n].u; }
+        function persist(){
+          var all = load("diagnose", {});
+          all[item.n] = {v: inp.value, u: un.checked};
+          save("diagnose", all);
+        }
+        inp.addEventListener("input", persist);
+        un.addEventListener("change", persist);
+      });
+    });
+  }
+  diagState();
+
+  function scoreAdvice(n){
+    if(n>=18) return "Your A1/A2 base is solid. Compress days 2–4, and reallocate that time to days 8 and 9 — adjective endings and subordinate clauses are where B1 actually lives.";
+    if(n>=13) return "The plan is correctly calibrated. Run it as written.";
+    if(n>=8) return "Give days 2–5 the full hour and don't rush them. Consider stretching to 12 days by splitting Day 8 across two sessions.";
+    return "You're at a genuine A1 review rather than A2. Slow down; the case system needs to be automatic before adjective endings will stick.";
+  }
+
+  document.getElementById("diag-check").addEventListener("click", function(){
+    var total = 0, correct = 0;
+    var starDays = {};
+    diagnoseData.forEach(function(block){
+      var wrap = document.querySelector('.cat-block[data-cat="'+CSS.escape(block.cat)+'"]');
+      var blockCorrect = 0, blockUnsure = false;
+      block.items.forEach(function(item){
+        var inp = document.getElementById("diag-in-"+item.n);
+        var un = document.getElementById("diag-u-"+item.n);
+        var row = document.querySelector('.item[data-n="'+item.n+'"]');
+        row.dataset.checked = "true";
+        var ok = wordsPresent(inp.value, item.answers);
+        total++;
+        if(ok){ correct++; blockCorrect++; }
+        if(un.checked) blockUnsure = true;
+        var v = document.getElementById("diag-v-"+item.n);
+        v.textContent = ok ? "✓" : "✗";
+        v.className = "verdict " + (ok ? "ok" : "no");
+      });
+      var needsStar = blockCorrect < block.items.length || blockUnsure;
+      wrap.dataset.star = needsStar ? "true" : "false";
+      if(needsStar) block.tag.split("/").forEach(function(t){ starDays[t.trim()] = true; });
+    });
+    document.getElementById("diag-score-n").textContent = correct;
+    document.getElementById("diag-advice").textContent = scoreAdvice(correct);
+    document.getElementById("diag-stars").innerHTML = Object.keys(starDays).sort(function(a,b){return a-b;}).map(function(d){ return '<span>Tag '+d+'</span>'; }).join("");
+    document.getElementById("diag-score").dataset.show = "true";
+    document.getElementById("board-diag").textContent = correct + "/20";
+  });
+
+  document.getElementById("diag-reset").addEventListener("click", function(){
+    save("diagnose", {});
+    diagnoseData.forEach(function(block){
+      block.items.forEach(function(item){
+        document.getElementById("diag-in-"+item.n).value = "";
+        document.getElementById("diag-u-"+item.n).checked = false;
+        document.getElementById("diag-v-"+item.n).textContent = "";
+        document.querySelector('.item[data-n="'+item.n+'"]').dataset.checked = "false";
+      });
+    });
+    document.getElementById("diag-score").dataset.show = "false";
+    document.getElementById("board-diag").textContent = "–/20";
+  });
+
+  /* ================= ÜBUNG B — KONJUGATION ================= */
+  var konjData = [
+    {n:1, prompt:"du (sprechen)", answer:"sprichst"},
+    {n:2, prompt:"er (nehmen)", answer:"nimmt"},
+    {n:3, prompt:"sie (sg.) (lesen)", answer:"liest"},
+    {n:4, prompt:"du (fahren)", answer:"fährst"},
+    {n:5, prompt:"es (geben)", answer:"gibt"},
+    {n:6, prompt:"du (essen)", answer:"isst"},
+    {n:7, prompt:"er (schlafen)", answer:"schläft"},
+    {n:8, prompt:"du (wissen)", answer:"weißt"},
+    {n:9, prompt:"ihr (sein)", answer:"seid"},
+    {n:10, prompt:"du (werden)", answer:"wirst"}
+  ];
+  var konjContainer = document.getElementById("konj-items");
+  konjData.forEach(function(item){
+    var row = document.createElement("div");
+    row.className = "item";
+    row.dataset.n = item.n;
+    row.innerHTML =
+      '<div class="n mono">'+item.n+'</div>'+
+      '<div class="body">'+
+        '<div class="prompt">'+item.prompt+'</div>'+
+        '<div class="row2"><input type="text" id="konj-in-'+item.n+'" placeholder="Antwort" autocomplete="off"><span class="verdict" id="konj-v-'+item.n+'"></span></div>'+
+        '<div class="answer-key">Lösung: <b>'+item.answer+'</b></div>'+
+      '</div>';
+    konjContainer.appendChild(row);
+  });
+  (function(){
+    var saved = load("konjugation", {});
+    konjData.forEach(function(item){
+      var inp = document.getElementById("konj-in-"+item.n);
+      if(saved[item.n]) inp.value = saved[item.n];
+      inp.addEventListener("input", function(){
+        var all = load("konjugation", {}); all[item.n]=inp.value; save("konjugation", all);
+      });
+    });
+  })();
+  document.getElementById("konj-check").addEventListener("click", function(){
+    var correct = 0;
+    konjData.forEach(function(item){
+      var inp = document.getElementById("konj-in-"+item.n);
+      var v = document.getElementById("konj-v-"+item.n);
+      var row = document.querySelector('#konj-items .item[data-n="'+item.n+'"]');
+      row.dataset.checked = "true";
+      var ok = normalize(inp.value) === normalize(item.answer);
+      if(ok) correct++;
+      v.textContent = ok ? "✓" : "✗";
+      v.className = "verdict " + (ok ? "ok" : "no");
+    });
+    document.getElementById("konj-score-n").textContent = correct;
+    document.getElementById("konj-score").dataset.show = "true";
+    document.getElementById("board-konj").textContent = correct + "/10";
+  });
+  document.getElementById("konj-reset").addEventListener("click", function(){
+    save("konjugation", {});
+    konjData.forEach(function(item){
+      document.getElementById("konj-in-"+item.n).value = "";
+      document.getElementById("konj-v-"+item.n).textContent = "";
+      document.querySelector('#konj-items .item[data-n="'+item.n+'"]').dataset.checked = "false";
+    });
+    document.getElementById("konj-score").dataset.show = "false";
+    document.getElementById("board-konj").textContent = "–/10";
+  });
+
+  /* ================= ÜBUNG C / D — reveal + self-mark ================= */
+  function buildRevealList(containerId, data, storeKey){
+    var container = document.getElementById(containerId);
+    data.forEach(function(item){
+      var el = document.createElement("div");
+      el.className = "reveal-item";
+      el.dataset.n = item.n;
+      el.innerHTML =
+        '<div class="frag">'+item.n+'. '+item.frag+'</div>'+
+        '<textarea id="'+storeKey+'-in-'+item.n+'" placeholder="Deine Lösung…" rows="1"></textarea>'+
+        '<div class="actions"><button class="ghost small reveal-btn">Antwort zeigen</button></div>'+
+        '<div class="reveal-panel">Lösung: <b>'+item.answer+'</b>'+(item.hint? '<br><span style="color:var(--ink-soft);font-size:0.85rem">'+item.hint+'</span>':'')+
+          '<div class="self-mark"><span class="tag">Selbsteinschätzung:</span><button class="small self-ok">richtig</button><button class="small self-no">falsch</button></div>'+
+        '</div>';
+      container.appendChild(el);
+
+      var ta = el.querySelector("textarea");
+      var saved = load(storeKey, {});
+      if(saved[item.n]) ta.value = saved[item.n].v || "";
+      if(saved[item.n] && saved[item.n].mark){
+        el.dataset.open = "true";
+        var btn = saved[item.n].mark === "ok" ? el.querySelector(".self-ok") : el.querySelector(".self-no");
+        btn.dataset.picked = "true";
+      }
+      ta.addEventListener("input", function(){
+        var all = load(storeKey, {});
+        all[item.n] = all[item.n] || {};
+        all[item.n].v = ta.value;
+        save(storeKey, all);
+      });
+      el.querySelector(".reveal-btn").addEventListener("click", function(){
+        el.dataset.open = "true";
+      });
+      el.querySelector(".self-ok").addEventListener("click", function(){
+        el.querySelector(".self-ok").dataset.picked = "true";
+        el.querySelector(".self-no").dataset.picked = "false";
+        var all = load(storeKey, {}); all[item.n]=all[item.n]||{}; all[item.n].mark="ok"; save(storeKey, all);
+      });
+      el.querySelector(".self-no").addEventListener("click", function(){
+        el.querySelector(".self-no").dataset.picked = "true";
+        el.querySelector(".self-ok").dataset.picked = "false";
+        var all = load(storeKey, {}); all[item.n]=all[item.n]||{}; all[item.n].mark="no"; save(storeKey, all);
+      });
+    });
+  }
+
+  buildRevealList("satzstellung-items", [
+    {n:1, frag:"Ich stehe um sechs Uhr auf.", answer:"Um sechs Uhr stehe ich auf."},
+    {n:2, frag:"Wir gehen am Wochenende ins Kino.", answer:"Am Wochenende gehen wir ins Kino."},
+    {n:3, frag:"Sie arbeitet seit drei Jahren in Wien.", answer:"Seit drei Jahren arbeitet sie in Wien."},
+    {n:4, frag:"Ich fahre mit dem Rad zur Arbeit.", answer:"Mit dem Rad fahre ich zur Arbeit."},
+    {n:5, frag:"Er kommt heute Abend nicht mit.", answer:"Heute Abend kommt er nicht mit."}
+  ], "satzstellung");
+
+  buildRevealList("satzklammer-items", [
+    {n:1, frag:"ich / anrufen / dich / morgen", answer:"Ich rufe dich morgen an."},
+    {n:2, frag:"wir / müssen / früh / aufstehen", answer:"Wir müssen früh aufstehen."},
+    {n:3, frag:"sie (sg.) / einkaufen / am Samstag / immer", answer:"Sie kauft am Samstag immer ein.", hint:"oder: Am Samstag kauft sie immer ein."},
+    {n:4, frag:"kannst / du / mir / helfen (Frage)", answer:"Kannst du mir helfen?", hint:"Ja/Nein-Frage: Verb an Position 1, Infinitiv am Ende"},
+    {n:5, frag:"der Zug / abfahren / um 8:15", answer:"Der Zug fährt um 8:15 ab."},
+    {n:6, frag:"ich / wollen / nächstes Jahr / nach Italien / fahren", answer:"Ich will nächstes Jahr nach Italien fahren."},
+    {n:7, frag:"wann / anfangen / der Kurs (Frage)", answer:"Wann fängt der Kurs an?", hint:"W-Frage: W-Wort P1, Verb P2, Präfix ans Ende"},
+    {n:8, frag:"ihr / dürfen / hier / nicht / parken", answer:"Ihr dürft hier nicht parken."}
+  ], "satzklammer");
+
+  /* ================= WORTSCHATZ ================= */
+  var vocab = [
+    ["aufwachen","to wake up",true],
+    ["aufstehen","to get up",true],
+    ["sich duschen","to shower",false],
+    ["sich anziehen","to get dressed",true],
+    ["frühstücken","to have breakfast",false],
+    ["das Frühstück","breakfast",false],
+    ["zur Arbeit fahren","to travel to work",false],
+    ["anfangen / beginnen","to begin",true],
+    ["eine Besprechung haben","to have a meeting",false],
+    ["Mittagspause machen","to take a lunch break",false],
+    ["aufhören","to stop, finish",true],
+    ["einkaufen","to shop",true],
+    ["kochen","to cook",false],
+    ["das Abendessen","dinner",false],
+    ["abwaschen / spülen","to wash up",true],
+    ["aufräumen","to tidy up",true],
+    ["die Kinder ins Bett bringen","to put the kids to bed",false],
+    ["fernsehen","to watch TV",true],
+    ["sich ausruhen","to rest",true],
+    ["müde sein","to be tired",false],
+    ["einschlafen","to fall asleep",true],
+    ["oft / manchmal / selten / nie","often / sometimes / rarely / never",false],
+    ["normalerweise","usually",false],
+    ["zuerst / dann / danach / schließlich","first / then / after that / finally",false],
+    ["gegen acht Uhr","around eight",false],
+    ["jeden Tag / jeden Morgen","every day / every morning",false],
+    ["unter der Woche","during the week",false],
+    ["am Wochenende","at the weekend",false]
+  ].map(function(v,i){ return {id:i, de:v[0], en:v[1], sep:v[2]}; });
+
+  var vocabState = load("vocab", {}); // {id: {flipped, mastered}}
+  var vocabDir = load("vocabDir", "de-en");
+  var vocabOrder = load("vocabOrder", vocab.map(function(v){return v.id;}));
+
+  var grid = document.getElementById("vocab-grid");
+  function renderVocab(){
+    grid.innerHTML = "";
+    vocabOrder.forEach(function(id){
+      var v = vocab[id];
+      var st = vocabState[id] || {};
+      var card = document.createElement("div");
+      card.className = "flash";
+      card.dataset.flipped = st.flipped ? "true" : "false";
+      card.dataset.mastered = st.mastered ? "true" : "false";
+      var front = vocabDir === "de-en" ? v.de : v.en;
+      var back = vocabDir === "de-en" ? v.en : v.de;
+      card.innerHTML =
+        (v.sep ? '<span class="badge">trennbar</span>' : '') +
+        '<div class="face">'+(st.flipped ? back : front)+'</div>'+
+        '<div class="hint">'+(st.flipped ? "Klicken zum Umdrehen" : "Klicken zum Aufdecken")+'</div>'+
+        '<div class="rate"><button class="mastered-btn">Ich kann\'s</button><button class="missed-btn">Nochmal</button></div>';
+      card.addEventListener("click", function(e){
+        if(e.target.classList.contains("mastered-btn") || e.target.classList.contains("missed-btn")) return;
+        st.flipped = !st.flipped;
+        vocabState[id] = st; save("vocab", vocabState); renderVocab();
+      });
+      card.querySelector(".mastered-btn").addEventListener("click", function(e){
+        e.stopPropagation(); st.mastered = true; vocabState[id]=st; save("vocab", vocabState); renderVocab(); updateVocabStats();
+      });
+      card.querySelector(".missed-btn").addEventListener("click", function(e){
+        e.stopPropagation(); st.mastered = false; vocabState[id]=st; save("vocab", vocabState); renderVocab(); updateVocabStats();
+      });
+      grid.appendChild(card);
+    });
+  }
+  function updateVocabStats(){
+    var mastered = Object.keys(vocabState).filter(function(k){ return vocabState[k].mastered; }).length;
+    document.getElementById("vocab-mastered").textContent = mastered;
+    document.getElementById("board-vocab").textContent = mastered + "/28";
+  }
+  document.getElementById("vocab-dir").addEventListener("click", function(){
+    vocabDir = vocabDir === "de-en" ? "en-de" : "de-en";
+    save("vocabDir", vocabDir);
+    this.textContent = vocabDir === "de-en" ? "DE → EN" : "EN → DE";
+    renderVocab();
+  });
+  document.getElementById("vocab-dir").textContent = vocabDir === "de-en" ? "DE → EN" : "EN → DE";
+  document.getElementById("vocab-shuffle").addEventListener("click", function(){
+    for(var i=vocabOrder.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=vocabOrder[i]; vocabOrder[i]=vocabOrder[j]; vocabOrder[j]=t; }
+    save("vocabOrder", vocabOrder);
+    renderVocab();
+  });
+  document.getElementById("vocab-reset").addEventListener("click", function(){
+    vocabState = {}; save("vocab", vocabState); renderVocab(); updateVocabStats();
+  });
+  renderVocab();
+  updateVocabStats();
+
+  /* ================= PRODUKTION ================= */
+  var prodText = document.getElementById("prod-text");
+  prodText.value = load("produktion", "");
+  var modalVerbs = ["kann","kannst","können","könnt","könnte","könntest","könnten","muss","musst","müssen","müsst","musste","musstest","mussten","will","willst","wollen","wollt","wollte","wollten","soll","sollst","sollen","sollt","sollte","sollten","darf","darfst","dürfen","dürft","durfte","durften","mag","magst","mögen","möchte","möchtest","möchten"];
+  var subjectStarters = ["ich","du","er","sie","es","wir","ihr","Sie"];
+  var separablePrefixes = ["an","auf","aus","ein","ab","mit","zu","fern","weg","her","hin","zurück","los","vor","nach","bei","um","zusammen"];
+  var sequenceWords = ["zuerst","dann","danach","schließlich"];
+
+  function analyzeProd(text){
+    var raw = text.split(/(?<=[.!?])\s+|\n+/).map(function(s){return s.trim();}).filter(Boolean);
+    var sentences = raw.length;
+    var fronted = 0, separable = 0, modal = 0;
+    raw.forEach(function(s){
+      var clean = s.replace(/[.!?]+$/,"").trim();
+      var words = clean.split(/\s+/);
+      if(words.length === 0) return;
+      var first = words[0].replace(/[,]/g,"");
+      if(subjectStarters.indexOf(first) === -1 && subjectStarters.indexOf(first.toLowerCase()) === -1){
+        fronted++;
+      }
+      var last = words[words.length-1].toLowerCase().replace(/[^a-zäöüß]/g,"");
+      if(separablePrefixes.indexOf(last) !== -1){ separable++; }
+      var lower = clean.toLowerCase();
+      if(modalVerbs.some(function(m){ return new RegExp("\\b"+m+"\\b").test(lower); })){ modal++; }
+    });
+    var seq = sequenceWords.some(function(w){ return text.toLowerCase().indexOf(w) !== -1; });
+    return {sentences:sentences, fronted:fronted, separable:separable, modal:modal, seq:seq};
+  }
+
+  function updateProd(){
+    var text = prodText.value;
+    save("produktion", text);
+    var r = analyzeProd(text);
+    document.getElementById("cnt-sentences").textContent = r.sentences;
+    document.getElementById("cnt-fronted").textContent = r.fronted;
+    document.getElementById("cnt-separable").textContent = r.separable;
+    document.getElementById("cnt-modal").textContent = r.modal;
+    setMet("sentences", r.sentences >= 10);
+    setMet("fronted", r.fronted >= 4);
+    setMet("separable", r.separable >= 4);
+    setMet("modal", r.modal >= 2);
+    setMet("sequence", r.seq);
+    var metCount = [r.sentences>=10, r.fronted>=4, r.separable>=4, r.modal>=2].filter(Boolean).length;
+    document.getElementById("board-prod").textContent = metCount + "/4";
+  }
+  function setMet(key, val){
+    document.querySelector('.check-row[data-key="'+key+'"]').dataset.met = val ? "true" : "false";
+  }
+  prodText.addEventListener("input", updateProd);
+  updateProd();
+
+  /* ================= FEHLERJOURNAL ================= */
+  var journalBody = document.getElementById("journal-body");
+  var journal = load("journal", [{falsch:"Morgen ich fahre…", richtig:"Morgen fahre ich…", warum:"V2 — Inversion nach Adverb", tag:"1"}]);
+
+  function renderJournal(){
+    journalBody.innerHTML = "";
+    journal.forEach(function(row, idx){
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><input type="text" value="'+escapeAttr(row.falsch)+'" data-field="falsch"></td>'+
+        '<td><input type="text" value="'+escapeAttr(row.richtig)+'" data-field="richtig"></td>'+
+        '<td><input type="text" value="'+escapeAttr(row.warum)+'" data-field="warum"></td>'+
+        '<td><input type="text" value="'+escapeAttr(row.tag)+'" data-field="tag"></td>'+
+        '<td><button class="del" title="Löschen">✕</button></td>';
+      tr.querySelectorAll("input").forEach(function(inp){
+        inp.addEventListener("input", function(){
+          journal[idx][inp.dataset.field] = inp.value;
+          save("journal", journal);
+        });
+      });
+      tr.querySelector(".del").addEventListener("click", function(){
+        journal.splice(idx,1); save("journal", journal); renderJournal();
+      });
+      journalBody.appendChild(tr);
+    });
+  }
+  function escapeAttr(s){ return (s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+  document.getElementById("journal-add").addEventListener("click", function(){
+    journal.push({falsch:"", richtig:"", warum:"", tag:""});
+    save("journal", journal);
+    renderJournal();
+  });
+  renderJournal();
+
+  /* ================= SELBSTCHECK ================= */
+  document.querySelectorAll(".sc-item").forEach(function(el){
+    var q = el.dataset.q;
+    var ta = el.querySelector("textarea");
+    ta.value = load("sc-"+q, "");
+    ta.addEventListener("input", function(){ save("sc-"+q, ta.value); });
+    el.querySelector(".sc-reveal").addEventListener("click", function(){
+      el.querySelector(".reveal-panel").style.display = "block";
+    });
+  });
+
+  /* ================= RAIL SCROLLSPY ================= */
+  var railItems = document.querySelectorAll(".rail li");
+  var sections = Array.prototype.slice.call(document.querySelectorAll("main section"));
+  var byId = {};
+  railItems.forEach(function(li){ byId[li.dataset.target] = li; });
+
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          railItems.forEach(function(li){ li.dataset.active = "false"; });
+          var active = byId[entry.target.id];
+          if(active) active.dataset.active = "true";
+        }
+      });
+    }, {rootMargin: "-15% 0px -70% 0px", threshold: 0});
+    sections.forEach(function(s){ io.observe(s); });
+  }
+  if(byId["diagnose"]) byId["diagnose"].dataset.active = "true";
+
+})();
+</script>
+</body>
+</html>
