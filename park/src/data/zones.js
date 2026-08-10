@@ -140,6 +140,13 @@ export const ZONES = [
     col: 1, row: 1, archetype: "pavilion", status: "stub",
     teaser: "2 Aufgaben, ca. 10 Min + 10 Min Vorbereitung, max. 20 Punkte: Sich vorstellen (5 von 6 Themen) + gemeinsame Planaufgabe.",
   },
+
+  // ---------------- Town square (1) ----------------
+  {
+    id: "dom", icon: "⛪", category: "info", name: "Dom",
+    subtitle: "Spiel & Prüfung", archetype: "dom",
+    status: "built", module: "infoHub",
+  },
 ];
 
 export function getZone(id) {

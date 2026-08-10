@@ -250,11 +250,24 @@ export function buildWorld() {
   objects.push({ kind: "flag", tx: PLAZA.tx + 2, ty: PLAZA.ty - 2, country: "de" });
   objects.push({ kind: "flag", tx: PLAZA.tx - 2, ty: PLAZA.ty + 2, country: "ch" });
 
-  const churchAt = { tx: PLAZA.tx + 3, ty: PLAZA.ty + 3 };
-  for (let dx = 0; dx <= 2; dx++) {
-    for (let dy = 0; dy <= 2; dy++) setTile(churchAt.tx + dx, churchAt.ty + dy, "plaza");
+  // The Dom on the town square: a Stephansdom-style cathedral, and the one
+  // clickable thing that isn't a learning zone — it explains the app and the
+  // exam. Placed by hand rather than by the street layout.
+  const domZone = ZONES.find((z) => z.category === "info");
+  if (domZone) {
+    const at = { tx: PLAZA.tx + 3, ty: PLAZA.ty + 3 };
+    for (let dx = -1; dx <= 2; dx++) {
+      for (let dy = -1; dy <= 2; dy++) setTile(at.tx + dx, at.ty + dy, "plaza");
+    }
+    zonePlacement.set(domZone.id, at);
+    objects.push({
+      kind: "building",
+      tx: at.tx,
+      ty: at.ty,
+      zone: domZone,
+      spec: { render: "stephansdom", footprint: 2.6, height: 5.5, roofH: 5, built: true },
+    });
   }
-  objects.push({ kind: "church", ...churchAt });
 
   objects.push({ kind: "beertable", tx: PLAZA.tx + 2, ty: PLAZA.ty + 1 });
   objects.push({ kind: "beertable", tx: PLAZA.tx + 1, ty: PLAZA.ty + 3 });

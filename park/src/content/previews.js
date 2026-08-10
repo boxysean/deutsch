@@ -92,11 +92,26 @@ function grammarTopic(zone) {
   };
 }
 
+function infoHub() {
+  const state = read("deutsch-info:mastery", {});
+  const done = Object.values(state).filter(Boolean).length;
+  return {
+    summary:
+      "Der Dom am Hauptplatz: was dieses Spiel ist, wie die ÖSD-A2-Prüfung aufgebaut ist und eine Checkliste über alles, was du zum Bestehen können musst.",
+    stats: [
+      { label: "Abgehakt", value: `${done} / 39` },
+      { label: "Prüfung", value: "90 Punkte" },
+      { label: "Bestehen ab", value: "45 Punkte" },
+    ],
+  };
+}
+
 const BUILDERS = {
   grammarFoundations,
   lesenExam,
   vocabTheme,
   grammarTopic,
+  infoHub,
 };
 
 export function getPreview(zone) {

@@ -186,3 +186,13 @@
   .panel{ width:100vw; }
   .hud-legend{ display:none; }
 }
+
+/* ---------- Dom: mastery checklist ---------- */
+.mastery-row{
+  display:flex; align-items:flex-start; gap:0.55rem;
+  padding:0.4rem 0.5rem; border-radius:5px; cursor:pointer;
+  font-size:0.92rem; line-height:1.4;
+}
+.mastery-row:hover{ background: var(--paper-raised); }
+.mastery-row input{ margin-top:0.25rem; accent-color: var(--good); flex:none; }
+.mastery-row[data-done="true"] span{ color: var(--ink-soft); text-decoration: line-through; }

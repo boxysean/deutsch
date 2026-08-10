@@ -11,6 +11,7 @@ import {
   drawDoor,
 } from "./sprites.js";
 import {
+  drawStephansdom,
   drawFerrisWheel,
   drawTvTower,
   drawCathedral,
@@ -27,7 +28,6 @@ import {
   drawCow,
   drawBeerTable,
   drawPretzelSign,
-  drawChurch,
 } from "./decor.js";
 
 export function createRenderer(canvas, world) {
@@ -224,6 +224,11 @@ export function createRenderer(canvas, world) {
 
     const spec = obj.spec;
     const hovered = obj.zone.id === state.hoveredId;
+    if (spec.render === "stephansdom") {
+      const c = { x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) };
+      drawStephansdom(sctx, c.x, c.y);
+      return;
+    }
     const active = obj.zone.id === state.activeId;
     const lift = hovered ? 4 : 0;
 
@@ -420,11 +425,6 @@ export function createRenderer(canvas, world) {
       case "pretzel":
         drawPretzelSign(sctx, c.x, c.y);
         break;
-      case "church": {
-        const o = originFor(obj.tx, obj.ty);
-        drawChurch(sctx, o.x, o.y, t);
-        break;
-      }
       case "riesenrad":
         drawFerrisWheel(sctx, c.x, c.y, t);
         break;
