@@ -15,7 +15,13 @@ export function createLabels(zoneObjects, camera, renderer, onSelect) {
     el.className = "map-label";
     el.dataset.status = z.zone.status;
     el.style.setProperty("--label-color", DISTRICT_PALETTE[z.zone.category].label);
-    el.innerHTML = `<span class="ml-dot"></span><span class="ml-name">${z.zone.name}</span>`;
+    // Zones with an icon show the emoji in place of the colour dot — it stays
+    // crisp (the 3D scene renders pixelated) and doubles as the marker when the
+    // label collapses.
+    const marker = z.zone.icon
+      ? `<span class="ml-icon">${z.zone.icon}</span>`
+      : `<span class="ml-dot"></span>`;
+    el.innerHTML = `${marker}<span class="ml-name">${z.zone.name}</span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(z.id);

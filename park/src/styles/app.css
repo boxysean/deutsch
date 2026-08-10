@@ -1,5 +1,11 @@
 #app{ position:fixed; inset:0; }
-#scene{ position:absolute; inset:0; display:block; touch-action:none; }
+#scene{
+  position:absolute; inset:0; display:block; touch-action:none;
+  width:100%; height:100%;
+  /* the scene renders into a small buffer; blow it up with hard pixel edges */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 
 #hud{
   position:absolute; top:0; left:0; right:0; z-index:10;
@@ -42,6 +48,10 @@
   width:0.5rem; height:0.5rem; border-radius:50%; flex:none;
   background: var(--label-color); border:1.5px solid #21202b;
 }
+.map-label .ml-icon{
+  flex:none; font-size:0.95rem; line-height:1;
+  font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
 .map-label[data-status="stub"]{
   background: rgba(255,253,247,0.82);
   border-color: rgba(33,32,43,0.55);
@@ -69,14 +79,78 @@
 .map-label[data-collapsed="true"]:hover{ padding:0.22rem 0.55rem 0.22rem 0.42rem; }
 .map-label[data-collapsed="true"]:hover .ml-name{ display:inline; }
 
-.panel{
-  position:absolute; top:0; right:0; bottom:0; z-index:20;
-  width:min(38rem, 100vw); max-width:100vw;
-  background: var(--paper); border-left:1px solid var(--rule-strong);
+/* ---------- bottom sheet: the first thing you see when you click a house ---------- */
+.sheet{
+  position:absolute; left:0; right:0; bottom:0; z-index:18;
+  min-height:30vh; max-height:42vh;
+  background: var(--paper);
+  border-top: 3px solid #21202b;
+  box-shadow: 0 -6px 0 rgba(33,32,43,0.18);
   display:flex; flex-direction:column;
-  box-shadow: -8px 0 24px rgba(0,0,0,0.16);
-  transform: translateX(0);
-  transition: transform 0.18s ease;
+  animation: sheet-up 0.16s ease-out;
+}
+.sheet[hidden]{ display:none; }
+@keyframes sheet-up{ from{ transform: translateY(100%); } to{ transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce){ .sheet{ animation:none; } }
+
+.sheet-inner{
+  max-width: 62rem; width:100%; margin:0 auto;
+  padding: 1.1rem 1.4rem 1.3rem;
+  overflow-y:auto;
+}
+.sheet-close{
+  position:absolute; top:0.6rem; right:0.8rem; z-index:2;
+  border:none; background:transparent; font-size:1.5rem; line-height:1;
+  padding:0.1rem 0.4rem; color: var(--ink-soft); font-weight:400;
+}
+.sheet-close:hover{ color: var(--ink); border:none; }
+.sheet-head{ display:flex; align-items:center; gap:0.85rem; margin-bottom:0.7rem; }
+.sheet-icon{
+  flex:none; width:3rem; height:3rem; border-radius:50%;
+  background:#fffdf7; border:3px solid #21202b;
+  display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+}
+.sheet-icon[hidden]{ display:none; }
+.sheet-headings{ min-width:0; }
+.sheet-meta{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.15rem; }
+.sheet-cat{
+  font-size:0.68rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--zone-color, var(--accent));
+}
+.sheet-pill{
+  font-size:0.64rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+  padding:0.1rem 0.45rem; border-radius:999px;
+  background: var(--rule); color: var(--ink-soft);
+}
+.sheet-pill[data-built="true"]{ background: var(--good-soft); color: var(--good); }
+.sheet-tag{ font-size:0.68rem; color: var(--ink-soft); }
+.sheet-title{ font-size:1.35rem; font-weight:800; line-height:1.15; }
+.sheet-desc{ color: var(--ink-soft); max-width:52rem; margin-bottom:0.9rem; font-size:0.95rem; }
+.sheet-stats{ display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem; }
+.sheet-stats[hidden]{ display:none; }
+.sheet-stat{
+  background: var(--paper-raised); border:1px solid var(--rule); border-radius:6px;
+  padding:0.5rem 0.75rem; min-width:8rem;
+}
+.sheet-stat b{ display:block; font-family: ui-monospace, monospace; font-size:1.05rem; }
+.sheet-stat span{ font-size:0.72rem; color: var(--ink-soft); }
+.sheet-actions{ display:flex; gap:0.6rem; flex-wrap:wrap; }
+.sheet-actions button:disabled{ opacity:0.45; cursor:not-allowed; }
+
+/* ---------- expanded page ---------- */
+.panel-backdrop{
+  position:absolute; inset:0; z-index:24;
+  background: rgba(20,24,26,0.45);
+}
+.panel-backdrop[hidden]{ display:none; }
+.panel{
+  position:absolute; z-index:25;
+  top:3vh; bottom:3vh; left:50%; transform:translateX(-50%);
+  width:min(58rem, 94vw);
+  background: var(--paper);
+  border:3px solid #21202b; border-radius:10px;
+  display:flex; flex-direction:column; overflow:hidden;
+  box-shadow: 0 10px 0 rgba(33,32,43,0.25);
 }
 .panel[hidden]{ display:none; }
 .panel-header{

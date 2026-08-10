@@ -45,8 +45,9 @@ function animate() {
     const target = z.id === hoveredId ? 1 : 0;
     z.lift += (target - z.lift) * 0.16;
 
-    const idle = z.zone.status === "built" ? Math.sin(t * 1.4 + z.phase) * 0.07 : 0;
-    z.group.position.y = z.lift * 1.1 + idle;
+    // Only the ring and flag animate — bobbing the whole house would drag its
+    // label around with it, which reads as jitter.
+    z.group.position.y = z.lift * 1.1;
     z.group.scale.setScalar(z.baseScale * (1 + z.lift * 0.05));
 
     if (z.ring) {

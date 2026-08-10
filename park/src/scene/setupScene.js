@@ -3,6 +3,9 @@ import { computeFraming } from "./layout.js";
 
 export const CAMERA_TARGET = new THREE.Vector3();
 
+// How many screen pixels each rendered pixel occupies. Higher = chunkier.
+const PIXEL_SCALE = 3;
+
 export function setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9fd8ef);
@@ -24,9 +27,20 @@ export function setupScene(canvas) {
   camera.position.set(CAMERA_TARGET.x + 200, 200, CAMERA_TARGET.z + 200);
   camera.lookAt(CAMERA_TARGET);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  // Pixel-art look: render into a deliberately small buffer and let CSS blow it
+  // up with nearest-neighbour (see #scene { image-rendering: pixelated }).
+  // updateStyle=false keeps the canvas at full CSS size, so pointer maths and
+  // label projection still work in CSS pixels.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+  renderer.setPixelRatio(1);
+  function applySize() {
+    renderer.setSize(
+      Math.max(1, Math.floor(window.innerWidth / PIXEL_SCALE)),
+      Math.max(1, Math.floor(window.innerHeight / PIXEL_SCALE)),
+      false
+    );
+  }
+  applySize();
 
   // Bright, low-contrast key light keeps the saturated palette reading as
   // colour rather than shading; the hemisphere light stops shadowed faces
@@ -56,7 +70,7 @@ export function setupScene(canvas) {
     camera.top = f.d;
     camera.bottom = -f.d;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    applySize();
   }
   window.addEventListener("resize", onResize);
 
