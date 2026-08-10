@@ -1,5 +1,16 @@
 import { TILE_W, TILE_H, LEVEL_H, isoToScreen, depthOf } from "./projection.js";
-import { drawTile, drawBox, drawPyramid, drawGable, drawBlob } from "./sprites.js";
+import {
+  drawTile,
+  drawBox,
+  drawPyramid,
+  drawGable,
+  drawBlob,
+  drawFachwerk,
+  drawPaintedPanel,
+  drawAlpineWindow,
+  drawDoor,
+} from "./sprites.js";
+import { drawFerrisWheel, drawTvTower, drawCathedral } from "./landmarks.js";
 import { faces, hsl, DISTRICT, GROUND, TRIM, OUTLINE } from "./palette.js";
 import {
   drawMountain,
@@ -210,39 +221,76 @@ export function createRenderer(canvas, world) {
     // plinth
     drawBox(sctx, ox, oy + 2, fp, fp, 0.35, faces(spec.hue, spec.sat * 0.6, spec.light - 0.16));
     // main body
-    drawBox(sctx, ox, oy, fp, fp, spec.height, body);
+    const box = drawBox(sctx, ox, oy, fp, fp, spec.height, body);
 
     const topY = oy - spec.height * LEVEL_H;
-
-    // windows + door on the south-east face
     const hw = TILE_W / 2;
     const hh = TILE_H / 2;
-    sctx.fillStyle = TRIM;
-    for (let i = 0; i < spec.windows; i++) {
-      const t = (i + 1) / (spec.windows + 1);
-      const wx = ox + fp * hw * t;
-      const wy = oy + fp * hh * t - spec.height * LEVEL_H * 0.55;
-      sctx.fillRect(Math.round(wx - 2), Math.round(wy - 3), 4, 5);
-      sctx.strokeStyle = OUTLINE;
-      sctx.strokeRect(Math.round(wx - 2) + 0.5, Math.round(wy - 3) + 0.5, 4, 5);
+
+    // --- Bavarian facade treatment on the two visible walls ---
+    if (spec.wallStyle === "fachwerk") {
+      drawFachwerk(sctx, box.leftFace);
+      drawFachwerk(sctx, box.rightFace);
+    } else if (spec.wallStyle === "luftl") {
+      drawPaintedPanel(sctx, box.rightFace, spec.built ? "#cfdcef" : "#dcdcd6");
     }
+
+    // windows with green shutters, geraniums on the sunny side
+    for (let i = 0; i < spec.windows; i++) {
+      const u = (i + 1) / (spec.windows + 1);
+      drawAlpineWindow(sctx, box.rightFace, u, 0.52, { flowers: spec.flowerBoxes });
+      if (spec.windows > 1) drawAlpineWindow(sctx, box.leftFace, u, 0.52, { flowers: false });
+    }
+    drawDoor(sctx, box.leftFace, 0.5);
 
     // roof
     if (spec.roofKind === "pyramid") {
       const apex = drawPyramid(sctx, ox, oy, fp, fp, spec.height, spec.roofH, roof);
       if (spec.flag) drawFlag(apex[0], apex[1], spec.built);
     } else if (spec.roofKind === "chalet") {
-      // Alpine chalet: a shallow gable that overhangs the walls, plus a balcony.
-      drawGable(sctx, ox - TILE_W * 0.11, oy + TILE_H * 0.11, fp * 1.22, fp * 1.22, spec.height, spec.roofH * 0.72, roof);
-      const balY = oy + fp * hh * 0.5 - spec.height * LEVEL_H * 0.42;
+      // Alpine chalet: a shallow gable with deep overhanging eaves, a carved
+      // balcony running the width of the house, and stones weighting the roof.
+      const over = 0.3;
+      drawGable(
+        sctx,
+        ox - TILE_W * over * 0.5,
+        oy + TILE_H * over * 0.5,
+        fp + over,
+        fp + over,
+        spec.height,
+        spec.roofH * 0.68,
+        roof
+      );
+
+      const balY = oy + fp * hh * 0.62 - spec.height * LEVEL_H * 0.46;
+      const balW = Math.round(fp * TILE_W * 0.46);
       sctx.fillStyle = "#8a5a2b";
-      sctx.fillRect(Math.round(ox - 1), Math.round(balY), Math.round(fp * TILE_W * 0.5), 3);
+      sctx.fillRect(Math.round(ox), Math.round(balY), balW, 3);
       sctx.strokeStyle = OUTLINE;
-      sctx.strokeRect(Math.round(ox - 1) + 0.5, Math.round(balY) + 0.5, Math.round(fp * TILE_W * 0.5), 3);
-      // window boxes of red geraniums
+      sctx.strokeRect(Math.round(ox) + 0.5, Math.round(balY) + 0.5, balW, 3);
+      // carved balustrade posts
+      sctx.fillStyle = "#6b4420";
+      for (let i = 2; i < balW - 1; i += 3) {
+        sctx.fillRect(Math.round(ox) + i, Math.round(balY) - 2, 1, 2);
+      }
+      // geraniums along the balcony
       sctx.fillStyle = "#d63a3a";
-      sctx.fillRect(Math.round(ox + 2), Math.round(balY - 2), 3, 2);
-      sctx.fillRect(Math.round(ox + 8), Math.round(balY - 2), 3, 2);
+      for (let i = 1; i < balW - 2; i += 5) {
+        sctx.fillRect(Math.round(ox) + i, Math.round(balY) - 4, 3, 2);
+      }
+
+      if (spec.roofStones) {
+        sctx.fillStyle = "#8d8a80";
+        for (let i = 0; i < 5; i++) {
+          const u = 0.2 + i * 0.15;
+          sctx.fillRect(
+            Math.round(ox + fp * hw * u - 1),
+            Math.round(oy + fp * hh * u - spec.height * LEVEL_H - spec.roofH * 0.68 * LEVEL_H * 0.5),
+            2,
+            2
+          );
+        }
+      }
     } else if (spec.roofKind === "gable") {
       drawGable(sctx, ox, oy, fp, fp, spec.height, spec.roofH, roof);
     } else {
@@ -253,6 +301,20 @@ export function createRenderer(canvas, world) {
       const cx = ox + fp * hw * 0.65;
       const cy = topY + fp * hh * 0.65 - 4;
       drawBox(sctx, cx, cy, 0.4, 0.4, 1.1, faces(0.03, 0.3, 0.34));
+    }
+
+    // stacked firewood against the gable end
+    if (spec.woodpile) {
+      const wx = ox - fp * hw * 0.75;
+      const wy = oy + fp * hh * 0.75;
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 4; col++) {
+          sctx.fillStyle = col % 2 ? "#a9752f" : "#8a5a2b";
+          sctx.fillRect(Math.round(wx + col * 3), Math.round(wy - 4 - row * 3), 3, 3);
+        }
+      }
+      sctx.strokeStyle = OUTLINE;
+      sctx.strokeRect(Math.round(wx) + 0.5, Math.round(wy - 13) + 0.5, 12, 9);
     }
 
     if (spec.awning) {
@@ -340,6 +402,15 @@ export function createRenderer(canvas, world) {
         drawChurch(sctx, o.x, o.y, t);
         break;
       }
+      case "riesenrad":
+        drawFerrisWheel(sctx, c.x, c.y, t);
+        break;
+      case "fernsehturm":
+        drawTvTower(sctx, c.x, c.y, t);
+        break;
+      case "dom":
+        drawCathedral(sctx, c.x, c.y);
+        break;
       default:
         break;
     }

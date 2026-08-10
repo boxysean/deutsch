@@ -66,9 +66,13 @@ function buildingFor(zone) {
     roofSat: built ? 0.55 : 0.24,
     roofLight: built ? 0.36 : 0.5,
     height: isLandmark ? 3.4 : isPavilion ? 2.6 : range(rng, 1.7, 2.6),
-    roofKind: isLandmark
-      ? "pyramid"
-      : pick(rng, ["gable", "pyramid", "gable", "chalet", "chalet"]),
+    // Alpine vernacular: overwhelmingly chalets and steep gables, never flat.
+    roofKind: isLandmark ? "pyramid" : pick(rng, ["chalet", "chalet", "chalet", "gable", "gable"]),
+    // Whitewashed with painted panels, or half-timbered.
+    wallStyle: pick(rng, ["luftl", "plain", "fachwerk", "luftl", "fachwerk"]),
+    flowerBoxes: rng() > 0.25,
+    roofStones: rng() > 0.6,
+    woodpile: rng() > 0.6,
     roofH: isLandmark ? 1.9 : range(rng, 0.9, 1.4),
     // Smaller than their tile so the plots keep visible space around them.
     footprint: isLandmark ? 2.2 : isPavilion ? 1.7 : range(rng, 1.35, 1.6),
@@ -243,6 +247,21 @@ export function buildWorld() {
   objects.push({ kind: "beertable", tx: PLAZA.tx + 1, ty: PLAZA.ty + 3 });
   objects.push({ kind: "pretzel", tx: PLAZA.tx - 1, ty: PLAZA.ty + 2 });
 
+  // Decorative national landmarks — pure skyline flavour, not clickable.
+  // Each gets a small paved apron and sits clear of the streets.
+  const monuments = [
+    { kind: "riesenrad", tx: -9, ty: 13 }, // Wiener Riesenrad
+    { kind: "fernsehturm", tx: 11, ty: -19 }, // Berliner Fernsehturm
+    { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
+  ];
+  monuments.forEach((m) => {
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) setTile(m.tx + dx, m.ty + dy, "plaza");
+    }
+    claim(m.tx, m.ty);
+    objects.push(m);
+  });
+
   // Villagers strolling the streets.
   const pathTiles = [...tiles.values()].filter((t) => t.type === "path");
   const variants = ["lederhosen", "dirndl", "lederhosen", "hiker", "visitor", "dirndl"];
@@ -266,6 +285,14 @@ export function buildWorld() {
     objects.push({ kind: "cow", tx: t.tx, ty: t.ty, phase: rng() * 6.283 });
   }
 
+  // Trees that ended up on ground later paved over (church apron, monument
+  // aprons) are dropped so nothing grows through the masonry.
+  const planted = objects.filter((o) => {
+    if (o.kind !== "tree") return true;
+    const tile = tiles.get(key(o.tx, o.ty));
+    return tile && tile.type === "grass";
+  });
+
   const bounds = { minX, maxX, minY, maxY };
-  return { tiles, objects, zonePlacement, bounds };
+  return { tiles, objects: planted, zonePlacement, bounds };
 }
