@@ -55,8 +55,7 @@ export const ZONES = [
   },
   {
     id: "verben-mit-praeposition", category: "grammar", name: "Verben mit Präposition", tag: "10",
-    col: 2, row: 2, archetype: "kiosk", status: "stub",
-    teaser: "Feste Verb-Präposition-Kombinationen mit eigenem Kasus: warten auf (+Akk.), sich freuen auf (+Akk.), Angst haben vor (+Dat.).",
+    col: 2, row: 2, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
 
   // ---------------- Vocabulary district (20 standard A2 Themen) ----------------
