@@ -1,9 +1,11 @@
 // Grammar topics. Each key is a zone id; adding a topic is a data entry plus
 // flipping that zone to status "built" with module "grammarTopic".
 import { MORE } from "./more.js";
+import { MORE2 } from "./more2.js";
 
 export const TOPICS = {
   ...MORE,
+  ...MORE2,
   "verben-mit-praeposition": {
     intro:
       "Viele deutsche Verben haben eine feste Präposition, die man nicht logisch herleiten kann — man lernt sie zusammen mit dem Verb. Die Präposition bestimmt außerdem den Kasus. Das ist einer der häufigsten Fehlerbereiche auf A2 und kommt in Sprechen und Schreiben ständig vor.",

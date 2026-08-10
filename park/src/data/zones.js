@@ -23,8 +23,7 @@ export const ZONES = [
   },
   {
     id: "wechselpraepositionen", category: "grammar", name: "Wechselpräpositionen", tag: "5",
-    col: 0, row: 1, archetype: "kiosk", status: "stub",
-    teaser: "Wechselpräpositionen (an, auf, hinter, in, neben, über, unter, vor, zwischen) nehmen Akkusativ bei Bewegung (wohin?) und Dativ bei Ort (wo?).",
+    col: 0, row: 1, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "perfekt", category: "grammar", name: "Perfekt", tag: "6",
@@ -37,13 +36,11 @@ export const ZONES = [
   },
   {
     id: "adjektivendungen", category: "grammar", name: "Adjektivendungen", tag: "8",
-    col: 3, row: 1, archetype: "kiosk", status: "stub",
-    teaser: "Adjektivendungen hängen von Genus, Kasus und Artikeltyp ab (stark/schwach/gemischt) — z. B. der neue Wagen vs. ein neuer Wagen.",
+    col: 3, row: 1, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "nebensaetze", category: "grammar", name: "Nebensätze", tag: "9",
-    col: 0, row: 2, archetype: "kiosk", status: "stub",
-    teaser: "In Nebensätzen (weil, dass, wenn, ob) rückt das konjugierte Verb ans Satzende: Ich komme nicht, weil ich krank bin.",
+    col: 0, row: 2, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "reflexiv-konjunktiv", category: "grammar", name: "Reflexiv & Konjunktiv II", tag: "10",
