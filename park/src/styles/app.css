@@ -30,8 +30,8 @@
 .hud-hint{ font-size:0.72rem; color: var(--ink-soft); }
 
 /* ---------- map labels ----------
-   These sit on the 3D canvas, which is always the bright park, so they keep a
-   light pill regardless of the page theme. */
+   These sit on the map canvas, which is always the bright daylit village, so
+   they keep a light pill regardless of the page theme. */
 .labels{ position:absolute; inset:0; z-index:12; pointer-events:none; overflow:hidden; }
 .map-label{
   position:absolute; top:0; left:0; pointer-events:auto;
