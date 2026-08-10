@@ -83,17 +83,13 @@ export const ZONES = [
   { id: "termine-uhrzeit", icon: "📅", category: "vocab", name: "Termine & Uhrzeit",
     col: 0, row: 3, archetype: "stall", status: "built", module: "vocabTheme" },
   { id: "feste-feiertage", icon: "🎉", category: "vocab", name: "Feste & Feiertage",
-    col: 1, row: 3, archetype: "stall", status: "stub",
-    teaser: "Geburtstag, Weihnachten, Einladungen." },
+    col: 1, row: 3, archetype: "stall", status: "built", module: "vocabTheme" },
   { id: "umwelt", icon: "🌱", category: "vocab", name: "Umwelt",
-    col: 2, row: 3, archetype: "stall", status: "stub",
-    teaser: "Mülltrennung, Natur, einfache Umweltthemen." },
+    col: 2, row: 3, archetype: "stall", status: "built", module: "vocabTheme" },
   { id: "geld-preise", icon: "💶", category: "vocab", name: "Geld & Preise",
-    col: 3, row: 3, archetype: "stall", status: "stub",
-    teaser: "Bank, bezahlen, Rechnung." },
+    col: 3, row: 3, archetype: "stall", status: "built", module: "vocabTheme" },
   { id: "heimat-herkunft", icon: "🌍", category: "vocab", name: "Heimat & Herkunft",
-    col: 4, row: 3, archetype: "stall", status: "stub",
-    teaser: "Herkunftsland, Sprachen, Kultur." },
+    col: 4, row: 3, archetype: "stall", status: "built", module: "vocabTheme" },
 
   // ---------------- Exam-skill district (4) ----------------
   {

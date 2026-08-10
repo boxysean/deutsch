@@ -4,11 +4,13 @@
 import { THEMES2 } from "./themes2.js";
 import { THEMES3 } from "./themes3.js";
 import { THEMES4 } from "./themes4.js";
+import { THEMES5 } from "./themes5.js";
 
 export const THEMES = {
   ...THEMES2,
   ...THEMES3,
   ...THEMES4,
+  ...THEMES5,
   "essen-trinken": {
     phrasesTitle: "Redemittel — im Restaurant",
     intro:
