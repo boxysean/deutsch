@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ÖSD A2 Park</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+      <div id="hud"></div>
+      <div id="tooltip" class="tooltip" hidden></div>
+      <div id="panel" class="panel" hidden>
+        <div class="panel-header">
+          <span id="panel-badge" class="panel-badge"></span>
+          <h2 id="panel-title"></h2>
+          <button id="panel-close" class="panel-close" aria-label="Schließen">&times;</button>
+        </div>
+        <div id="panel-content" class="panel-content"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
