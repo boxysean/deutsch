@@ -10,13 +10,11 @@ export const ZONES = [
   },
   {
     id: "akkusativ", category: "grammar", name: "Akkusativ", tag: "2",
-    col: 1, row: 0, archetype: "kiosk", status: "stub",
-    teaser: "Der Akkusativ markiert das direkte Objekt: Ich sehe den Mann. Maskulinum ändert sich: der → den, ein → einen.",
+    col: 1, row: 0, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "dativ", category: "grammar", name: "Dativ", tag: "3",
-    col: 2, row: 0, archetype: "kiosk", status: "stub",
-    teaser: "Der Dativ markiert das indirekte Objekt: Ich gebe der Lehrerin das Buch. Alle vier Artikel ändern sich (der→dem, die→der, das→dem, die→den).",
+    col: 2, row: 0, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "praepositionen", category: "grammar", name: "Präpositionen", tag: "4",
@@ -30,8 +28,7 @@ export const ZONES = [
   },
   {
     id: "perfekt", category: "grammar", name: "Perfekt", tag: "6",
-    col: 1, row: 1, archetype: "kiosk", status: "stub",
-    teaser: "Perfekt = haben/sein + Partizip II am Satzende. Bewegungsverben und Zustandswechsel nehmen sein; die meisten anderen haben.",
+    col: 1, row: 1, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "praeteritum-modalverben", category: "grammar", name: "Präteritum & Modalverben", tag: "7",
