@@ -10,25 +10,25 @@ export const PLAZA = { tx: 0, ty: 0, radius: 2 };
 
 const STREETS = {
   grammar: {
-    segments: [{ dir: [0, -1], len: 24 }],
-    firstStation: 6,
-    spacing: 3,
-    offset: 2,
+    segments: [{ dir: [0, -1], len: 40 }],
+    firstStation: 7,
+    spacing: 5,
+    offset: 3,
   },
   vocab: {
     segments: [
-      { dir: [1, 0], len: 18 },
-      { dir: [0, 1], len: 20 },
+      { dir: [1, 0], len: 30 },
+      { dir: [0, 1], len: 32 },
     ],
-    firstStation: 6,
-    spacing: 3,
-    offset: 2,
+    firstStation: 7,
+    spacing: 5,
+    offset: 3,
   },
   examskill: {
-    segments: [{ dir: [-1, 0], len: 12 }],
-    firstStation: 6,
-    spacing: 3,
-    offset: 2,
+    segments: [{ dir: [-1, 0], len: 20 }],
+    firstStation: 7,
+    spacing: 5,
+    offset: 3,
   },
 };
 
@@ -65,12 +65,13 @@ function buildingFor(zone) {
     roofHue: pick(rng, ROOF_HUES),
     roofSat: built ? 0.55 : 0.24,
     roofLight: built ? 0.36 : 0.5,
-    height: isLandmark ? 4 : isPavilion ? 3 : Math.round(range(rng, 2, 3.4)),
+    height: isLandmark ? 3.4 : isPavilion ? 2.6 : range(rng, 1.7, 2.6),
     roofKind: isLandmark
       ? "pyramid"
-      : pick(rng, ["gable", "pyramid", "gable", "flat", "pyramid"]),
-    roofH: isLandmark ? 2.2 : range(rng, 1.0, 1.7),
-    footprint: isLandmark ? 3 : 2,
+      : pick(rng, ["gable", "pyramid", "gable", "chalet", "chalet"]),
+    roofH: isLandmark ? 1.9 : range(rng, 0.9, 1.4),
+    // Smaller than their tile so the plots keep visible space around them.
+    footprint: isLandmark ? 2.2 : isPavilion ? 1.7 : range(rng, 1.35, 1.6),
     chimney: rng() > 0.55,
     awning: !isLandmark && zone.category === "vocab" && rng() > 0.5,
     flag: isLandmark || isPavilion,
@@ -136,8 +137,10 @@ export function buildWorld() {
       const tx = station.tx + perp[0] * street.offset;
       const ty = station.ty + perp[1] * street.offset;
 
-      // driveway tile between street and plot
-      setTile(station.tx + perp[0], station.ty + perp[1], "path", category);
+      // driveway tiles between street and plot
+      for (let d = 1; d < street.offset; d++) {
+        setTile(station.tx + perp[0] * d, station.ty + perp[1] * d, "path", category);
+      }
 
       // garden plot around the house
       for (let dx = -1; dx <= 1; dx++) {
@@ -171,18 +174,96 @@ export function buildWorld() {
     minY = Math.min(minY, t.ty);
     maxY = Math.max(maxY, t.ty);
   });
-  const pad = 7;
+  const pad = 4;
   minX -= pad; maxX += pad; minY -= pad; maxY += pad;
 
   const rng = makeRng("iso-scenery");
+  const grassTiles = [];
   for (let tx = minX; tx <= maxX; tx++) {
     for (let ty = minY; ty <= maxY; ty++) {
       if (!tiles.has(key(tx, ty))) {
         setTile(tx, ty, "grass");
-        // scatter trees on open grass, keeping a gap around the built area
-        if (rng() < 0.13) objects.push(treeAt(tx, ty, rng));
+        grassTiles.push({ tx, ty });
+        if (rng() < 0.09) objects.push(treeAt(tx, ty, rng));
       }
     }
+  }
+
+  const occupied = new Set(objects.map((o) => key(o.tx, o.ty)));
+  const claim = (tx, ty) => {
+    if (occupied.has(key(tx, ty))) return false;
+    occupied.add(key(tx, ty));
+    return true;
+  };
+
+  // --- Alpine set dressing --------------------------------------------------
+
+  // A mountain range rising behind the town's two far edges. Anchored to the
+  // built area rather than the island edge so it always frames the view.
+  let zMinX = Infinity, zMaxX = -Infinity, zMinY = Infinity, zMaxY = -Infinity;
+  zonePlacement.forEach((p) => {
+    zMinX = Math.min(zMinX, p.tx);
+    zMaxX = Math.max(zMaxX, p.tx);
+    zMinY = Math.min(zMinY, p.ty);
+    zMaxY = Math.max(zMaxY, p.ty);
+  });
+
+  const back = 6;
+  const ranges = [];
+  for (let tx = zMinX - back; tx <= zMaxX + back; tx += 2) {
+    ranges.push({ tx, ty: zMinY - back });
+  }
+  for (let ty = zMinY - back + 2; ty <= zMaxY + back; ty += 2) {
+    ranges.push({ tx: zMinX - back, ty });
+  }
+  ranges.forEach((p, i) => {
+    objects.push({
+      kind: "mountain",
+      tx: p.tx,
+      ty: p.ty,
+      w: 90 + (i % 3) * 34,
+      h: 70 + ((i * 37) % 55),
+      seed: i,
+    });
+  });
+
+  // Village square: Maibaum, the three national flags, a church and a beer garden.
+  objects.push({ kind: "maypole", tx: PLAZA.tx, ty: PLAZA.ty });
+  objects.push({ kind: "flag", tx: PLAZA.tx - 2, ty: PLAZA.ty - 2, country: "at" });
+  objects.push({ kind: "flag", tx: PLAZA.tx + 2, ty: PLAZA.ty - 2, country: "de" });
+  objects.push({ kind: "flag", tx: PLAZA.tx - 2, ty: PLAZA.ty + 2, country: "ch" });
+
+  const churchAt = { tx: PLAZA.tx + 3, ty: PLAZA.ty + 3 };
+  for (let dx = 0; dx <= 2; dx++) {
+    for (let dy = 0; dy <= 2; dy++) setTile(churchAt.tx + dx, churchAt.ty + dy, "plaza");
+  }
+  objects.push({ kind: "church", ...churchAt });
+
+  objects.push({ kind: "beertable", tx: PLAZA.tx + 2, ty: PLAZA.ty + 1 });
+  objects.push({ kind: "beertable", tx: PLAZA.tx + 1, ty: PLAZA.ty + 3 });
+  objects.push({ kind: "pretzel", tx: PLAZA.tx - 1, ty: PLAZA.ty + 2 });
+
+  // Villagers strolling the streets.
+  const pathTiles = [...tiles.values()].filter((t) => t.type === "path");
+  const variants = ["lederhosen", "dirndl", "lederhosen", "hiker", "visitor", "dirndl"];
+  for (let i = 0; i < 26 && pathTiles.length; i++) {
+    const t = pathTiles[Math.floor(rng() * pathTiles.length)];
+    if (!claim(t.tx, t.ty)) continue;
+    objects.push({
+      kind: "person",
+      tx: t.tx,
+      ty: t.ty,
+      variant: variants[i % variants.length],
+      phase: rng() * 6.283,
+      drift: rng() > 0.5 ? 1 : -1,
+    });
+  }
+
+  // Cows out in the meadows, well away from the houses.
+  for (let i = 0; i < 14 && grassTiles.length; i++) {
+    const t = grassTiles[Math.floor(rng() * grassTiles.length)];
+    if (!claim(t.tx, t.ty)) continue;
+    objects.push({ kind: "cow", tx: t.tx, ty: t.ty, phase: rng() * 6.283 });
   }
 
   const bounds = { minX, maxX, minY, maxY };

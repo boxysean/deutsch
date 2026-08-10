@@ -1,6 +1,16 @@
 import { TILE_W, TILE_H, LEVEL_H, isoToScreen, depthOf } from "./projection.js";
 import { drawTile, drawBox, drawPyramid, drawGable, drawBlob } from "./sprites.js";
 import { faces, hsl, DISTRICT, GROUND, TRIM, OUTLINE } from "./palette.js";
+import {
+  drawMountain,
+  drawPerson,
+  drawFlagpole,
+  drawMaypole,
+  drawCow,
+  drawBeerTable,
+  drawPretzelSign,
+  drawChurch,
+} from "./decor.js";
 
 export function createRenderer(canvas, world) {
   const ctx = canvas.getContext("2d");
@@ -52,7 +62,8 @@ export function createRenderer(canvas, world) {
       const s = isoToScreen(p.tx, p.ty);
       minX = Math.min(minX, s.x - TILE_W);
       maxX = Math.max(maxX, s.x + TILE_W);
-      minY = Math.min(minY, s.y - 6 * LEVEL_H);
+      // extra headroom so the mountain range behind the town stays in shot
+      minY = Math.min(minY, s.y - 6 * LEVEL_H - 70);
       maxY = Math.max(maxY, s.y + TILE_H * 2);
     });
 
@@ -220,6 +231,18 @@ export function createRenderer(canvas, world) {
     if (spec.roofKind === "pyramid") {
       const apex = drawPyramid(sctx, ox, oy, fp, fp, spec.height, spec.roofH, roof);
       if (spec.flag) drawFlag(apex[0], apex[1], spec.built);
+    } else if (spec.roofKind === "chalet") {
+      // Alpine chalet: a shallow gable that overhangs the walls, plus a balcony.
+      drawGable(sctx, ox - TILE_W * 0.11, oy + TILE_H * 0.11, fp * 1.22, fp * 1.22, spec.height, spec.roofH * 0.72, roof);
+      const balY = oy + fp * hh * 0.5 - spec.height * LEVEL_H * 0.42;
+      sctx.fillStyle = "#8a5a2b";
+      sctx.fillRect(Math.round(ox - 1), Math.round(balY), Math.round(fp * TILE_W * 0.5), 3);
+      sctx.strokeStyle = OUTLINE;
+      sctx.strokeRect(Math.round(ox - 1) + 0.5, Math.round(balY) + 0.5, Math.round(fp * TILE_W * 0.5), 3);
+      // window boxes of red geraniums
+      sctx.fillStyle = "#d63a3a";
+      sctx.fillRect(Math.round(ox + 2), Math.round(balY - 2), 3, 2);
+      sctx.fillRect(Math.round(ox + 8), Math.round(balY - 2), 3, 2);
     } else if (spec.roofKind === "gable") {
       drawGable(sctx, ox, oy, fp, fp, spec.height, spec.roofH, roof);
     } else {
@@ -275,26 +298,62 @@ export function createRenderer(canvas, world) {
     sctx.strokeRect(Math.round(x) + 1.5, Math.round(y) - 8.5, 6, 4 + wave);
   }
 
-  function drawPlazaFountain() {
-    const o = originFor(PLAZA_TX, PLAZA_TY);
-    drawBox(sctx, o.x, o.y, 1, 1, 0.5, faces(0.1, 0.12, 0.72));
-    const t = state.time;
-    const bob = Math.round(Math.sin(t * 2) * 1);
-    drawBox(sctx, o.x, o.y - 6 - bob, 0.5, 0.5, 0.9, faces(0.55, 0.6, 0.55));
+  // Decoration is drawn at the tile's centre point.
+  function centreOf(obj) {
+    const o = originFor(obj.tx, obj.ty);
+    return { x: o.x, y: o.y + TILE_H / 2 };
   }
 
-  const PLAZA_TX = 0;
-  const PLAZA_TY = 0;
+  function drawDecor(obj) {
+    const c = centreOf(obj);
+    const pad = obj.kind === "mountain" ? 260 : 60;
+    if (c.x < -pad || c.x > scene.width + pad || c.y < -pad * 1.5 || c.y > scene.height + pad) return;
+    const t = state.time;
+
+    switch (obj.kind) {
+      case "mountain":
+        drawMountain(sctx, c.x, c.y, obj.w, obj.h, obj.seed);
+        break;
+      case "person": {
+        // amble a little way along the street and back
+        const sway = Math.sin(t * 0.55 + obj.phase) * obj.drift * 5;
+        drawPerson(sctx, c.x + sway, c.y, obj.variant, t + obj.phase);
+        break;
+      }
+      case "cow":
+        drawCow(sctx, c.x, c.y, t + obj.phase);
+        break;
+      case "flag":
+        drawFlagpole(sctx, c.x, c.y, obj.country, t);
+        break;
+      case "maypole":
+        drawMaypole(sctx, c.x, c.y, t);
+        break;
+      case "beertable":
+        drawBeerTable(sctx, c.x, c.y);
+        break;
+      case "pretzel":
+        drawPretzelSign(sctx, c.x, c.y);
+        break;
+      case "church": {
+        const o = originFor(obj.tx, obj.ty);
+        drawChurch(sctx, o.x, o.y, t);
+        break;
+      }
+      default:
+        break;
+    }
+  }
 
   function render(dt) {
     state.time += dt;
 
     drawGround();
-    drawPlazaFountain();
 
     for (const obj of sortedObjects) {
       if (obj.kind === "tree") drawTree(obj);
-      else drawBuilding(obj);
+      else if (obj.kind === "building") drawBuilding(obj);
+      else drawDecor(obj);
     }
 
     ctx.imageSmoothingEnabled = false;
