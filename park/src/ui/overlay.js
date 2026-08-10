@@ -7,6 +7,7 @@ const MODULE_LOADERS = {
   grammarFoundations: () => import("../content/grammarFoundations/index.js"),
   lesenExam: () => import("../content/lesenExam/index.js"),
   vocabTheme: () => import("../content/vocabTheme/index.js"),
+  grammarTopic: () => import("../content/grammarTopic/index.js"),
 };
 
 let els = null;

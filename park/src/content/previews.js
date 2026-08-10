@@ -1,4 +1,5 @@
 import { THEMES } from "./vocabTheme/data.js";
+import { TOPICS } from "./grammarTopic/data.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
@@ -63,10 +64,39 @@ function vocabTheme(zone) {
   };
 }
 
+function grammarTopic(zone) {
+  const topic = TOPICS[zone.id];
+  if (!topic) return { summary: "Grammatikthema.", stats: [] };
+
+  const gaps = topic.exercises.filter((e) => e.kind !== "reveal");
+  const gapTotal = gaps.reduce((n, e) => n + e.items.length, 0);
+  const gapDone = gaps.reduce((n, e) => {
+    const saved = read(`deutsch-grammatik:${zone.id}:${e.id}`, {});
+    return n + Object.values(saved).filter((v) => String(v || "").trim()).length;
+  }, 0);
+
+  const reveals = topic.exercises.filter((e) => e.kind === "reveal");
+  const revTotal = reveals.reduce((n, e) => n + e.items.length, 0);
+  const revDone = reveals.reduce((n, e) => {
+    const saved = read(`deutsch-grammatik:${zone.id}:${e.id}`, {});
+    return n + Object.values(saved).filter((v) => v && v.mark).length;
+  }, 0);
+
+  return {
+    summary: topic.intro,
+    stats: [
+      { label: "Lückenübungen", value: `${gapDone} / ${gapTotal}` },
+      { label: "Selbst bewertet", value: `${revDone} / ${revTotal}` },
+      { label: "Regeln & Tabellen", value: `${topic.rules.length} · ${topic.tables.length}` },
+    ],
+  };
+}
+
 const BUILDERS = {
   grammarFoundations,
   lesenExam,
   vocabTheme,
+  grammarTopic,
 };
 
 export function getPreview(zone) {
