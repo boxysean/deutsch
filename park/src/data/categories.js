@@ -1,8 +1,8 @@
 export const TILE = 7;
 
-// Three districts clustered tightly around a central plaza. Anchors are the
-// top-left cell of each grid; keep them close so the park reads as one place
-// rather than three distant islands.
+// The three districts of Deutsche Welt. Only `label` and `color` are read now
+// (by the HUD legend and the zone sheet) — the anchor/grid fields predate the
+// 2D isometric rewrite, which lays the town out in src/iso/world.js.
 export const CATEGORIES = {
   grammar: {
     label: "Grammatik",

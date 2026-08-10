@@ -1,5 +1,5 @@
 // Deterministic per-zone randomness: the same zone id always produces the same
-// building, so the park looks identical on every visit.
+// building, so the world looks identical on every visit.
 export function makeRng(seedStr) {
   let h = 2166136261;
   for (let i = 0; i < seedStr.length; i++) {

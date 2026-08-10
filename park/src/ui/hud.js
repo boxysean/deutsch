@@ -16,7 +16,7 @@ export function initHud() {
   hud.innerHTML = `
     <div class="hud-brand">
       <span class="code mono">ÖSD A2</span>
-      <h1 class="display">Themenpark</h1>
+      <h1 class="display">Deutsche Welt</h1>
     </div>
     <div class="hud-legend">
       ${legend}
