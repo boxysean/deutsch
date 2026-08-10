@@ -1,6 +1,4 @@
 import * as THREE from "three";
-import { CATEGORIES } from "../data/categories.js";
-import { getZone } from "../data/zones.js";
 
 function findZoneGroup(object) {
   let o = object;
@@ -11,7 +9,7 @@ function findZoneGroup(object) {
   return null;
 }
 
-export function setupRaycast({ renderer, camera, pickableObjects, tooltipEl, onSelect }) {
+export function setupRaycast({ renderer, camera, pickableObjects, onHover, onSelect }) {
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   let hovered = null;
@@ -30,22 +28,6 @@ export function setupRaycast({ renderer, camera, pickableObjects, tooltipEl, onS
     return findZoneGroup(hits[0].object);
   }
 
-  function showTooltip(group, clientX, clientY) {
-    const zone = getZone(group.userData.zoneId);
-    const cat = CATEGORIES[zone.category];
-    const statusLabel = zone.status === "built" ? "erkunden" : "bald verfügbar";
-    tooltipEl.innerHTML =
-      `<span class="badge" style="background:#${cat.color.toString(16).padStart(6, "0")}"></span>` +
-      `${zone.name}<span class="status">${statusLabel}</span>`;
-    tooltipEl.style.left = clientX + "px";
-    tooltipEl.style.top = clientY + "px";
-    tooltipEl.hidden = false;
-  }
-
-  function hideTooltip() {
-    tooltipEl.hidden = true;
-  }
-
   renderer.domElement.addEventListener("pointerdown", (event) => {
     dragStart = { x: event.clientX, y: event.clientY };
   });
@@ -53,21 +35,17 @@ export function setupRaycast({ renderer, camera, pickableObjects, tooltipEl, onS
   renderer.domElement.addEventListener("pointermove", (event) => {
     updatePointer(event);
     const group = pick();
-    if (group !== hovered) {
-      hovered = group;
+    const id = group ? group.userData.zoneId : null;
+    if (id !== hovered) {
+      hovered = id;
+      onHover(id);
     }
-    if (group) {
-      renderer.domElement.style.cursor = "pointer";
-      showTooltip(group, event.clientX, event.clientY);
-    } else {
-      renderer.domElement.style.cursor = "grab";
-      hideTooltip();
-    }
+    renderer.domElement.style.cursor = id ? "pointer" : "grab";
   });
 
   renderer.domElement.addEventListener("pointerleave", () => {
     hovered = null;
-    hideTooltip();
+    onHover(null);
   });
 
   renderer.domElement.addEventListener("pointerup", (event) => {
@@ -75,7 +53,7 @@ export function setupRaycast({ renderer, camera, pickableObjects, tooltipEl, onS
     const dx = event.clientX - dragStart.x;
     const dy = event.clientY - dragStart.y;
     dragStart = null;
-    if (Math.sqrt(dx * dx + dy * dy) > 6) return; // was a pan, not a click
+    if (Math.sqrt(dx * dx + dy * dy) > 6) return; // that was a pan, not a click
     updatePointer(event);
     const group = pick();
     if (group) onSelect(group.userData.zoneId);

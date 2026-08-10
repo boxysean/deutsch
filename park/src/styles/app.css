@@ -23,17 +23,51 @@
 .hud-progress b{ color: var(--ink); }
 .hud-hint{ font-size:0.72rem; color: var(--ink-soft); }
 
-.tooltip{
-  position:absolute; z-index:15; pointer-events:none;
-  transform: translate(-50%, -120%);
-  background: var(--paper-raised); border:1px solid var(--rule-strong); border-radius:5px;
-  padding: 0.35rem 0.6rem; font-size:0.78rem; white-space:nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+/* ---------- map labels ----------
+   These sit on the 3D canvas, which is always the bright park, so they keep a
+   light pill regardless of the page theme. */
+.labels{ position:absolute; inset:0; z-index:12; pointer-events:none; overflow:hidden; }
+.map-label{
+  position:absolute; top:0; left:0; pointer-events:auto;
+  display:inline-flex; align-items:center; gap:0.35rem;
+  padding: 0.22rem 0.55rem 0.22rem 0.42rem;
+  background: #fffdf7; color:#21202b;
+  border: 2px solid #21202b; border-radius: 999px;
+  font-size: 0.76rem; font-weight: 750; line-height:1.2; white-space:nowrap;
+  box-shadow: 0 2px 0 rgba(33,32,43,0.55);
+  cursor:pointer; transition: transform 0.08s ease, background 0.12s ease, box-shadow 0.12s ease;
+  will-change: transform;
 }
-.tooltip .badge{
-  display:inline-block; width:0.5rem; height:0.5rem; border-radius:50%; margin-right:0.35rem;
+.map-label .ml-dot{
+  width:0.5rem; height:0.5rem; border-radius:50%; flex:none;
+  background: var(--label-color); border:1.5px solid #21202b;
 }
-.tooltip .status{ color: var(--ink-soft); font-size:0.7rem; margin-left:0.3rem; }
+.map-label[data-status="stub"]{
+  background: rgba(255,253,247,0.82);
+  border-color: rgba(33,32,43,0.55);
+  color: #4b4a58;
+  font-weight: 650;
+  box-shadow: 0 1px 0 rgba(33,32,43,0.28);
+}
+.map-label[data-status="stub"] .ml-dot{ opacity:0.5; }
+.map-label:hover,
+.map-label[data-hovered="true"]{
+  background: var(--label-color); color:#fffdf7; border-color:#21202b;
+  box-shadow: 0 3px 0 rgba(33,32,43,0.7);
+}
+.map-label:hover .ml-dot,
+.map-label[data-hovered="true"] .ml-dot{ background:#fffdf7; }
+.map-label[data-active="true"]{
+  background: var(--label-color); color:#fffdf7;
+  box-shadow: 0 0 0 3px rgba(255,210,63,0.9), 0 3px 0 rgba(33,32,43,0.7);
+}
+.map-label[data-active="true"] .ml-dot{ background:#ffd23f; }
+
+/* Crowded-out labels shrink to a clickable dot; hovering restores the name. */
+.map-label[data-collapsed="true"]{ padding:0.2rem; }
+.map-label[data-collapsed="true"] .ml-name{ display:none; }
+.map-label[data-collapsed="true"]:hover{ padding:0.22rem 0.55rem 0.22rem 0.42rem; }
+.map-label[data-collapsed="true"]:hover .ml-name{ display:inline; }
 
 .panel{
   position:absolute; top:0; right:0; bottom:0; z-index:20;

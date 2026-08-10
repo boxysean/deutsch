@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { worldBounds } from "./layout.js";
+import { CAMERA_TARGET } from "./setupScene.js";
 
 export function setupControls(camera, domElement) {
   const controls = new OrbitControls(camera, domElement);
+  controls.target.copy(CAMERA_TARGET);
   controls.enableRotate = false;
   controls.screenSpacePanning = true;
   controls.enableDamping = true;
