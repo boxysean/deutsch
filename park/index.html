@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ÖSD A2 Park</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+      <div id="labels" class="labels"></div>
+      <div id="hud"></div>
+      <div id="sheet" class="sheet" hidden>
+        <button id="sheet-close" class="sheet-close" aria-label="Schließen">&times;</button>
+        <div class="sheet-inner">
+          <div class="sheet-head">
+            <span id="sheet-icon" class="sheet-icon"></span>
+            <div class="sheet-headings">
+              <div id="sheet-meta" class="sheet-meta"></div>
+              <h2 id="sheet-title" class="sheet-title"></h2>
+            </div>
+          </div>
+          <p id="sheet-desc" class="sheet-desc"></p>
+          <div id="sheet-stats" class="sheet-stats"></div>
+          <div class="sheet-actions">
+            <button id="sheet-open" class="primary">Ausführlich öffnen</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-backdrop" class="panel-backdrop" hidden></div>
+      <div id="panel" class="panel" hidden>
+        <div class="panel-header">
+          <span id="panel-badge" class="panel-badge"></span>
+          <h2 id="panel-title"></h2>
+          <button id="panel-close" class="panel-close" aria-label="Schließen">&times;</button>
+        </div>
+        <div id="panel-content" class="panel-content"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
