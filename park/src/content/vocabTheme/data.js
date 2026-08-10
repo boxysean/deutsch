@@ -1,8 +1,12 @@
 // Vocabulary Themen. Each entry is one zone's word set, so adding a new theme
 // is just a data change plus flipping that zone to status "built".
 // note = Austrian variant or usage hint (relevant for the ÖSD exam).
+import { THEMES2 } from "./themes2.js";
+
 export const THEMES = {
+  ...THEMES2,
   "essen-trinken": {
+    phrasesTitle: "Redemittel — im Restaurant",
     intro:
       "Alltagswortschatz rund ums Essen, Einkaufen und Bestellen — einer der häufigsten Themenbereiche in Hören und Sprechen. Österreichische Varianten sind markiert, weil das ÖSD auch österreichisches Standarddeutsch prüft.",
     words: [

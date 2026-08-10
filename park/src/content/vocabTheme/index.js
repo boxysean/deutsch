@@ -40,7 +40,7 @@ export function mount(container, zone) {
     </div>
     <div class="vocab-grid" id="vt-grid"></div>
 
-    <div class="subhead">Redemittel — im Restaurant</div>
+    <div class="subhead">${theme.phrasesTitle || "Redemittel"}</div>
     <div class="rule-box measure" id="vt-phrases"></div>
   `;
 
