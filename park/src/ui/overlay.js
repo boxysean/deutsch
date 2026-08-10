@@ -1,6 +1,6 @@
 import { getZone } from "../data/zones.js";
 import { CATEGORIES } from "../data/categories.js";
-import { DISTRICT_PALETTE } from "../scene/palette.js";
+import { DISTRICT } from "../iso/palette.js";
 import { getPreview } from "../content/previews.js";
 
 const MODULE_LOADERS = {
@@ -84,7 +84,7 @@ function handleHash() {
 
 function showSheet(zone) {
   const cat = CATEGORIES[zone.category];
-  const color = DISTRICT_PALETTE[zone.category].label;
+  const color = DISTRICT[zone.category].label;
   const preview = getPreview(zone);
   const built = zone.status === "built";
 
@@ -113,7 +113,7 @@ function showSheet(zone) {
 async function openDetail(zone) {
   if (zone.status !== "built" || !MODULE_LOADERS[zone.module]) return;
 
-  const color = DISTRICT_PALETTE[zone.category].label;
+  const color = DISTRICT[zone.category].label;
   els.badge.style.background = color;
   els.title.textContent = zone.name;
   els.content.innerHTML = "";

@@ -1,59 +1,50 @@
-import * as THREE from "three";
-import { DISTRICT_PALETTE } from "../scene/palette.js";
+import { DISTRICT } from "../iso/palette.js";
 
-// Always-on map labels: an HTML layer projected from each building's roof point.
-// Kept as DOM (not sprites) so type stays crisp and the labels are clickable.
-export function createLabels(zoneObjects, camera, renderer, onSelect) {
+// Always-on map labels as DOM, anchored to each building's roof. Kept out of
+// the canvas so the type stays crisp against the pixelated scene.
+export function createLabels(zones, renderer, onSelect) {
   const container = document.getElementById("labels");
-  const v = new THREE.Vector3();
   let hoveredId = null;
   let activeId = null;
 
-  const items = zoneObjects.map((z) => {
+  const items = zones.map((zone) => {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "map-label";
-    el.dataset.status = z.zone.status;
-    el.style.setProperty("--label-color", DISTRICT_PALETTE[z.zone.category].label);
-    // Zones with an icon show the emoji in place of the colour dot — it stays
-    // crisp (the 3D scene renders pixelated) and doubles as the marker when the
-    // label collapses.
-    const marker = z.zone.icon
-      ? `<span class="ml-icon">${z.zone.icon}</span>`
+    el.dataset.status = zone.status;
+    el.style.setProperty("--label-color", DISTRICT[zone.category].label);
+    const marker = zone.icon
+      ? `<span class="ml-icon">${zone.icon}</span>`
       : `<span class="ml-dot"></span>`;
-    el.innerHTML = `${marker}<span class="ml-name">${z.zone.name}</span>`;
+    el.innerHTML = `${marker}<span class="ml-name">${zone.name}</span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
-      onSelect(z.id);
+      onSelect(zone.id);
     });
-    el.addEventListener("pointerenter", () => setHovered(z.id));
+    el.addEventListener("pointerenter", () => setHovered(zone.id));
     el.addEventListener("pointerleave", () => setHovered(null));
     container.appendChild(el);
-    return { z, el, w: 0, h: 0, x: 0, y: 0 };
+    return { zone, el, w: 0, h: 0, x: 0, y: 0 };
   });
 
   function update() {
-    const cw = renderer.domElement.clientWidth;
-    const ch = renderer.domElement.clientHeight;
+    const cw = renderer.state.cssW;
+    const ch = renderer.state.cssH;
 
     const onScreen = [];
     items.forEach((it) => {
-      v.set(it.z.worldPos.x, it.z.top + it.z.labelOffset + it.z.group.position.y, it.z.worldPos.z);
-      v.project(camera);
-      const x = (v.x * 0.5 + 0.5) * cw;
-      const y = (-v.y * 0.5 + 0.5) * ch;
-      if (v.z > 1 || x < -180 || x > cw + 180 || y < -80 || y > ch + 80) {
+      const anchor = renderer.zoneAnchor(it.zone.id);
+      if (!anchor || anchor.x < -180 || anchor.x > cw + 180 || anchor.y < -80 || anchor.y > ch + 80) {
         it.el.style.display = "none";
         return;
       }
-      it.x = x;
-      it.y = y;
+      it.x = anchor.x;
+      it.y = anchor.y;
       it.el.style.display = "";
-      it.el.style.transform = `translate(-50%, -100%) translate(${x}px, ${y}px)`;
+      it.el.style.transform = `translate(-50%, -100%) translate(${Math.round(anchor.x)}px, ${Math.round(anchor.y)}px)`;
       onScreen.push(it);
     });
 
-    // Label text never changes, so measure once and cache.
     onScreen.forEach((it) => {
       if (!it.w) {
         it.w = it.el.offsetWidth;
@@ -61,26 +52,18 @@ export function createLabels(zoneObjects, camera, renderer, onSelect) {
       }
     });
 
-    // Greedy de-clutter: place high-priority labels first, hide any that would
-    // collide with one already placed. Built zones and the hovered/active zone
-    // always win, so the important labels never disappear.
+    // Greedy de-clutter: important labels are placed first; anything that would
+    // collide collapses to its icon so every zone stays discoverable.
     const sorted = onScreen.slice().sort((a, b) => {
       const pa = priority(a);
       const pb = priority(b);
       if (pa !== pb) return pa - pb;
-      return b.y - a.y; // nearer the camera (lower on screen) wins ties
+      return b.y - a.y;
     });
 
-    // Crowded-out labels collapse to a small clickable dot instead of
-    // disappearing, so every zone stays discoverable at any zoom level.
     const placed = [];
     sorted.forEach((it) => {
-      const rect = {
-        l: it.x - it.w / 2 - 2,
-        r: it.x + it.w / 2 + 2,
-        t: it.y - it.h - 2,
-        b: it.y + 2,
-      };
+      const rect = { l: it.x - it.w / 2 - 2, r: it.x + it.w / 2 + 2, t: it.y - it.h - 2, b: it.y + 2 };
       const clash = placed.some((p) => !(rect.r < p.l || rect.l > p.r || rect.b < p.t || rect.t > p.b));
       it.el.dataset.collapsed = clash ? "true" : "false";
       if (!clash) placed.push(rect);
@@ -88,21 +71,23 @@ export function createLabels(zoneObjects, camera, renderer, onSelect) {
   }
 
   function priority(it) {
-    if (it.z.id === activeId || it.z.id === hoveredId) return 0;
-    return it.z.zone.status === "built" ? 1 : 2;
+    if (it.zone.id === activeId || it.zone.id === hoveredId) return 0;
+    return it.zone.status === "built" ? 1 : 2;
   }
 
   function setHovered(id) {
     hoveredId = id;
-    items.forEach(({ z, el }) => {
-      el.dataset.hovered = z.id === id ? "true" : "false";
+    renderer.state.hoveredId = id;
+    items.forEach(({ zone, el }) => {
+      el.dataset.hovered = zone.id === id ? "true" : "false";
     });
   }
 
   function setActive(id) {
     activeId = id;
-    items.forEach(({ z, el }) => {
-      el.dataset.active = z.id === id ? "true" : "false";
+    renderer.state.activeId = id;
+    items.forEach(({ zone, el }) => {
+      el.dataset.active = zone.id === id ? "true" : "false";
     });
   }
 
