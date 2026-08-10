@@ -1,20 +1,27 @@
 import * as THREE from "three";
+import { computeFraming } from "./layout.js";
 
-const FRUSTUM_HALF_HEIGHT = 42;
-
-// The three districts aren't centred on the origin, so aim the camera at the
-// park's actual visual centroid instead.
-export const CAMERA_TARGET = new THREE.Vector3(-5, 0, -13);
+export const CAMERA_TARGET = new THREE.Vector3();
 
 export function setupScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9fd8ef);
 
-  const aspect = window.innerWidth / window.innerHeight;
-  const d = FRUSTUM_HALF_HEIGHT;
-  const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+  let aspect = window.innerWidth / window.innerHeight;
+  // Frame the whole town, aimed at its true visual centre rather than the origin.
+  const framing = computeFraming(aspect);
+  CAMERA_TARGET.set(framing.target.x, 0, framing.target.z);
+
+  const camera = new THREE.OrthographicCamera(
+    -framing.d * aspect,
+    framing.d * aspect,
+    framing.d,
+    -framing.d,
+    1,
+    1200
+  );
   // Equal x/y/z offset = true isometric projection (35.264° from horizontal, 45° yaw)
-  camera.position.set(CAMERA_TARGET.x + 140, 140, CAMERA_TARGET.z + 140);
+  camera.position.set(CAMERA_TARGET.x + 200, 200, CAMERA_TARGET.z + 200);
   camera.lookAt(CAMERA_TARGET);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -40,11 +47,14 @@ export function setupScene(canvas) {
   scene.add(fill);
 
   function onResize() {
-    const aspect = window.innerWidth / window.innerHeight;
-    camera.left = -d * aspect;
-    camera.right = d * aspect;
-    camera.top = d;
-    camera.bottom = -d;
+    aspect = window.innerWidth / window.innerHeight;
+    // Recompute the frustum so the town stays framed on any window shape.
+    // camera.zoom is untouched, so the user's own zooming survives a resize.
+    const f = computeFraming(aspect);
+    camera.left = -f.d * aspect;
+    camera.right = f.d * aspect;
+    camera.top = f.d;
+    camera.bottom = -f.d;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   }

@@ -32,7 +32,7 @@ export function createLabels(zoneObjects, camera, renderer, onSelect) {
 
     const onScreen = [];
     items.forEach((it) => {
-      v.set(it.z.worldPos.x, it.z.top + 0.9 + it.z.group.position.y, it.z.worldPos.z);
+      v.set(it.z.worldPos.x, it.z.top + it.z.labelOffset + it.z.group.position.y, it.z.worldPos.z);
       v.project(camera);
       const x = (v.x * 0.5 + 0.5) * cw;
       const y = (-v.y * 0.5 + 0.5) * ch;

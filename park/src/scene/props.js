@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { CATEGORIES, PLAZA } from "../data/categories.js";
-import { districtBounds } from "./layout.js";
+import { isTownArea } from "./townPlan.js";
 import { makeRng, pick, range } from "./rng.js";
 import { applyOutlines } from "./outline.js";
 
@@ -103,46 +102,16 @@ function flowerbed(rng) {
 
 const KINDS = [pineTree, roundTree, roundTree, blossomTree, bench, lamp, flowerbed, pineTree];
 
-function insideAnyDistrict(x, z, margin) {
-  return Object.keys(CATEGORIES).some((key) => {
-    const b = districtBounds(key);
-    return x > b.minX - margin && x < b.maxX + margin && z > b.minZ - margin && z < b.maxZ + margin;
-  });
-}
-
-function insidePlaza(x, z, margin) {
-  const dx = x - PLAZA.x;
-  const dz = z - PLAZA.z;
-  return Math.sqrt(dx * dx + dz * dz) < PLAZA.radius + margin;
-}
-
-function nearPath(x, z, margin) {
-  // Keep the three spokes from the plaza to each district clear.
-  return Object.keys(CATEGORIES).some((key) => {
-    const b = districtBounds(key);
-    const cx = (b.minX + b.maxX) / 2;
-    const cz = (b.minZ + b.maxZ) / 2;
-    const len = Math.sqrt(cx * cx + cz * cz);
-    if (len < 0.001) return false;
-    const t = Math.max(0, Math.min(1, (x * cx + z * cz) / (len * len)));
-    const px = cx * t;
-    const pz = cz * t;
-    return Math.sqrt((x - px) ** 2 + (z - pz) ** 2) < margin;
-  });
-}
-
 export function buildProps(scene) {
-  const rng = makeRng("park-scenery-v2");
+  const rng = makeRng("park-scenery-v3");
   const placed = [];
   let attempts = 0;
 
-  while (placed.length < 90 && attempts < 6000) {
+  while (placed.length < 110 && attempts < 9000) {
     attempts++;
-    const x = range(rng, -78, 72);
-    const z = range(rng, -62, 56);
-    if (insideAnyDistrict(x, z, 2.8)) continue;
-    if (insidePlaza(x, z, 3.5)) continue;
-    if (nearPath(x, z, 3.4)) continue;
+    const x = range(rng, -92, 92);
+    const z = range(rng, -86, 64);
+    if (isTownArea(x, z, 2.2)) continue;
     if (placed.some((p) => (p.x - x) ** 2 + (p.z - z) ** 2 < 25)) continue;
     placed.push({ x, z });
 

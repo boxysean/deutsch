@@ -294,7 +294,7 @@ const FACTORIES = {
   pavilion: buildPavilion,
 };
 
-export function buildBuilding(zone) {
+export function buildBuilding(zone, facing = 0) {
   const rng = makeRng(zone.id);
   const built = zone.status === "built";
   const base = zoneColor(zone, rng);
@@ -305,7 +305,9 @@ export function buildBuilding(zone) {
   const factory = FACTORIES[zone.archetype] || buildKiosk;
   const { group, top, flag } = factory(rng, color, roofColor, trim, built);
 
-  group.rotation.y = pick(rng, [0, Math.PI / 2, Math.PI, -Math.PI / 2]) + range(rng, -0.06, 0.06);
+  // Face the cul-de-sac it sits on, with a touch of jitter so the row of
+  // houses isn't unnaturally perfect.
+  group.rotation.y = facing + range(rng, -0.08, 0.08);
   group.userData.zoneId = zone.id;
   group.userData.built = built;
 

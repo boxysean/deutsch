@@ -1,42 +1,53 @@
-import { CATEGORIES, TILE, PLAZA } from "../data/categories.js";
-import { ZONES } from "../data/zones.js";
+import { townBounds, zonePlacement, framingPoints } from "./townPlan.js";
 
-export function zoneWorldPosition(zone) {
-  const cat = CATEGORIES[zone.category];
-  return {
-    x: cat.anchor.x + zone.col * TILE,
-    z: cat.anchor.z + zone.row * TILE,
-  };
-}
-
-export function districtBounds(categoryKey) {
-  const cat = CATEGORIES[categoryKey];
-  const pad = TILE * 0.5;
-  return {
-    minX: cat.anchor.x - pad,
-    maxX: cat.anchor.x + (cat.cols - 1) * TILE + pad,
-    minZ: cat.anchor.z - pad,
-    maxZ: cat.anchor.z + (cat.rows - 1) * TILE + pad,
-  };
-}
-
-export function districtCenter(categoryKey) {
-  const b = districtBounds(categoryKey);
-  return { x: (b.minX + b.maxX) / 2, z: (b.minZ + b.maxZ) / 2 };
-}
+export { zonePlacement, townBounds, isTownArea } from "./townPlan.js";
 
 export function worldBounds() {
-  let minX = -PLAZA.radius, maxX = PLAZA.radius, minZ = -PLAZA.radius, maxZ = PLAZA.radius;
-  Object.keys(CATEGORIES).forEach((key) => {
-    const b = districtBounds(key);
-    minX = Math.min(minX, b.minX);
-    maxX = Math.max(maxX, b.maxX);
-    minZ = Math.min(minZ, b.minZ);
-    maxZ = Math.max(maxZ, b.maxZ);
-  });
-  return { minX, maxX, minZ, maxZ };
+  return townBounds();
 }
 
-export function allZonePositions() {
-  return ZONES.map((zone) => ({ zone, pos: zoneWorldPosition(zone) }));
+// Isometric projection constants for a camera at 45° yaw / 35.26° pitch.
+const SX = Math.SQRT1_2; // horizontal screen units per (x - z)
+const SY = 0.4082; // vertical screen units per (x + z)
+
+// Fit the whole town in view regardless of window shape, and aim the camera at
+// the town's true visual centre rather than the world origin.
+export function computeFraming(aspect, margin = 14) {
+  // Frame the actual built points, not the bounding box: the box's corners fall
+  // in empty grass and would push the town off-centre.
+  const points = framingPoints();
+
+  let minSx = Infinity, maxSx = -Infinity, minSy = Infinity, maxSy = -Infinity;
+  points.forEach((c) => {
+    const sx = (c.x - c.z) * SX;
+    const sy = (c.x + c.z) * SY;
+    minSx = Math.min(minSx, sx);
+    maxSx = Math.max(maxSx, sx);
+    minSy = Math.min(minSy, sy);
+    maxSy = Math.max(maxSy, sy);
+  });
+
+  // Buildings and their labels rise above their ground point, i.e. toward the
+  // top of the screen, which is the low-sy end.
+  minSy -= 11;
+
+  const midSx = (minSx + maxSx) / 2;
+  const midSy = (minSy + maxSy) / 2;
+  const xMinusZ = midSx / SX;
+  const xPlusZ = midSy / SY;
+
+  const target = {
+    x: (xPlusZ + xMinusZ) / 2,
+    z: (xPlusZ - xMinusZ) / 2,
+  };
+
+  const halfWidth = (maxSx - minSx) / 2 + margin;
+  const halfHeight = (maxSy - minSy) / 2 + margin;
+  const d = Math.max(halfHeight, halfWidth / Math.max(aspect, 0.35));
+
+  return { target, d };
+}
+
+export function zoneWorldPosition(zone) {
+  return zonePlacement(zone.id);
 }

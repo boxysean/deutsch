@@ -1,72 +1,113 @@
 import * as THREE from "three";
-import { CATEGORIES, TILE, PLAZA } from "../data/categories.js";
-import { districtBounds, districtCenter } from "./layout.js";
+import { PLAZA } from "../data/categories.js";
+import { TOWN_PLAN } from "./townPlan.js";
 import { DISTRICT_PALETTE } from "./palette.js";
 import { applyOutlines } from "./outline.js";
+
+const ROAD = 0xe4cf9a;
+const ROAD_EDGE = 0xb99a63;
 
 function mat(color) {
   return new THREE.MeshLambertMaterial({ color, flatShading: true });
 }
 
-function plane(w, d, color, y) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat(color));
+function disc(radius, color, y, segments = 22) {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(radius, segments), mat(color));
   m.rotation.x = -Math.PI / 2;
   m.position.y = y;
+  return m;
+}
+
+// A road segment from a -> b, drawn as a flat strip.
+function strip(a, b, width, color, y) {
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const len = Math.hypot(dx, dz);
+  if (len < 0.01) return null;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(len, width), mat(color));
+  m.rotation.x = -Math.PI / 2;
+  m.rotation.z = -Math.atan2(dz, dx);
+  m.position.set(a.x + dx / 2, y, a.z + dz / 2);
   return m;
 }
 
 export function buildGround(scene) {
   const animated = [];
 
-  const base = plane(400, 360, 0x6fbf73, -0.05);
-  base.position.x = -15;
-  base.position.z = -10;
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(460, 420), mat(0x6fbf73));
+  base.rotation.x = -Math.PI / 2;
+  base.position.set(-10, -0.05, -20);
   scene.add(base);
 
-  Object.keys(CATEGORIES).forEach((key) => {
-    const pal = DISTRICT_PALETTE[key];
-    const b = districtBounds(key);
-    const w = b.maxX - b.minX + TILE * 0.6;
-    const d = b.maxZ - b.minZ + TILE * 0.6;
-    const cx = (b.minX + b.maxX) / 2;
-    const cz = (b.minZ + b.maxZ) / 2;
+  Object.entries(TOWN_PLAN.districts).forEach(([category, d]) => {
+    const pal = DISTRICT_PALETTE[category];
+    const spineEnd = { x: d.dir.x * d.spineLength, z: d.dir.z * d.spineLength };
+    const spineStart = { x: d.dir.x * PLAZA.radius, z: d.dir.z * PLAZA.radius };
 
-    // darker plate underneath = crisp border around each district
-    const edge = plane(w + 1.6, d + 1.6, pal.padEdge, 0.01);
-    edge.position.set(cx, 0.01, cz);
-    scene.add(edge);
+    // --- neighbourhood ground tint: a blob per cul-de-sac plus a strip along
+    // the spine, which together read as an organic suburb outline ---
+    const tintEdge = strip(spineStart, spineEnd, 15, pal.padEdge, 0.008);
+    if (tintEdge) scene.add(tintEdge);
+    const tint = strip(spineStart, spineEnd, 13, pal.pad, 0.012);
+    if (tint) scene.add(tint);
 
-    const pad = plane(w, d, pal.pad, 0.02);
-    pad.position.set(cx, 0.02, cz);
-    scene.add(pad);
+    d.bulbs.forEach((b) => {
+      const blobEdge = disc(b.ring + 5.2, pal.padEdge, 0.009);
+      blobEdge.position.set(b.center.x, 0.009, b.center.z);
+      scene.add(blobEdge);
 
-    // path from district centre back to the plaza
-    const center = districtCenter(key);
-    const dx = center.x - PLAZA.x;
-    const dz = center.z - PLAZA.z;
-    const dist = Math.sqrt(dx * dx + dz * dz);
-    const len = dist - PLAZA.radius;
-    if (len > 1) {
-      const angle = -Math.atan2(dz, dx);
-      const midX = PLAZA.x + (dx / dist) * (PLAZA.radius + len / 2);
-      const midZ = PLAZA.z + (dz / dist) * (PLAZA.radius + len / 2);
+      const blob = disc(b.ring + 4.4, pal.pad, 0.013);
+      blob.position.set(b.center.x, 0.013, b.center.z);
+      scene.add(blob);
 
-      const pathEdge = plane(len, 4.4, 0xb99a63, 0.012);
-      pathEdge.rotation.z = angle;
-      pathEdge.position.set(midX, 0.012, midZ);
-      scene.add(pathEdge);
+      const branchTintEdge = strip(b.spinePt, b.center, 13, pal.padEdge, 0.009);
+      if (branchTintEdge) scene.add(branchTintEdge);
+      const branchTint = strip(b.spinePt, b.center, 11.5, pal.pad, 0.013);
+      if (branchTint) scene.add(branchTint);
+    });
 
-      const path = plane(len, 3.4, 0xe4cf9a, 0.022);
-      path.rotation.z = angle;
-      path.position.set(midX, 0.022, midZ);
-      scene.add(path);
-    }
+    // --- the lanes themselves, drawn on top of the tint ---
+    const spineEdge = strip(spineStart, spineEnd, 5.4, ROAD_EDGE, 0.02);
+    if (spineEdge) scene.add(spineEdge);
+    const spine = strip(spineStart, spineEnd, 4.2, ROAD, 0.03);
+    if (spine) scene.add(spine);
+
+    d.bulbs.forEach((b) => {
+      const branchEdge = strip(b.spinePt, b.center, 4.4, ROAD_EDGE, 0.02);
+      if (branchEdge) scene.add(branchEdge);
+      const branch = strip(b.spinePt, b.center, 3.3, ROAD, 0.03);
+      if (branch) scene.add(branch);
+
+      const bulbEdge = disc(b.roadRadius + 0.6, ROAD_EDGE, 0.021, 20);
+      bulbEdge.position.set(b.center.x, 0.021, b.center.z);
+      scene.add(bulbEdge);
+
+      const bulb = disc(b.roadRadius, ROAD, 0.031, 20);
+      bulb.position.set(b.center.x, 0.031, b.center.z);
+      scene.add(bulb);
+
+      // a little green island in the middle of the cul-de-sac
+      if (b.roadRadius > 3.4) {
+        const island = disc(b.roadRadius * 0.42, 0x5faa63, 0.04, 14);
+        island.position.set(b.center.x, 0.04, b.center.z);
+        scene.add(island);
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.8, 6), mat(0x7a5230));
+        trunk.position.y = 0.4;
+        const crown = new THREE.Mesh(new THREE.SphereGeometry(0.8, 7, 5), mat(0x3f9e57));
+        crown.position.y = 1.4;
+        tree.add(trunk, crown);
+        tree.position.set(b.center.x, 0.04, b.center.z);
+        applyOutlines(tree, 0.05);
+        scene.add(tree);
+      }
+    });
   });
 
-  // plaza with a little fountain — the visual anchor of the park
+  // --- central plaza + fountain ---
   const plazaEdge = new THREE.Mesh(
-    new THREE.CylinderGeometry(PLAZA.radius + 0.8, PLAZA.radius + 0.8, 0.12, 28),
-    mat(0xb99a63)
+    new THREE.CylinderGeometry(PLAZA.radius + 0.9, PLAZA.radius + 0.9, 0.12, 28),
+    mat(ROAD_EDGE)
   );
   plazaEdge.position.set(PLAZA.x, 0.04, PLAZA.z);
   scene.add(plazaEdge);
@@ -76,17 +117,17 @@ export function buildGround(scene) {
   scene.add(plaza);
 
   const fountain = new THREE.Group();
-  const basin = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.2, 0.5, 12), mat(0xd8cbb0));
+  const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.1, 0.5, 12), mat(0xd8cbb0));
   basin.position.y = 0.25;
   fountain.add(basin);
-  const water = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 0.12, 12), mat(0x4fb3d9));
+  const water = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.12, 12), mat(0x4fb3d9));
   water.position.y = 0.5;
   water.userData.noOutline = true;
   fountain.add(water);
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.1, 8), mat(0xd8cbb0));
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.28, 1.1, 8), mat(0xd8cbb0));
   stem.position.y = 1.0;
   fountain.add(stem);
-  const top = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), mat(0x4fb3d9));
+  const top = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 6), mat(0x4fb3d9));
   top.position.y = 1.75;
   top.userData.spin = 0.6;
   fountain.add(top);

@@ -4,6 +4,7 @@ import { CATEGORIES } from "../data/categories.js";
 const MODULE_LOADERS = {
   grammarFoundations: () => import("../content/grammarFoundations/index.js"),
   lesenExam: () => import("../content/lesenExam/index.js"),
+  vocabTheme: () => import("../content/vocabTheme/index.js"),
 };
 
 let els = null;
@@ -51,7 +52,7 @@ export async function openZonePanel(id, opts = {}) {
   if (zone.status === "built" && MODULE_LOADERS[zone.module]) {
     try {
       const mod = await MODULE_LOADERS[zone.module]();
-      mod.mount(els.content);
+      mod.mount(els.content, zone);
     } catch (err) {
       console.error("Failed to load zone module", zone.module, err);
       els.content.innerHTML = `<p>Inhalt konnte nicht geladen werden.</p>`;
