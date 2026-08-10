@@ -3,10 +3,12 @@
 // note = Austrian variant or usage hint (relevant for the ÖSD exam).
 import { THEMES2 } from "./themes2.js";
 import { THEMES3 } from "./themes3.js";
+import { THEMES4 } from "./themes4.js";
 
 export const THEMES = {
   ...THEMES2,
   ...THEMES3,
+  ...THEMES4,
   "essen-trinken": {
     phrasesTitle: "Redemittel — im Restaurant",
     intro:
