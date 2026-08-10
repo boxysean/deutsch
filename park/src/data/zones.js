@@ -18,8 +18,7 @@ export const ZONES = [
   },
   {
     id: "praepositionen", category: "grammar", name: "Präpositionen", tag: "4",
-    col: 3, row: 0, archetype: "kiosk", status: "stub",
-    teaser: "Präpositionen mit festem Kasus: für/ohne/gegen/um (+Akkusativ), mit/nach/bei/seit/von/zu/aus (+Dativ). Verschmelzungen wie zum, zur, im, am.",
+    col: 3, row: 0, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "wechselpraepositionen", category: "grammar", name: "Wechselpräpositionen", tag: "5",
@@ -31,8 +30,7 @@ export const ZONES = [
   },
   {
     id: "praeteritum-modalverben", category: "grammar", name: "Präteritum & Modalverben", tag: "7",
-    col: 2, row: 1, archetype: "kiosk", status: "stub",
-    teaser: "Präteritum wird in der gesprochenen Sprache vor allem bei sein, haben und den Modalverben verwendet: war, hatte, konnte, musste, wollte, durfte, sollte.",
+    col: 2, row: 1, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "adjektivendungen", category: "grammar", name: "Adjektivendungen", tag: "8",
@@ -44,11 +42,10 @@ export const ZONES = [
   },
   {
     id: "reflexiv-konjunktiv", category: "grammar", name: "Reflexiv & Konjunktiv II", tag: "10",
-    col: 1, row: 2, archetype: "kiosk", status: "stub",
-    teaser: "Reflexivverben (sich interessieren für) + höfliches Konjunktiv II für Bitten und Wünsche: könnten, hätte gern, würde.",
+    col: 1, row: 2, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "verben-mit-praeposition", category: "grammar", name: "Verben mit Präposition", tag: "10",
+    id: "verben-mit-praeposition", category: "grammar", name: "Verben mit Präposition", tag: "11",
     col: 2, row: 2, archetype: "kiosk", status: "built", module: "grammarTopic",
   },
 
