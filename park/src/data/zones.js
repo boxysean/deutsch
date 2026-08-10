@@ -99,18 +99,18 @@ export const ZONES = [
   },
   {
     id: "hoeren", icon: "🎧", category: "examskill", name: "Hören",
-    col: 1, row: 0, archetype: "pavilion", status: "stub",
-    teaser: "3 Aufgaben, ca. 15 Min, 30 Punkte (min. 6 zum Bestehen): Notizen zu einer Durchsage, 5-Personen-Interview, Doppel-Hörtext.",
+    subtitle: "ca. 15 Min · 30 Punkte", col: 1, row: 0, archetype: "pavilion",
+    status: "built", module: "examSkill",
   },
   {
     id: "schreiben", icon: "📝", category: "examskill", name: "Schreiben",
-    col: 0, row: 1, archetype: "pavilion", status: "stub",
-    teaser: "1 Aufgabe, 30 Min, 15 Punkte: Antwort-E-Mail (~50 Wörter), 4 eingebettete Fragen beantworten.",
+    subtitle: "30 Min · 15 Punkte", col: 0, row: 1, archetype: "pavilion",
+    status: "built", module: "examSkill",
   },
   {
     id: "sprechen", icon: "💬", category: "examskill", name: "Sprechen",
-    col: 1, row: 1, archetype: "pavilion", status: "stub",
-    teaser: "2 Aufgaben, ca. 10 Min + 10 Min Vorbereitung, max. 20 Punkte: Sich vorstellen (5 von 6 Themen) + gemeinsame Planaufgabe.",
+    subtitle: "ca. 10 Min · 20 Punkte", col: 1, row: 1, archetype: "pavilion",
+    status: "built", module: "examSkill",
   },
 
   // ---------------- Town square (1) ----------------

@@ -1,5 +1,6 @@
 import { THEMES } from "./vocabTheme/data.js";
 import { TOPICS } from "./grammarTopic/data.js";
+import { SKILLS } from "./examSkill/data.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
@@ -106,12 +107,50 @@ function infoHub() {
   };
 }
 
+const EXAM_META = {
+  hoeren: ["3 Aufgaben · 14 Items", "ca. 15 Min · 30 Punkte", "min. 6 zum Bestehen"],
+  schreiben: ["1 Aufgabe", "30 Min · 15 Punkte", "ca. 50 Wörter"],
+  sprechen: ["2 Aufgaben", "ca. 10 Min · 20 Punkte", "min. 10 zum Bestehen"],
+};
+
+function examSkill(zone) {
+  const skill = SKILLS[zone.id];
+  if (!skill) return { summary: zone.teaser || "Prüfungsteil.", stats: [] };
+
+  const blocks = skill.training;
+  const gaps = blocks.filter((b) => b.kind === "gap");
+  const gapTotal = gaps.reduce((n, b) => n + b.items.length, 0);
+  const gapDone = gaps.reduce((n, b) => {
+    const saved = read(`deutsch-pruefung:${zone.id}:${b.id}`, {});
+    return n + Object.values(saved).filter((v) => String(v || "").trim()).length;
+  }, 0);
+
+  const reveals = blocks.filter((b) => b.kind === "reveal");
+  const revTotal = reveals.reduce((n, b) => n + b.items.length, 0);
+  const revDone = reveals.reduce((n, b) => {
+    const saved = read(`deutsch-pruefung:${zone.id}:${b.id}`, {});
+    return n + Object.values(saved).filter((v) => v && v.mark).length;
+  }, 0);
+
+  const writings = blocks.filter((b) => b.kind === "writing");
+  const written = writings.filter((b) => String(read(`deutsch-pruefung:${zone.id}:${b.id}`, "")).trim()).length;
+
+  const meta = EXAM_META[zone.id] || [];
+  const stats = [{ label: "Prüfungsteil", value: meta[1] || "" }];
+  if (gapTotal) stats.push({ label: "Übungen gelöst", value: `${gapDone} / ${gapTotal}` });
+  if (revTotal) stats.push({ label: "Selbst bewertet", value: `${revDone} / ${revTotal}` });
+  if (writings.length) stats.push({ label: "Texte geschrieben", value: `${written} / ${writings.length}` });
+
+  return { summary: skill.intro.replace(/<[^>]+>/g, ""), stats: stats.slice(0, 3) };
+}
+
 const BUILDERS = {
   grammarFoundations,
   lesenExam,
   vocabTheme,
   grammarTopic,
   infoHub,
+  examSkill,
 };
 
 export function getPreview(zone) {

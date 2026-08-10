@@ -152,7 +152,7 @@ function gameHtml() {
     <div class="subhead">Bedienung</div>
     <div class="measure rule-box">
       <p><b>Ziehen</b> — Karte verschieben · <b>Scrollen</b> — zoomen · <b>Klick</b> — Haus öffnen</p>
-      <p>Häuser mit einem goldenen Ring sind fertig ausgebaut. Blasse Häuser warten noch auf Inhalt — anklicken kannst du sie trotzdem, du bekommst dann eine kurze Beschreibung.</p>
+      <p>Häuser mit einem goldenen Ring sind fertig ausgebaut — inzwischen sind das alle. Blasse Häuser gäbe es nur, wenn ein Thema noch auf Inhalt wartet.</p>
       <p>Die Denkmäler — Riesenrad, Fernsehturm, Kölner Dom, Brandenburger Tor, Neuschwanstein, Matterhorn — sind reine Dekoration.</p>
     </div>
 
