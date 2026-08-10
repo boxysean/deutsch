@@ -76,6 +76,11 @@
 }
 .map-label[data-active="true"] .ml-dot{ background:#ffd23f; }
 
+/* The highlighted label is exempt from de-cluttering, so it needs to paint
+   over any neighbour it now overlaps. */
+.map-label[data-hovered="true"],
+.map-label[data-active="true"]{ z-index: 2; }
+
 /* Crowded-out labels shrink to a clickable dot; hovering restores the name. */
 .map-label[data-collapsed="true"]{ padding:0.2rem; }
 .map-label[data-collapsed="true"] .ml-name{ display:none; }
