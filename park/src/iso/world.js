@@ -51,28 +51,41 @@ function buildingFor(zone) {
   const pal = DISTRICT[zone.category];
   const built = zone.status === "built";
 
-  const hue = range(rng, pal.hue[0], pal.hue[1]);
-  const sat = built ? range(rng, pal.sat[0], pal.sat[1]) : range(rng, pal.sat[0], pal.sat[1]) * 0.45;
-  const light = built ? range(rng, pal.light[0], pal.light[1]) : range(rng, pal.light[0], pal.light[1]) + 0.12;
-
   const isLandmark = zone.archetype === "townhall";
   const isPavilion = zone.archetype === "pavilion";
+
+  // Roughly half the village is a whitewashed Bavarian farmhouse; the rest are
+  // colour-washed town houses, so the districts still read by colour.
+  const style = isLandmark || isPavilion ? "civic" : pick(rng, ["bavarian", "bavarian", "townhouse", "townhouse", "bavarian"]);
+
+  const hue = range(rng, pal.hue[0], pal.hue[1]);
+  let sat = built ? range(rng, pal.sat[0], pal.sat[1]) : range(rng, pal.sat[0], pal.sat[1]) * 0.45;
+  let light = built ? range(rng, pal.light[0], pal.light[1]) : range(rng, pal.light[0], pal.light[1]) + 0.12;
+
+  if (style === "bavarian") {
+    // limewashed cream walls — the district hue survives only as a faint tint
+    sat *= 0.22;
+    light = built ? 0.84 : 0.88;
+  }
 
   return {
     hue,
     sat,
     light,
-    roofHue: pick(rng, ROOF_HUES),
-    roofSat: built ? 0.55 : 0.24,
-    roofLight: built ? 0.36 : 0.5,
-    height: isLandmark ? 3.4 : isPavilion ? 2.6 : range(rng, 1.7, 2.6),
+    style,
+    // Bavarian farmhouses wear the classic weathered red-brown shingle.
+    roofHue: style === "bavarian" ? range(rng, 0.03, 0.07) : pick(rng, ROOF_HUES),
+    roofSat: style === "bavarian" ? 0.42 : built ? 0.55 : 0.24,
+    roofLight: style === "bavarian" ? 0.34 : built ? 0.36 : 0.5,
+    // Low and broad for a farmhouse, taller and narrower for a town house.
+    height: isLandmark ? 3.4 : isPavilion ? 2.6 : style === "bavarian" ? range(rng, 1.5, 1.9) : range(rng, 2.1, 2.8),
     // Alpine vernacular: overwhelmingly chalets and steep gables, never flat.
-    roofKind: isLandmark ? "pyramid" : pick(rng, ["chalet", "chalet", "chalet", "gable", "gable"]),
+    roofKind: isLandmark ? "pyramid" : style === "bavarian" ? "chalet" : pick(rng, ["chalet", "gable", "gable"]),
     // Whitewashed with painted panels, or half-timbered.
-    wallStyle: pick(rng, ["luftl", "plain", "fachwerk", "luftl", "fachwerk"]),
-    flowerBoxes: rng() > 0.25,
-    roofStones: rng() > 0.6,
-    woodpile: rng() > 0.6,
+    wallStyle: style === "bavarian" ? pick(rng, ["luftl", "luftl", "fachwerk"]) : pick(rng, ["plain", "fachwerk", "luftl"]),
+    flowerBoxes: style === "bavarian" ? true : rng() > 0.4,
+    roofStones: style === "bavarian" ? rng() > 0.35 : false,
+    woodpile: style === "bavarian" ? rng() > 0.35 : rng() > 0.75,
     roofH: isLandmark ? 1.9 : range(rng, 0.9, 1.4),
     // Smaller than their tile so the plots keep visible space around them.
     footprint: isLandmark ? 2.2 : isPavilion ? 1.7 : range(rng, 1.35, 1.6),
@@ -253,6 +266,8 @@ export function buildWorld() {
     { kind: "riesenrad", tx: -9, ty: 13 }, // Wiener Riesenrad
     { kind: "fernsehturm", tx: 11, ty: -19 }, // Berliner Fernsehturm
     { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
+    { kind: "brandenburg", tx: 6, ty: 15 }, // Brandenburger Tor
+    { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein
   ];
   monuments.forEach((m) => {
     for (let dx = -1; dx <= 1; dx++) {
@@ -261,6 +276,10 @@ export function buildWorld() {
     claim(m.tx, m.ty);
     objects.push(m);
   });
+
+  // The Matterhorn towers over the range behind the town — no apron, it's part
+  // of the skyline rather than the village.
+  objects.push({ kind: "matterhorn", tx: zMinX - back, ty: zMinY - back + 13, scale: 1.15 });
 
   // Villagers strolling the streets.
   const pathTiles = [...tiles.values()].filter((t) => t.type === "path");

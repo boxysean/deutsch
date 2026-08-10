@@ -41,7 +41,10 @@
   border: 2px solid #21202b; border-radius: 999px;
   font-size: 0.76rem; font-weight: 750; line-height:1.2; white-space:nowrap;
   box-shadow: 0 2px 0 rgba(33,32,43,0.55);
-  cursor:pointer; transition: transform 0.08s ease, background 0.12s ease, box-shadow 0.12s ease;
+  cursor:pointer;
+  /* NB: never transition transform — the position is rewritten every frame as
+     the map pans, and an eased transform makes labels lag behind their house. */
+  transition: background 0.12s ease, box-shadow 0.12s ease, color 0.12s ease;
   will-change: transform;
 }
 .map-label .ml-dot{

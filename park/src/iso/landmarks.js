@@ -198,6 +198,149 @@ function gothicSpire(ctx, x, baseY, h, w) {
   ctx.stroke();
 }
 
+// ------------------------------------------------- Brandenburger Tor (Berlin)
+
+export function drawBrandenburgGate(ctx, x, y) {
+  const stone = "#ded8c8";
+  const stoneDark = "#bcb5a3";
+  const shadow = "#9d9684";
+
+  const baseY = y - 2;
+  const h = 46;
+  const colW = 5;
+  const cols = 6;
+  const span = 58;
+
+  // stylobate
+  px(ctx, x - span / 2 - 4, baseY, span + 8, 5, stoneDark);
+  outlineRect(ctx, x - span / 2 - 4, baseY, span + 8, 5);
+
+  // doric columns
+  for (let i = 0; i < cols; i++) {
+    const cx = x - span / 2 + (i * span) / (cols - 1) - colW / 2;
+    px(ctx, cx, baseY - h, colW, h, stone);
+    px(ctx, cx + colW - 2, baseY - h, 2, h, shadow); // shaded flute
+    outlineRect(ctx, cx, baseY - h, colW, h);
+  }
+
+  // entablature
+  px(ctx, x - span / 2 - 5, baseY - h - 9, span + 10, 9, stone);
+  outlineRect(ctx, x - span / 2 - 5, baseY - h - 9, span + 10, 9);
+  px(ctx, x - span / 2 - 5, baseY - h - 4, span + 10, 2, stoneDark);
+  // attic block
+  px(ctx, x - span / 2 + 4, baseY - h - 16, span - 8, 7, stone);
+  outlineRect(ctx, x - span / 2 + 4, baseY - h - 16, span - 8, 7);
+
+  // the Quadriga: chariot and four horses
+  const qy = baseY - h - 16;
+  const qx = x - 12;
+  px(ctx, qx, qy - 7, 7, 7, "#4a4a52"); // chariot
+  outlineRect(ctx, qx, qy - 7, 7, 7);
+  for (let i = 0; i < 4; i++) {
+    const hx = qx + 8 + i * 4;
+    px(ctx, hx, qy - 6, 3, 6, "#5a5a62"); // body
+    px(ctx, hx + 2, qy - 9, 2, 3, "#5a5a62"); // neck and head
+    px(ctx, hx, qy - 1, 1, 2, "#4a4a52"); // legs
+  }
+}
+
+// ------------------------------------------------- Schloss Neuschwanstein
+
+function castleTower(ctx, x, baseY, h, w, roofColor) {
+  const wall = "#f2efe6";
+  px(ctx, x - w / 2, baseY - h, w, h, wall);
+  px(ctx, x + w / 2 - 2, baseY - h, 2, h, "#d6d0c2");
+  outlineRect(ctx, x - w / 2, baseY - h, w, h);
+  // conical roof
+  poly(ctx, [[x - w / 2 - 1.5, baseY - h], [x + w / 2 + 1.5, baseY - h], [x, baseY - h - w * 1.5]], roofColor, OUTLINE);
+  // windows
+  for (let i = 0; i < Math.floor(h / 9); i++) {
+    px(ctx, x - 1, baseY - h + 5 + i * 9, 2, 4, "#4d5a74");
+  }
+}
+
+export function drawCastle(ctx, x, y) {
+  const rock = "#8b8578";
+  const rockDark = "#6f6a5f";
+  const wall = "#f2efe6";
+  const roofBlue = "#3f5f96";
+
+  // crag
+  poly(ctx, [[x - 34, y], [x + 34, y], [x + 24, y - 16], [x - 24, y - 16]], rock, OUTLINE);
+  poly(ctx, [[x, y], [x + 34, y], [x + 24, y - 16], [x, y - 16]], rockDark, null);
+
+  const baseY = y - 15;
+
+  // lower gatehouse range
+  px(ctx, x - 26, baseY - 20, 22, 20, wall);
+  outlineRect(ctx, x - 26, baseY - 20, 22, 20);
+  px(ctx, x - 26, baseY - 20, 22, 3, "#c8a24a");
+  poly(ctx, [[x - 27, baseY - 20], [x - 3, baseY - 20], [x - 15, baseY - 30]], "#7a3b34", OUTLINE);
+
+  // main palas
+  px(ctx, x - 8, baseY - 40, 26, 40, wall);
+  px(ctx, x + 12, baseY - 40, 6, 40, "#ddd8cb");
+  outlineRect(ctx, x - 8, baseY - 40, 26, 40);
+  poly(ctx, [[x - 9, baseY - 40], [x + 19, baseY - 40], [x + 5, baseY - 54]], "#7a3b34", OUTLINE);
+  // rows of arched windows
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      px(ctx, x - 4 + c * 6, baseY - 34 + r * 11, 3, 6, "#4d5a74");
+    }
+  }
+
+  // the fairy-tale towers
+  castleTower(ctx, x - 20, baseY, 56, 11, roofBlue);
+  castleTower(ctx, x + 22, baseY, 40, 9, roofBlue);
+  castleTower(ctx, x + 4, baseY - 40, 20, 7, roofBlue);
+}
+
+// ------------------------------------------------- Matterhorn (Switzerland)
+
+export function drawMatterhorn(ctx, x, baseY, scale = 1) {
+  const w = 150 * scale;
+  const h = 150 * scale;
+  const rockL = "#6e7288";
+  const rockR = "#4e5266";
+  const snow = "#f6f9fd";
+  const snowShade = "#d3dbe6";
+
+  // The Matterhorn's signature: a hooked summit leaning to one side.
+  const peakX = x + w * 0.12;
+  const peakY = baseY - h;
+  const shoulderX = x - w * 0.06;
+  const shoulderY = baseY - h * 0.62;
+
+  poly(ctx, [[x - w / 2, baseY], [shoulderX, shoulderY], [peakX, peakY], [x + w * 0.06, baseY]], rockL, OUTLINE);
+  poly(ctx, [[x + w * 0.06, baseY], [peakX, peakY], [x + w / 2, baseY]], rockR, OUTLINE);
+
+  // snow clinging to the north face and the summit hook
+  poly(
+    ctx,
+    [
+      [peakX, peakY],
+      [shoulderX, shoulderY],
+      [shoulderX + w * 0.07, shoulderY + h * 0.06],
+      [peakX - w * 0.03, peakY + h * 0.16],
+    ],
+    snow,
+    null
+  );
+  poly(ctx, [[peakX, peakY], [peakX - w * 0.03, peakY + h * 0.16], [peakX + w * 0.06, peakY + h * 0.2]], snowShade, null);
+  // snow streaks in the gullies
+  poly(
+    ctx,
+    [
+      [x - w * 0.22, baseY],
+      [x - w * 0.14, baseY - h * 0.3],
+      [x - w * 0.09, baseY - h * 0.28],
+      [x - w * 0.13, baseY],
+    ],
+    snowShade,
+    null
+  );
+}
+
 export function drawCathedral(ctx, x, y) {
   const nave = faces(0.1, 0.08, 0.72);
 

@@ -10,7 +10,14 @@ import {
   drawAlpineWindow,
   drawDoor,
 } from "./sprites.js";
-import { drawFerrisWheel, drawTvTower, drawCathedral } from "./landmarks.js";
+import {
+  drawFerrisWheel,
+  drawTvTower,
+  drawCathedral,
+  drawBrandenburgGate,
+  drawCastle,
+  drawMatterhorn,
+} from "./landmarks.js";
 import { faces, hsl, DISTRICT, GROUND, TRIM, OUTLINE } from "./palette.js";
 import {
   drawMountain,
@@ -49,7 +56,12 @@ export function createRenderer(canvas, world) {
   };
 
   const sortedTiles = [...world.tiles.values()].sort((a, b) => depthOf(a.tx, a.ty) - depthOf(b.tx, b.ty));
-  const sortedObjects = [...world.objects].sort((a, b) => depthOf(a.tx, a.ty) - depthOf(b.tx, b.ty));
+  const all = [...world.objects].sort((a, b) => depthOf(a.tx, a.ty) - depthOf(b.tx, b.ty));
+  // The mountain backdrop never animates, so it is baked into the cached
+  // ground layer instead of being redrawn every frame.
+  const isBackdrop = (o) => o.kind === "mountain" || o.kind === "matterhorn";
+  const backdrop = all.filter(isBackdrop);
+  const sortedObjects = all.filter((o) => !isBackdrop(o));
 
   // ---------------------------------------------------------------- sizing
 
@@ -74,7 +86,7 @@ export function createRenderer(canvas, world) {
       minX = Math.min(minX, s.x - TILE_W);
       maxX = Math.max(maxX, s.x + TILE_W);
       // extra headroom so the mountain range behind the town stays in shot
-      minY = Math.min(minY, s.y - 6 * LEVEL_H - 70);
+      minY = Math.min(minY, s.y - 6 * LEVEL_H - 95);
       maxY = Math.max(maxY, s.y + TILE_H * 2);
     });
 
@@ -158,6 +170,14 @@ export function createRenderer(canvas, world) {
         if (o.x < -TILE_W || o.x > w + TILE_W || o.y < -TILE_H * 2 || o.y > h + TILE_H * 3) continue;
         // paths get a faint edge so the streets read clearly from a distance
         drawTile(gctx, o.x, o.y, tileColor(t), t.type === "path" ? "#c2a870" : null);
+      }
+
+      for (const m of backdrop) {
+        const o = originFor(m.tx, m.ty);
+        const cy = o.y + TILE_H / 2;
+        if (o.x < -300 || o.x > w + 300 || cy < -320 || cy > h + 120) continue;
+        if (m.kind === "matterhorn") drawMatterhorn(gctx, o.x, cy, m.scale || 1);
+        else drawMountain(gctx, o.x, cy, m.w, m.h, m.seed);
       }
     }
     sctx.drawImage(ground, 0, 0);
@@ -250,11 +270,14 @@ export function createRenderer(canvas, world) {
     } else if (spec.roofKind === "chalet") {
       // Alpine chalet: a shallow gable with deep overhanging eaves, a carved
       // balcony running the width of the house, and stones weighting the roof.
-      const over = 0.3;
+      // The overhang grows the footprint by `over` tiles, so the roof's origin
+      // corner moves back half that on BOTH tile axes — which is straight up
+      // the screen, not diagonally.
+      const over = spec.style === "bavarian" ? 0.5 : 0.3;
       drawGable(
         sctx,
-        ox - TILE_W * over * 0.5,
-        oy + TILE_H * over * 0.5,
+        ox,
+        oy - TILE_H * over * 0.5,
         fp + over,
         fp + over,
         spec.height,
@@ -411,6 +434,15 @@ export function createRenderer(canvas, world) {
       case "dom":
         drawCathedral(sctx, c.x, c.y);
         break;
+      case "brandenburg":
+        drawBrandenburgGate(sctx, c.x, c.y);
+        break;
+      case "castle":
+        drawCastle(sctx, c.x, c.y);
+        break;
+      case "matterhorn":
+        drawMatterhorn(sctx, c.x, c.y, obj.scale || 1);
+        break;
       default:
         break;
     }
@@ -433,13 +465,21 @@ export function createRenderer(canvas, world) {
   }
 
   // Screen anchor for a zone's label: just above its roof.
+  //
+  // The scene is drawn into a low-res buffer and upscaled with nearest, so it
+  // effectively moves in whole buffer pixels (= `zoom` CSS px). Rounding the
+  // anchor in BUFFER space and only then scaling keeps labels locked to the
+  // same grid; rounding in CSS space instead makes them creep against the
+  // artwork while panning.
   function zoneAnchor(zoneId) {
     const p = world.zonePlacement.get(zoneId);
     if (!p) return null;
     const obj = sortedObjects.find((o) => o.kind === "building" && o.zone && o.zone.id === zoneId);
     const levels = obj ? obj.spec.height + obj.spec.roofH : 3;
     const s = isoToScreen(p.tx, p.ty, levels);
-    return worldToCss(s.x, s.y - 10);
+    const bx = Math.round(s.x - state.camX + scene.width / 2);
+    const by = Math.round(s.y - 10 - state.camY + scene.height / 2);
+    return { x: bx * state.zoom, y: by * state.zoom };
   }
 
   return {
