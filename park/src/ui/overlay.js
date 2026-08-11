@@ -208,5 +208,8 @@ export function openZonePanel(id) {
 }
 
 export function closeZonePanel() {
+  // No-op when nothing is open: clicking bare ground is the common case, and it
+  // should not push a history entry every time.
+  if (!currentZoneId && !location.hash) return;
   location.hash = "";
 }
