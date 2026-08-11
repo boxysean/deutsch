@@ -224,9 +224,10 @@ export function createRenderer(canvas, world) {
 
     const spec = obj.spec;
     const hovered = obj.zone.id === state.hoveredId;
-    if (spec.render === "stephansdom") {
+    if (spec.render === "stephansdom" || spec.render === "fernsehturm") {
       const c = { x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) };
-      drawStephansdom(sctx, c.x, c.y);
+      if (spec.render === "fernsehturm") drawTvTower(sctx, c.x, c.y, state.time);
+      else drawStephansdom(sctx, c.x, c.y);
       return;
     }
     const active = obj.zone.id === state.activeId;
@@ -427,9 +428,6 @@ export function createRenderer(canvas, world) {
         break;
       case "riesenrad":
         drawFerrisWheel(sctx, c.x, c.y, t);
-        break;
-      case "fernsehturm":
-        drawTvTower(sctx, c.x, c.y, t);
         break;
       case "dom":
         drawCathedral(sctx, c.x, c.y);

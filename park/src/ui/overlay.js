@@ -10,6 +10,7 @@ const MODULE_LOADERS = {
   grammarTopic: () => import("../content/grammarTopic/index.js"),
   infoHub: () => import("../content/infoHub/index.js"),
   examSkill: () => import("../content/examSkill/index.js"),
+  progressTower: () => import("../content/progressTower/index.js"),
 };
 
 let els = null;

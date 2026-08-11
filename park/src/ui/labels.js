@@ -45,10 +45,10 @@ export function createLabels(zones, renderer, onSelect) {
     return {
       zone,
       el,
-      // Fixed precedence: the Dom first (it is the app's own "about" button),
-      // then built zones, then stubs, tie-broken by original zone order. Never
-      // derived from screen position or hover, so collision winners are stable.
-      tier: zone.category === "info" ? -1 : zone.status === "built" ? 0 : 1,
+      // Fixed precedence: pinned zones first, then built zones, then stubs,
+      // tie-broken by original zone order. Never derived from screen position
+      // or hover, so collision winners are stable.
+      tier: zone.pinned ? -1 : zone.status === "built" ? 0 : 1,
       rank: index,
       w: 0,
       h: 0,
