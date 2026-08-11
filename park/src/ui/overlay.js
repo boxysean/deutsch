@@ -17,6 +17,7 @@ const MODULE_LOADERS = {
   infoHub: () => import("../content/infoHub/index.js"),
   examSkill: () => import("../content/examSkill/index.js"),
   progressTower: () => import("../content/progressTower/index.js"),
+  dataTransfer: () => import("../content/dataTransfer/index.js"),
 };
 
 let els = null;
@@ -207,5 +208,8 @@ export function openZonePanel(id) {
 }
 
 export function closeZonePanel() {
+  // No-op when nothing is open: clicking bare ground is the common case, and it
+  // should not push a history entry every time.
+  if (!currentZoneId && !location.hash) return;
   location.hash = "";
 }

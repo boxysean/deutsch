@@ -7,7 +7,7 @@ import { createRenderer } from "./iso/renderer.js";
 import { setupInteraction } from "./iso/interaction.js";
 import { createLabels } from "./ui/labels.js";
 import { initHud } from "./ui/hud.js";
-import { initOverlay, onZoneChange, openZonePanel } from "./ui/overlay.js";
+import { initOverlay, onZoneChange, openZonePanel, closeZonePanel } from "./ui/overlay.js";
 import { recordToday } from "./content/lib/progress.js";
 
 const canvas = document.getElementById("scene");
@@ -34,6 +34,7 @@ onZoneChange((id) => labels.setActive(id));
 setupInteraction(canvas, renderer, {
   onHover: (id) => labels.setHovered(id),
   onSelect: (id) => openZonePanel(id),
+  onDismiss: () => closeZonePanel(),
 });
 
 window.addEventListener("resize", () => {

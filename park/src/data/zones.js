@@ -113,6 +113,13 @@ export const ZONES = [
     status: "built", module: "examSkill",
   },
 
+  // ---------------- Riesenrad (1) ----------------
+  {
+    id: "riesenrad", icon: "🎡", category: "info", name: "Riesenrad",
+    labelName: "Daten mitnehmen", subtitle: "Export & Import", archetype: "wheel",
+    status: "built", module: "dataTransfer",
+  },
+
   // ---------------- Fernsehturm (1) ----------------
   {
     id: "fernsehturm", icon: "📈", category: "info", name: "Fernsehturm",

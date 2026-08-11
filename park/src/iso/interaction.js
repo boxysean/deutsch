@@ -18,7 +18,7 @@ function hitBuilding(obj, renderer, wx, wy) {
   return wx >= left && wx <= right && wy >= top && wy <= bottom;
 }
 
-export function setupInteraction(canvas, renderer, { onHover, onSelect }) {
+export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismiss }) {
   let dragging = false;
   let dragMoved = 0;
   let last = null;
@@ -73,7 +73,10 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect }) {
     canvas.style.cursor = "grab";
     if (!startedHere || dragMoved > 6) return; // released elsewhere, or a pan
     const id = pick(e);
+    // Clicking a house opens it; clicking the ground between them dismisses
+    // whatever is open, the way tapping outside a sheet does everywhere else.
     if (id) onSelect(id);
+    else if (onDismiss) onDismiss();
   });
 
   canvas.addEventListener("pointerleave", () => {

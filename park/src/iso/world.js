@@ -278,30 +278,42 @@ export function buildWorld() {
   objects.push({ kind: "beertable", tx: PLAZA.tx + 1, ty: PLAZA.ty + 3 });
   objects.push({ kind: "pretzel", tx: PLAZA.tx - 1, ty: PLAZA.ty + 2 });
 
-  // The Berliner Fernsehturm is the one landmark you can click: it holds the
-  // progress dashboard. It keeps its paved apron like the other monuments.
-  const towerZone = ZONES.find((z) => z.id === "fernsehturm");
-  if (towerZone) {
-    const at = { tx: 21, ty: -16 };
+  // Two landmarks are clickable rather than decorative: the Fernsehturm holds
+  // the progress dashboard, the Riesenrad the import/export. Both keep the
+  // paved apron the decorative monuments get.
+  const clickableLandmarks = [
+    { id: "fernsehturm", tx: 21, ty: -16, render: "fernsehturm", height: 10, roofH: 6, labelLevels: 18 },
+    { id: "riesenrad", tx: -20, ty: 17, render: "riesenrad", height: 6, roofH: 4, labelLevels: 12 },
+  ];
+  clickableLandmarks.forEach((lm) => {
+    const zone = ZONES.find((z) => z.id === lm.id);
+    if (!zone) return;
     for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) setTile(at.tx + dx, at.ty + dy, "plaza");
+      for (let dy = -1; dy <= 1; dy++) setTile(lm.tx + dx, lm.ty + dy, "plaza");
     }
-    claim(at.tx, at.ty);
-    zonePlacement.set(towerZone.id, at);
+    claim(lm.tx, lm.ty);
+    zonePlacement.set(zone.id, { tx: lm.tx, ty: lm.ty });
     objects.push({
       kind: "building",
-      tx: at.tx,
-      ty: at.ty,
-      zone: towerZone,
-      // The antenna reaches ~160px above the tile, far beyond height + roofH.
-      spec: { render: "fernsehturm", footprint: 2, height: 10, roofH: 6, labelLevels: 18, built: true },
+      tx: lm.tx,
+      ty: lm.ty,
+      zone,
+      // These are drawn far taller than height + roofH, so the label lift is
+      // given explicitly rather than derived.
+      spec: {
+        render: lm.render,
+        footprint: 2,
+        height: lm.height,
+        roofH: lm.roofH,
+        labelLevels: lm.labelLevels,
+        built: true,
+      },
     });
-  }
+  });
 
   // Decorative national landmarks — pure skyline flavour, not clickable.
   // Each gets a small paved apron and sits clear of the streets.
   const monuments = [
-    { kind: "riesenrad", tx: -9, ty: 13 }, // Wiener Riesenrad
     { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
     { kind: "brandenburg", tx: 6, ty: 15 }, // Brandenburger Tor
     { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein
