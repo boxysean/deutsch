@@ -50,6 +50,8 @@ export function createRenderer(canvas, world) {
     camY: 0,
     hoveredId: null,
     activeId: null,
+    // The one zone the route says to do next; drawn with a pennant over it.
+    nextId: null,
     time: 0,
     cssW: 0,
     cssH: 0,
@@ -458,9 +460,47 @@ export function createRenderer(canvas, world) {
       else drawDecor(obj);
     }
 
+    drawNextMarker();
+
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(scene, 0, 0, scene.width, scene.height, 0, 0, scene.width * state.zoom, scene.height * state.zoom);
+  }
+
+  // A bobbing pennant over the next house on the route. Drawn last so it is
+  // never hidden by whatever stands in front of it.
+  function drawNextMarker() {
+    if (!state.nextId) return;
+    const obj = sortedObjects.find(
+      (o) => o.kind === "building" && o.zone && o.zone.id === state.nextId
+    );
+    if (!obj) return;
+
+    const o = originFor(obj.tx, obj.ty);
+    if (o.x < -60 || o.x > scene.width + 60) return;
+
+    const levels = obj.spec.labelLevels || obj.spec.height + obj.spec.roofH;
+    const bob = Math.round(Math.sin(state.time * 2.4) * 2);
+    const x = Math.round(o.x);
+    const y = Math.round(o.y + TILE_H / 2 - levels * LEVEL_H - 10 + bob);
+
+    // pole
+    sctx.fillStyle = OUTLINE;
+    sctx.fillRect(x - 1, y, 2, 14);
+    // pennant
+    sctx.beginPath();
+    sctx.moveTo(x + 1, y);
+    sctx.lineTo(x + 15, y + 5);
+    sctx.lineTo(x + 1, y + 10);
+    sctx.closePath();
+    sctx.fillStyle = "#ffd23f";
+    sctx.fill();
+    sctx.strokeStyle = OUTLINE;
+    sctx.lineWidth = 1;
+    sctx.stroke();
+    // a star on the flag, so it reads at a glance rather than as decoration
+    sctx.fillStyle = OUTLINE;
+    sctx.fillRect(x + 5, y + 4, 3, 3);
   }
 
   // Screen anchor for a zone's label: just above its roof.

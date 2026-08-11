@@ -1,5 +1,8 @@
 import { ZONES } from "../../data/zones.js";
 import { makeStore } from "../lib/storage.js";
+import { DISTRICT } from "../../iso/palette.js";
+import { route, isSettled, nextZone, routeProgress } from "../lib/route.js";
+import { getRange, daysBetween } from "../lib/progress.js";
 
 // The Dom on the town square. Not a learning zone — it explains what this is,
 // what the ÖSD Zertifikat A2 actually asks of you, and what you still have to
@@ -101,6 +104,7 @@ export function mount(container, zone) {
     { id: "spiel", label: "Das Spiel", html: gameHtml() },
     { id: "pruefung", label: "Die Prüfung", html: examHtml() },
     { id: "koennen", label: "Was du können musst", html: masteryHtml(total) },
+    { id: "route", label: "Lernpfad", html: routeHtml() },
   ];
 
   const tabsEl = container.querySelector("#ih-tabs");
@@ -153,7 +157,8 @@ function gameHtml() {
     <div class="measure rule-box">
       <p><b>Ziehen</b> — Karte verschieben · <b>Scrollen</b> — zoomen · <b>Klick</b> — Haus öffnen</p>
       <p>Häuser mit einem goldenen Ring sind fertig ausgebaut — inzwischen sind das alle. Blasse Häuser gäbe es nur, wenn ein Thema noch auf Inhalt wartet.</p>
-      <p>Die Denkmäler — Riesenrad, Fernsehturm, Kölner Dom, Brandenburger Tor, Neuschwanstein, Matterhorn — sind reine Dekoration.</p>
+      <p>Zwei Denkmäler kannst du anklicken: der <b>Fernsehturm</b> zeigt deinen Fortschritt, das <b>Riesenrad</b> nimmt deine Daten mit auf ein anderes Gerät. Kölner Dom, Brandenburger Tor, Neuschwanstein und Matterhorn sind reine Dekoration.</p>
+      <p>Das Haus mit der <b>goldenen Fahne</b> ist dein nächster Schritt auf dem Lernpfad — oben in der Leiste steht es auch. Den ganzen Pfad siehst du im Tab <em>Lernpfad</em>.</p>
     </div>
 
     <div class="subhead">Dein Fortschritt</div>
@@ -162,6 +167,51 @@ function gameHtml() {
       <p>Alles, was du einträgst, wird <b>nur lokal in diesem Browser</b> gespeichert (localStorage). Es gibt kein Konto, nichts wird hochgeladen. Auf einem anderen Gerät oder in einem anderen Browser fängst du deshalb bei null an, und wenn du die Websitedaten löschst, ist der Fortschritt weg.</p>
     </div>
   `;
+}
+
+// The whole route in one place, spread across the weeks of the plan window.
+// The map only ever shows the next step; this is where you see the shape.
+function routeHtml() {
+  const steps = route();
+  const prog = routeProgress();
+  const next = nextZone();
+  const range = getRange();
+
+  const days = Math.max(7, daysBetween(range.start, range.end));
+  const weeks = Math.max(1, Math.round(days / 7));
+  const perWeek = Math.ceil(steps.length / weeks);
+
+  const CAT = { grammar: "Grammatik", vocab: "Wortschatz", examskill: "Prüfungsteil" };
+
+  let html = `
+    <div class="measure rule-box">
+      <p>Eine feste Reihenfolge — sie ändert sich nicht, damit du immer weißt, wo du stehst. <b>Grammatik</b> trägt die Abhängigkeiten: erst die Satzklammer, dann die Fälle, dann alles, was auf ihnen aufbaut. <b>Wortschatz</b> hat keine Reihenfolge, deshalb stehen die Themen vorne, nach denen die Prüfung sicher fragt. Die <b>Prüfungsteile</b> kommen früh statt erst im Dezember.</p>
+      <p>Ein Thema gilt als erledigt, sobald du es mit <b>2 (mittel)</b> oder <b>3 (hoch)</b> bewertest — dann rückt der Pfad weiter. Du musst dich nicht daran halten: die Reihenfolge ist ein Vorschlag, keine Sperre.</p>
+      <p><b>${prog.settled} von ${prog.total}</b> Schritten erledigt${
+        next ? ` · als Nächstes: <b>${next.name}</b> (Schritt ${next.order})` : " — alles durch."
+      }</p>
+    </div>
+  `;
+
+  for (let w = 0; w < weeks; w++) {
+    const slice = steps.slice(w * perWeek, (w + 1) * perWeek);
+    if (!slice.length) break;
+    html += `<div class="route-week"><h4>Woche ${w + 1}</h4>` +
+      slice
+        .map((z) => {
+          const state = isSettled(z.id) ? "settled" : next && next.id === z.id ? "next" : "open";
+          return `<div class="route-step" data-state="${state}">
+            <span class="n mono">${z.order}</span>
+            <span class="dot" style="background:${DISTRICT[z.category].label}"></span>
+            <span class="name">${z.name}</span>
+            <span class="cat">${state === "next" ? "als Nächstes" : CAT[z.category] || ""}</span>
+          </div>`;
+        })
+        .join("") +
+      `</div>`;
+  }
+
+  return html;
 }
 
 function examHtml() {

@@ -158,6 +158,19 @@ export function onConfidenceChange(fn) {
   return () => confidenceListeners.delete(fn);
 }
 
+// For changes that bypass setConfidenceFor entirely — importing a save rewrites
+// localStorage wholesale, and the map would otherwise keep showing the old
+// route until a reload.
+export function notifyConfidenceChanged() {
+  confidenceListeners.forEach((fn) => {
+    try {
+      fn(null, null);
+    } catch (e) {
+      console.error("confidence listener failed", e);
+    }
+  });
+}
+
 export function setConfidenceFor(zoneId, value) {
   const all = getConfidence();
   if (value === null) delete all[zoneId];

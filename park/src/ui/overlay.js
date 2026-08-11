@@ -2,6 +2,7 @@ import { getZone } from "../data/zones.js";
 import { CATEGORIES } from "../data/categories.js";
 import { DISTRICT } from "../iso/palette.js";
 import { getPreview } from "../content/previews.js";
+import { routeLength, isSettled, nextZone } from "../content/lib/route.js";
 import {
   CONFIDENCE_LEVELS,
   getConfidenceFor,
@@ -111,7 +112,13 @@ function showSheet(zone) {
   els.sheetMeta.innerHTML =
     `<span class="sheet-cat">${cat.label}</span>` +
     `<span class="sheet-pill" data-built="${built}">${built ? "ausgebaut" : "bald verfügbar"}</span>` +
-    (zone.tag ? `<span class="sheet-tag mono">Tag ${zone.tag}</span>` : "");
+    (typeof zone.order === "number"
+      ? `<span class="sheet-tag mono" data-next="${
+          (nextZone() || {}).id === zone.id
+        }">Schritt ${zone.order} von ${routeLength()}${
+          isSettled(zone.id) ? " · erledigt" : (nextZone() || {}).id === zone.id ? " · als Nächstes" : ""
+        }</span>`
+      : "");
   els.sheetTitle.textContent = zone.name;
   els.sheetDesc.textContent = preview.summary;
 
@@ -211,8 +218,9 @@ function buildRatingControl(zone, { compact }) {
 
   // Repaint on any change, so the drawer and the page agree even when the
   // rating was set from the other one.
+  // id is null when a whole save was imported, which repaints everything.
   const off = onConfidenceChange((id) => {
-    if (id === zone.id) paint();
+    if (id === null || id === zone.id) paint();
   });
   paint();
   return { el: wrap, dispose: off };
