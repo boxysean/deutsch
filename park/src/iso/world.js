@@ -6,12 +6,15 @@ import { DISTRICT, ROOF_HUES } from "./palette.js";
 // axes, which is what gives the classic isometric town look (and matches how
 // RollerCoaster Tycoon lays out its paths).
 
-export const PLAZA = { tx: 0, ty: 0, radius: 2 };
+export const PLAZA = { tx: 0, ty: 0, radius: 3 };
 
+// firstStation is how far down a street the first house sits. It doubles as the
+// breathing room around the Hauptplatz: the Dom needs open square around it, so
+// the streets run clear of the plaza before any house appears.
 const STREETS = {
   grammar: {
     segments: [{ dir: [0, -1], len: 40 }],
-    firstStation: 7,
+    firstStation: 10,
     spacing: 5,
     offset: 3,
   },
@@ -20,13 +23,13 @@ const STREETS = {
       { dir: [1, 0], len: 30 },
       { dir: [0, 1], len: 32 },
     ],
-    firstStation: 7,
+    firstStation: 10,
     spacing: 5,
     offset: 3,
   },
   examskill: {
     segments: [{ dir: [-1, 0], len: 20 }],
-    firstStation: 7,
+    firstStation: 10,
     spacing: 5,
     offset: 3,
   },
@@ -265,7 +268,9 @@ export function buildWorld() {
       tx: at.tx,
       ty: at.ty,
       zone: domZone,
-      spec: { render: "stephansdom", footprint: 2.6, height: 5.5, roofH: 5, built: true },
+      // labelLevels lifts the map label clear of the spire, which is drawn far
+      // taller than height + roofH would suggest.
+      spec: { render: "stephansdom", footprint: 2.6, height: 5.5, roofH: 5, labelLevels: 12, built: true },
     });
   }
 

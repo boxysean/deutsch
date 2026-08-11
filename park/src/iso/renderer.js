@@ -475,7 +475,7 @@ export function createRenderer(canvas, world) {
     const p = world.zonePlacement.get(zoneId);
     if (!p) return null;
     const obj = sortedObjects.find((o) => o.kind === "building" && o.zone && o.zone.id === zoneId);
-    const levels = obj ? obj.spec.height + obj.spec.roofH : 3;
+    const levels = obj ? obj.spec.labelLevels || obj.spec.height + obj.spec.roofH : 3;
     const s = isoToScreen(p.tx, p.ty, levels);
     const bx = Math.round(s.x - state.camX + scene.width / 2);
     const by = Math.round(s.y - 10 - state.camY + scene.height / 2);

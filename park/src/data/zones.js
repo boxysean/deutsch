@@ -116,7 +116,9 @@ export const ZONES = [
   // ---------------- Town square (1) ----------------
   {
     id: "dom", icon: "⛪", category: "info", name: "Dom",
-    subtitle: "Spiel & Prüfung", archetype: "dom",
+    // The map label reads as a button rather than a place name — it is the
+    // only zone that explains the app itself.
+    labelName: "Über das Spiel", subtitle: "Spiel & Prüfung", archetype: "dom",
     status: "built", module: "infoHub",
   },
 ];

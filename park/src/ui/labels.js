@@ -27,12 +27,13 @@ export function createLabels(zones, renderer, onSelect) {
     el.type = "button";
     el.className = "map-label";
     el.dataset.status = zone.status;
+    if (zone.category === "info") el.dataset.info = "true";
     el.dataset.collapsed = "false";
     el.style.setProperty("--label-color", DISTRICT[zone.category].label);
     const marker = zone.icon
       ? `<span class="ml-icon">${zone.icon}</span>`
       : `<span class="ml-dot"></span>`;
-    el.innerHTML = `${marker}<span class="ml-name">${zone.name}</span>`;
+    el.innerHTML = `${marker}<span class="ml-name">${zone.labelName || zone.name}</span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(zone.id);
@@ -44,9 +45,10 @@ export function createLabels(zones, renderer, onSelect) {
     return {
       zone,
       el,
-      // Fixed precedence: built zones first, then original zone order. Never
+      // Fixed precedence: the Dom first (it is the app's own "about" button),
+      // then built zones, then stubs, tie-broken by original zone order. Never
       // derived from screen position or hover, so collision winners are stable.
-      tier: zone.status === "built" ? 0 : 1,
+      tier: zone.category === "info" ? -1 : zone.status === "built" ? 0 : 1,
       rank: index,
       w: 0,
       h: 0,
