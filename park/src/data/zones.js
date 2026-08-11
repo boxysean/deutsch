@@ -113,12 +113,21 @@ export const ZONES = [
     status: "built", module: "examSkill",
   },
 
+  // ---------------- Fernsehturm (1) ----------------
+  {
+    id: "fernsehturm", icon: "📈", category: "info", name: "Fernsehturm",
+    labelName: "Mein Fortschritt", subtitle: "Lernplan & Verlauf", archetype: "tower",
+    status: "built", module: "progressTower",
+  },
+
   // ---------------- Town square (1) ----------------
   {
     id: "dom", icon: "⛪", category: "info", name: "Dom",
     // The map label reads as a button rather than a place name — it is the
     // only zone that explains the app itself.
     labelName: "Über das Spiel", subtitle: "Spiel & Prüfung", archetype: "dom",
+    // Never crowded out: it is how you find out what this thing is.
+    pinned: true,
     status: "built", module: "infoHub",
   },
 ];

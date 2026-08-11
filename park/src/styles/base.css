@@ -250,3 +250,130 @@ td.num, th.num{ font-family: ui-monospace, monospace; }
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior:auto !important; }
 }
+
+/* ---------- Fernsehturm: the progress dashboard ----------
+   Colours here are the validated categorical slots (see content/lib/progress.js);
+   text always wears text tokens, never a series colour. */
+.hero-figure{ display:flex; align-items:baseline; gap:0.9rem; flex-wrap:wrap; margin-bottom:1rem; }
+.hero-num{ font-size:3.2rem; font-weight:800; line-height:1; letter-spacing:-0.02em; }
+.hero-unit{ font-size:1.6rem; font-weight:700; margin-left:0.1rem; color: var(--ink-soft); }
+.hero-cap{ color: var(--ink-soft); font-size:0.95rem; }
+
+.kpi-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap:0.6rem; margin-bottom:1.4rem; }
+.kpi{
+  background: var(--paper-raised); border:1px solid var(--rule); border-radius:6px;
+  padding:0.65rem 0.8rem; display:flex; flex-direction:column; gap:0.15rem;
+}
+.kpi-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color: var(--ink-soft); }
+.kpi-value{ font-size:1.25rem; font-weight:800; line-height:1.1; }
+.kpi-value[data-tone="good"]{ color: var(--good); }
+.kpi-value[data-tone="warn"]{ color: var(--accent); }
+.kpi-sub{ font-size:0.74rem; color: var(--ink-soft); }
+
+.range-row{ display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:0.6rem; font-size:0.82rem; color: var(--ink-soft); }
+.range-row label{ display:inline-flex; align-items:center; gap:0.4rem; }
+.range-row input{
+  background: var(--paper-raised); border:1px solid var(--rule); border-radius:5px;
+  padding:0.25rem 0.4rem; color: var(--ink); font-size:0.82rem;
+}
+
+/* Chart series colours. Light values are the validated slots; dark uses its own
+   step for the orange, which sits just outside the dark lightness band. */
+:root{ --series-progress:#8a5cc4; --series-confidence:#eb6834; }
+@media (prefers-color-scheme: dark){
+  :root{ --series-progress:#8a5cc4; --series-confidence:#de5c2c; }
+}
+:root[data-theme="dark"]{ --series-progress:#8a5cc4; --series-confidence:#de5c2c; }
+:root[data-theme="light"]{ --series-progress:#8a5cc4; --series-confidence:#eb6834; }
+
+.chart{ position:relative; margin:0 0 0.4rem; }
+.chart svg{ width:100%; height:auto; display:block; overflow:visible; }
+.chart .grid{ stroke: var(--rule); stroke-width:1; }
+.chart .tick{ fill: var(--ink-soft); font-size:11px; font-variant-numeric: tabular-nums; }
+.chart .series{ fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.chart .area{ opacity:0.10; stroke:none; }
+.chart .end-dot{ stroke: var(--paper); stroke-width:2; }
+.chart .s-progress{ stroke: var(--series-progress); }
+.chart polygon.s-progress, .chart circle.s-progress{ fill: var(--series-progress); }
+.chart .s-conf{ stroke: var(--series-confidence); }
+.chart polygon.s-conf, .chart circle.s-conf{ fill: var(--series-confidence); }
+.chart .end-label{ fill: var(--ink); font-size:12px; font-weight:700; }
+.chart .soll{ stroke: var(--ink-soft); stroke-width:2; stroke-dasharray:6 5; opacity:0.75; }
+.chart .soll-label{ fill: var(--ink-soft); font-size:11px; font-weight:650; }
+.chart .today{ stroke: var(--rule-strong); stroke-width:1; }
+.chart .today-label{ fill: var(--ink-soft); font-size:10px; letter-spacing:0.04em; }
+.chart .crosshair{ stroke: var(--rule-strong); stroke-width:1; pointer-events:none; }
+.chart .empty{ fill: var(--ink-soft); font-size:12px; }
+.chart .hit{ cursor: crosshair; outline:none; }
+.chart .hit:focus-visible{ stroke: var(--focus); stroke-width:2; }
+.chart figcaption{ display:flex; gap:1.1rem; flex-wrap:wrap; margin-top:0.5rem; font-size:0.76rem; color: var(--ink-soft); }
+.key{ display:inline-flex; align-items:center; gap:0.4rem; }
+.key-line{ display:inline-block; width:1rem; height:0.2rem; border-radius:2px; background: var(--ink-soft); flex:none; }
+.key-line.dashed{
+  height:0; border-top:2px dashed var(--ink-soft); background:none; border-radius:0;
+}
+.chart-tip{
+  position:absolute; z-index:3; pointer-events:none;
+  background: var(--paper-raised); border:1px solid var(--rule-strong); border-radius:6px;
+  padding:0.4rem 0.55rem; font-size:0.78rem; box-shadow:0 3px 10px rgba(0,0,0,0.16);
+  min-width:8rem;
+}
+.chart-tip[hidden]{ display:none; }
+.tip-head{ font-weight:700; margin-bottom:0.25rem; }
+.tip-row{ display:flex; align-items:center; gap:0.4rem; line-height:1.5; }
+.tip-row b{ font-variant-numeric: tabular-nums; }
+.tip-label{ color: var(--ink-soft); }
+.tip-sub{ color: var(--ink-soft); margin-left:auto; padding-left:0.6rem; font-variant-numeric: tabular-nums; }
+
+.meters{ display:flex; flex-direction:column; gap:0.9rem; max-width:42rem; }
+.meter-head{ display:flex; align-items:center; gap:0.5rem; font-size:0.86rem; margin-bottom:0.3rem; }
+.meter-name{ font-weight:650; }
+.meter-val{ margin-left:auto; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.meter-track{
+  height:0.7rem; border-radius:4px; overflow:hidden;
+  background: color-mix(in srgb, var(--meter) 16%, transparent);
+}
+.meter-fill{ height:100%; border-radius:0 4px 4px 0; }
+.meter-pct{ font-size:0.74rem; color: var(--ink-soft); margin-top:0.2rem; font-variant-numeric: tabular-nums; }
+
+.data-table{ margin-top:1.6rem; }
+.data-table summary{ cursor:pointer; font-size:0.84rem; color: var(--ink-soft); }
+.data-table[open] summary{ margin-bottom:0.7rem; }
+
+/* ---------- self-rating rows ---------- */
+.ratings{ max-width:42rem; }
+.rate-legend{ display:flex; gap:0.9rem; flex-wrap:wrap; font-size:0.74rem; color: var(--ink-soft); margin-bottom:1rem; }
+.rate-legend b{ color: var(--ink); font-variant-numeric: tabular-nums; }
+.rate-group{ margin-bottom:1.4rem; }
+.rate-head{
+  display:flex; align-items:baseline; gap:0.6rem; flex-wrap:wrap;
+  padding-bottom:0.35rem; margin-bottom:0.3rem; border-bottom:1px solid var(--rule);
+}
+.rate-head span{ margin-left:auto; font-size:0.74rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.rate-row{ display:flex; align-items:center; gap:0.6rem; padding:0.25rem 0; font-size:0.88rem; }
+.rate-name{ flex:1; min-width:0; }
+.rate-buttons{ display:inline-flex; gap:0.2rem; flex:none; }
+.rate-btn{
+  width:1.8rem; padding:0.15rem 0; font-size:0.78rem; font-variant-numeric: tabular-nums;
+  border:1px solid var(--rule-strong); background: var(--paper-raised); border-radius:4px;
+}
+.rate-btn:hover{ border-color: var(--ink); }
+.rate-btn[data-picked="true"]{
+  background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight:700;
+}
+.rate-word{ width:4.2rem; flex:none; font-size:0.74rem; color: var(--ink-soft); }
+
+@media (max-width: 560px){
+  .rate-row{ flex-wrap:wrap; }
+  .rate-name{ flex-basis:100%; }
+  .rate-word{ margin-left:auto; text-align:right; }
+}
+
+/* The rating strip at the foot of every topic page. */
+.conf-strip{
+  display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap;
+  margin-top:2.4rem; padding:0.85rem 1rem;
+  background: var(--paper-raised); border:1px solid var(--rule); border-radius:8px;
+}
+.conf-q{ font-size:0.88rem; font-weight:650; }
+.conf-strip .rate-word{ width:auto; }

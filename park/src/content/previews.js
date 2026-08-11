@@ -1,6 +1,7 @@
 import { THEMES } from "./vocabTheme/data.js";
 import { TOPICS } from "./grammarTopic/data.js";
 import { SKILLS } from "./examSkill/data.js";
+import { computeProgress, planStatus, getHistory } from "./lib/progress.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
@@ -144,6 +145,21 @@ function examSkill(zone) {
   return { summary: skill.intro.replace(/<[^>]+>/g, ""), stats: stats.slice(0, 3) };
 }
 
+function progressTower() {
+  const progress = computeProgress();
+  const status = planStatus();
+  const points = Object.keys(getHistory()).length;
+  return {
+    summary:
+      "Der Fernsehturm hält den Überblick: dein Fortschritt als Kurve zwischen Kursbeginn und Prüfungstag, das Soll daneben, und wie viele Punkte pro Tag noch offen sind.",
+    stats: [
+      { label: "Erledigt", value: `${Math.round(status.percent * 100)} %` },
+      { label: "Tage bis zur Prüfung", value: String(status.daysLeft) },
+      { label: "Messpunkte", value: String(points) },
+    ],
+  };
+}
+
 const BUILDERS = {
   grammarFoundations,
   lesenExam,
@@ -151,6 +167,7 @@ const BUILDERS = {
   grammarTopic,
   infoHub,
   examSkill,
+  progressTower,
 };
 
 export function getPreview(zone) {
