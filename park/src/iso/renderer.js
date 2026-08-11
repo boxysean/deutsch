@@ -224,10 +224,14 @@ export function createRenderer(canvas, world) {
 
     const spec = obj.spec;
     const hovered = obj.zone.id === state.hoveredId;
-    if (spec.render === "stephansdom" || spec.render === "fernsehturm") {
-      const c = { x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) };
-      if (spec.render === "fernsehturm") drawTvTower(sctx, c.x, c.y, state.time);
-      else drawStephansdom(sctx, c.x, c.y);
+    // Landmarks draw themselves; they have no box body to shade.
+    const LANDMARK = {
+      stephansdom: (c) => drawStephansdom(sctx, c.x, c.y),
+      fernsehturm: (c) => drawTvTower(sctx, c.x, c.y, state.time),
+      riesenrad: (c) => drawFerrisWheel(sctx, c.x, c.y, state.time),
+    };
+    if (LANDMARK[spec.render]) {
+      LANDMARK[spec.render]({ x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) });
       return;
     }
     const active = obj.zone.id === state.activeId;
@@ -425,9 +429,6 @@ export function createRenderer(canvas, world) {
         break;
       case "pretzel":
         drawPretzelSign(sctx, c.x, c.y);
-        break;
-      case "riesenrad":
-        drawFerrisWheel(sctx, c.x, c.y, t);
         break;
       case "dom":
         drawCathedral(sctx, c.x, c.y);
