@@ -120,6 +120,60 @@ export function computeProgress() {
   return { groups, done, total };
 }
 
+// -------------------------------------------------------------- self-rating
+
+// A manual gut-check per topic, alongside the mechanical point count. Points
+// say what you have worked through; this says whether you would back yourself
+// on it in the exam.
+export const CONFIDENCE_LEVELS = [
+  { value: 0, label: "keine", hint: "Noch gar nicht sicher" },
+  { value: 1, label: "gering", hint: "Erkenne ich, kann es aber nicht anwenden" },
+  { value: 2, label: "mittel", hint: "Meistens richtig, mit Nachdenken" },
+  { value: 3, label: "hoch", hint: "Sitzt — auch unter Prüfungsdruck" },
+];
+export const MAX_CONFIDENCE = 3;
+
+// Only the learning zones get rated; the Dom and the Fernsehturm are not topics.
+export function ratableZones() {
+  return ZONES.filter((z) => z.category !== "info");
+}
+
+export function getConfidence() {
+  const raw = plan.load("confidence", {});
+  return raw && typeof raw === "object" ? raw : {};
+}
+
+export function getConfidenceFor(zoneId) {
+  const v = getConfidence()[zoneId];
+  return Number.isInteger(v) && v >= 0 && v <= MAX_CONFIDENCE ? v : null;
+}
+
+export function setConfidenceFor(zoneId, value) {
+  const all = getConfidence();
+  if (value === null) delete all[zoneId];
+  else all[zoneId] = Math.min(MAX_CONFIDENCE, Math.max(0, Math.round(value)));
+  plan.save("confidence", all);
+  return all;
+}
+
+export function computeConfidence() {
+  const saved = getConfidence();
+  const zones = ratableZones().map((z) => ({
+    id: z.id,
+    name: z.name,
+    category: z.category,
+    value: Number.isInteger(saved[z.id]) ? saved[z.id] : null,
+  }));
+  const rated = zones.filter((z) => z.value !== null);
+  return {
+    zones,
+    rated: rated.length,
+    zoneCount: zones.length,
+    done: rated.reduce((n, z) => n + z.value, 0),
+    total: zones.length * MAX_CONFIDENCE,
+  };
+}
+
 // ------------------------------------------------------------------- history
 
 export function todayISO(d = new Date()) {
@@ -127,19 +181,41 @@ export function todayISO(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// Each entry is { p: points, c: confidence }. Entries written before the
+// self-rating existed are plain numbers, so they are read as points-only and
+// their confidence stays absent rather than being invented as zero.
+function normalizeEntry(v) {
+  if (typeof v === "number") return { p: v, c: null };
+  if (v && typeof v === "object") {
+    return {
+      p: typeof v.p === "number" ? v.p : 0,
+      c: typeof v.c === "number" ? v.c : null,
+    };
+  }
+  return { p: 0, c: null };
+}
+
 export function getHistory() {
   const raw = plan.load("history", {});
-  return raw && typeof raw === "object" ? raw : {};
+  if (!raw || typeof raw !== "object") return {};
+  const out = {};
+  Object.keys(raw).forEach((k) => {
+    out[k] = normalizeEntry(raw[k]);
+  });
+  return out;
 }
 
 // One entry per day, overwritten as the day goes on, so the series is a daily
 // close rather than a log of every keystroke.
 export function recordToday() {
-  const { done } = computeProgress();
+  const points = computeProgress().done;
+  const confidence = computeConfidence();
   const history = getHistory();
   const key = todayISO();
-  if (history[key] === done) return history;
-  history[key] = done;
+  const next = { p: points, c: confidence.rated ? confidence.done : null };
+  const cur = history[key];
+  if (cur && cur.p === next.p && cur.c === next.c) return history;
+  history[key] = next;
   plan.save("history", history);
   return history;
 }
@@ -187,7 +263,7 @@ export function planStatus(range = getRange(), progress = computeProgress()) {
   const beforeStart = Object.keys(history).filter((d) => d < range.start).sort();
   // Whatever was already done when the plan starts is not part of the climb.
   const baseline = beforeStart.length
-    ? history[beforeStart[beforeStart.length - 1]]
+    ? history[beforeStart[beforeStart.length - 1]].p
     : today < range.start
       ? progress.done
       : 0;

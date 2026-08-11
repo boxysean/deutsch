@@ -1,5 +1,9 @@
 import {
   computeProgress,
+  computeConfidence,
+  setConfidenceFor,
+  CONFIDENCE_LEVELS,
+  MAX_CONFIDENCE,
   planStatus,
   getHistory,
   getRange,
@@ -12,10 +16,17 @@ import {
 
 // The Fernsehturm: one screen that answers "am I going to be ready in time?".
 //
-// Colours are the validated categorical slots — purple for the total, then the
-// district trio red → blue → green (that order is adjacent-safe under
-// deuteranopia; the map's red/green/blue order is not).
-const TOTAL_COLOR = "#8a5cc4";
+// Two figures, each validated on its own adjacent pairs:
+//   the chart — purple (Fortschritt) + orange (Selbsteinschätzung), which clear
+//   every check in both modes; the strokes come from CSS custom properties so
+//   the dark steps swap with the theme.
+//   the meters — the district trio ordered red → blue → green, adjacent-safe
+//   under deuteranopia (the map's own red/green/blue order is not).
+const TOTAL_COLOR = "var(--series-progress)";
+const CONF_COLOR = "var(--series-confidence)";
+
+// Both measures share one y-axis by being indexed to their own maximum — a
+// second y-scale would invent a relationship between points and self-rating.
 
 // Full names read better in prose; the axis needs the short forms.
 const MONTHS = ["Jänner", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
@@ -31,33 +42,48 @@ export function mount(container, zone) {
   recordToday();
 
   container.innerHTML = `
-    <p class="lede measure">Der Fernsehturm sieht über die ganze Stadt — und über deinen Lernplan. Jedes gelöste Item, jede sichere Vokabel und jeder Haken in der Checkliste zählt als ein Punkt. Einmal pro Tag wird dein Stand gespeichert, daraus wächst die Kurve.</p>
+    <p class="lede measure">Der Fernsehturm sieht über die ganze Stadt — und über deinen Lernplan. Zwei Kurven laufen hier nebeneinander: was du <b>gearbeitet</b> hast (jedes gelöste Item, jede sichere Vokabel, jeder Haken zählt als ein Punkt) und wie sicher du dich <b>fühlst</b> (deine eigene Bewertung pro Thema). Einmal pro Tag wird beides gespeichert, daraus wachsen die Kurven.</p>
     <div id="pt-body"></div>
   `;
   const body = container.querySelector("#pt-body");
 
   function render() {
     const progress = computeProgress();
+    const confidence = computeConfidence();
     const range = getRange();
     const status = planStatus(range, progress);
     const history = getHistory();
 
     body.innerHTML = `
-      ${heroHtml(progress, status, range)}
+      ${heroHtml(progress, confidence, status, range)}
       ${rangeHtml(range, status)}
 
       <div class="subhead">Fortschritt über die Zeit</div>
       <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
-        Punkte insgesamt, vom ${fmtDate(range.start)} bis zum ${fmtDate(range.end)}. Die gestrichelte Linie ist dein Soll — sie läuft gleichmäßig von Kursbeginn bis zum Ziel.
+        Vom ${fmtDate(range.start)} bis zum ${fmtDate(range.end)}. Beide Kurven zeigen den Anteil am jeweils eigenen Maximum — ${fmtNum(
+        progress.total
+      )} Punkte beim Fortschritt, ${fmtNum(
+        confidence.total
+      )} bei der Selbsteinschätzung — damit sie sich eine Achse teilen können. Die gestrichelte Linie ist dein Soll.
       </p>
-      ${chartHtml(progress, status, range, history)}
+      ${chartHtml(progress, confidence, status, range, history)}
 
       <div class="subhead">Wo du stehst</div>
       ${metersHtml(progress)}
 
+      <div class="subhead">Selbsteinschätzung</div>
+      <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
+        Wie sicher fühlst du dich bei jedem Thema? Das trägst du selbst ein — keine (0), gering (1), mittel (2), hoch (3). Nochmal auf dieselbe Zahl klicken macht die Bewertung rückgängig. ${fmtNum(
+          confidence.rated
+        )} von ${fmtNum(confidence.zoneCount)} Themen bewertet, ${fmtNum(confidence.done)} von ${fmtNum(
+      confidence.total
+    )} Punkten. Du kannst auch direkt in jedem Haus bewerten.
+      </p>
+      ${ratingsHtml(confidence)}
+
       <details class="data-table">
         <summary>Messpunkte als Tabelle (${Object.keys(history).length})</summary>
-        ${tableHtml(history, progress)}
+        ${tableHtml(history, progress, confidence)}
       </details>
 
       <div class="actions" style="margin-top:1.4rem">
@@ -66,7 +92,8 @@ export function mount(container, zone) {
       </div>
     `;
 
-    wireChart(body, progress, status, range, history);
+    wireChart(body, progress, confidence, status, range, history);
+    wireRatings(body, render);
 
     body.querySelector("#pt-start").addEventListener("change", (e) => {
       setRange(e.target.value, getRange().end);
@@ -92,7 +119,7 @@ export function mount(container, zone) {
 
 // ------------------------------------------------------------------ headline
 
-function heroHtml(progress, status, range) {
+function heroHtml(progress, confidence, status, range) {
   const pct = Math.round(status.percent * 100);
 
   // Status is reserved and always ships with an icon and a word, never colour
@@ -132,6 +159,13 @@ function heroHtml(progress, status, range) {
         <b class="kpi-value">${fmtNum(status.remaining)}</b>
         <span class="kpi-sub">Punkte bis 100 %</span>
       </div>
+      <div class="kpi">
+        <span class="kpi-label">Selbsteinschätzung</span>
+        <b class="kpi-value">${confidence.total ? Math.round((confidence.done / confidence.total) * 100) : 0} %</b>
+        <span class="kpi-sub">${fmtNum(confidence.done)} / ${fmtNum(confidence.total)} · ${fmtNum(
+      confidence.rated
+    )} von ${fmtNum(confidence.zoneCount)} Themen</span>
+      </div>
     </div>
   `;
 }
@@ -151,31 +185,49 @@ const W = 720;
 const H = 260;
 const M = { top: 18, right: 58, bottom: 30, left: 46 };
 
-function chartGeometry(progress, status, range, history) {
+function chartGeometry(progress, confidence, status, range, history) {
   const span = Math.max(1, daysBetween(range.start, range.end));
   const plotW = W - M.left - M.right;
   const plotH = H - M.top - M.bottom;
-  const max = Math.max(progress.total, 1);
 
   const x = (dayIndex) => M.left + (Math.min(Math.max(dayIndex, 0), span) / span) * plotW;
-  const y = (value) => M.top + plotH - (Math.min(value, max) / max) * plotH;
+  // y takes a fraction of that series' own maximum, so both curves share one
+  // axis without either being rescaled against the other.
+  const y = (fraction) => M.top + plotH - Math.min(Math.max(fraction, 0), 1) * plotH;
 
-  const points = Object.keys(history)
+  const dates = Object.keys(history)
     .sort()
-    .filter((d) => d >= range.start && d <= range.end)
-    .map((d) => ({ date: d, value: history[d], day: daysBetween(range.start, d) }));
+    .filter((d) => d >= range.start && d <= range.end);
 
-  return { span, plotW, plotH, max, x, y, points };
+  const pointsMax = Math.max(progress.total, 1);
+  const confMax = Math.max(confidence.total, 1);
+
+  const points = dates.map((d) => ({
+    date: d,
+    day: daysBetween(range.start, d),
+    value: history[d].p,
+    frac: history[d].p / pointsMax,
+  }));
+  const conf = dates
+    .filter((d) => history[d].c !== null)
+    .map((d) => ({
+      date: d,
+      day: daysBetween(range.start, d),
+      value: history[d].c,
+      frac: history[d].c / confMax,
+    }));
+
+  return { span, plotW, plotH, x, y, points, conf, pointsMax, confMax };
 }
 
-function chartHtml(progress, status, range, history) {
-  const g = chartGeometry(progress, status, range, history);
-  const { x, y, points, span, plotH, max } = g;
+function chartHtml(progress, confidence, status, range, history) {
+  const g = chartGeometry(progress, confidence, status, range, history);
+  const { x, y, points, conf, span, plotH } = g;
 
   // Gridlines: hairline, solid, recessive — never dashed.
   const grid = [0, 0.25, 0.5, 0.75, 1]
     .map((f) => {
-      const yy = y(max * f);
+      const yy = y(f);
       return `<line class="grid" x1="${M.left}" y1="${yy}" x2="${W - M.right}" y2="${yy}"></line>
               <text class="tick" x="${M.left - 8}" y="${yy + 4}" text-anchor="end">${Math.round(f * 100)}%</text>`;
     })
@@ -198,27 +250,36 @@ function chartHtml(progress, status, range, history) {
     .join("");
 
   // Soll: a reference line, not a data series — neutral ink, dashed, labelled.
-  const sollX1 = x(0);
-  const sollY1 = y(status.baseline);
-  const sollX2 = x(span);
-  const sollY2 = y(max);
+  const baseFrac = progress.total ? status.baseline / progress.total : 0;
+  const sollY1 = y(baseFrac);
+  const sollY2 = y(1);
 
-  // Heute
   const todayDay = daysBetween(range.start, status.today);
   const todayInside = todayDay >= 0 && todayDay <= span;
 
-  let series = "";
-  if (points.length) {
-    const line = points.map((p) => `${x(p.day)},${y(p.value)}`).join(" ");
-    const last = points[points.length - 1];
-    const area = `${x(points[0].day)},${y(0)} ${line} ${x(last.day)},${y(0)}`;
-    series = `
-      <polygon class="area" points="${area}" fill="${TOTAL_COLOR}"></polygon>
-      <polyline class="series" points="${line}" stroke="${TOTAL_COLOR}"></polyline>
-      <circle class="end-dot" cx="${x(last.day)}" cy="${y(last.value)}" r="5" fill="${TOTAL_COLOR}"></circle>
-      <text class="end-label" x="${x(last.day) + 10}" y="${y(last.value) + 4}">${fmtNum(last.value)}</text>
-    `;
+  // End labels are placed to avoid collision: if the two curves finish within
+  // a line-height of each other, the lower one drops below its dot.
+  const lastP = points[points.length - 1] || null;
+  const lastC = conf[conf.length - 1] || null;
+  let pOffset = 4;
+  let cOffset = 4;
+  if (lastP && lastC && Math.abs(y(lastP.frac) - y(lastC.frac)) < 14) {
+    if (y(lastP.frac) <= y(lastC.frac)) { pOffset = -6; cOffset = 14; }
+    else { pOffset = 14; cOffset = -6; }
   }
+
+  const seriesSvg = (list, cls, offset, withArea) => {
+    if (!list.length) return "";
+    const line = list.map((p) => `${x(p.day)},${y(p.frac)}`).join(" ");
+    const last = list[list.length - 1];
+    const area = withArea
+      ? `<polygon class="area ${cls}" points="${x(list[0].day)},${y(0)} ${line} ${x(last.day)},${y(0)}"></polygon>`
+      : "";
+    return `${area}
+      <polyline class="series ${cls}" points="${line}"></polyline>
+      <circle class="end-dot ${cls}" cx="${x(last.day)}" cy="${y(last.frac)}" r="5"></circle>
+      <text class="end-label" x="${x(last.day) + 10}" y="${y(last.frac) + offset}">${Math.round(last.frac * 100)} %</text>`;
+  };
 
   const emptyMsg = status.started
     ? "Noch kein Messpunkt im Planfenster — dein Stand wird ab jetzt täglich gespeichert."
@@ -227,30 +288,39 @@ function chartHtml(progress, status, range, history) {
     ? ""
     : `<text class="empty" x="${M.left + 6}" y="${M.top + 20}">${emptyMsg}</text>`;
 
+  const confNote = conf.length
+    ? ""
+    : `<text class="empty" x="${M.left + 6}" y="${M.top + 38}">Die Selbsteinschätzung erscheint, sobald du unten Themen bewertest.</text>`;
+
   return `
     <figure class="chart">
       <svg viewBox="0 0 ${W} ${H}" role="img"
-           aria-label="Fortschritt in Punkten vom ${fmtDate(range.start)} bis ${fmtDate(range.end)}: ${fmtNum(
-    Math.round(status.percent * (progress.total || 0))
-  )} von ${fmtNum(progress.total)} Punkten erreicht.">
+           aria-label="Vom ${fmtDate(range.start)} bis ${fmtDate(range.end)}: Fortschritt bei ${Math.round(
+    status.percent * 100
+  )} Prozent, Selbsteinschätzung bei ${Math.round(
+    (confidence.total ? confidence.done / confidence.total : 0) * 100
+  )} Prozent.">
         ${grid}
         ${tickMarks}
-        <line class="soll" x1="${sollX1}" y1="${sollY1}" x2="${sollX2}" y2="${sollY2}"></line>
-        <text class="soll-label" x="${sollX2 + 6}" y="${sollY2 + 4}">Soll</text>
+        <line class="soll" x1="${x(0)}" y1="${sollY1}" x2="${x(span)}" y2="${sollY2}"></line>
+        <text class="soll-label" x="${x(span) + 6}" y="${sollY2 + 4}">Soll</text>
         ${
           todayInside
             ? `<line class="today" x1="${x(todayDay)}" y1="${M.top}" x2="${x(todayDay)}" y2="${M.top + plotH}"></line>
                <text class="today-label" x="${x(todayDay)}" y="${M.top - 6}" text-anchor="middle">heute</text>`
             : ""
         }
-        ${series}
+        ${seriesSvg(conf, "s-conf", cOffset, false)}
+        ${seriesSvg(points, "s-progress", pOffset, true)}
         ${empty}
+        ${points.length ? confNote : ""}
         <line class="crosshair" x1="0" y1="${M.top}" x2="0" y2="${M.top + plotH}" style="display:none"></line>
         <rect class="hit" x="${M.left}" y="${M.top}" width="${g.plotW}" height="${plotH}" fill="transparent" tabindex="0"></rect>
       </svg>
       <div class="chart-tip" hidden></div>
       <figcaption>
-        <span class="key"><span class="key-line" style="background:${TOTAL_COLOR}"></span>Ist — gespeicherte Messpunkte</span>
+        <span class="key"><span class="key-line" style="background:${TOTAL_COLOR}"></span>Fortschritt — Punkte, in % vom Ziel</span>
+        <span class="key"><span class="key-line" style="background:${CONF_COLOR}"></span>Selbsteinschätzung — in % vom Maximum</span>
         <span class="key"><span class="key-line dashed"></span>Soll — gleichmäßiger Plan</span>
       </figcaption>
     </figure>
@@ -259,19 +329,31 @@ function chartHtml(progress, status, range, history) {
 
 // Crosshair snaps to the nearest day, so the reader aims at a date rather than
 // at a 2px line. Keyboard gets the same readout via arrow keys.
-function wireChart(root, progress, status, range, history) {
+function wireChart(root, progress, confidence, status, range, history) {
   const fig = root.querySelector(".chart");
   if (!fig) return;
   const svg = fig.querySelector("svg");
   const hit = fig.querySelector(".hit");
   const cross = fig.querySelector(".crosshair");
   const tip = fig.querySelector(".chart-tip");
-  const g = chartGeometry(progress, status, range, history);
+  const g = chartGeometry(progress, confidence, status, range, history);
   let cursor = g.points.length ? g.points.length - 1 : 0;
 
   function sollAt(day) {
     const climb = Math.max(0, progress.total - status.baseline);
-    return Math.round(status.baseline + climb * (Math.min(Math.max(day, 0), g.span) / g.span));
+    const f = Math.min(Math.max(day, 0), g.span) / g.span;
+    const value = Math.round(status.baseline + climb * f);
+    return { value, pct: Math.round((value / g.pointsMax) * 100) };
+  }
+
+  // The reading in force on a day: the last measurement at or before it, so the
+  // tooltip carries every series rather than dropping one between measurements.
+  function held(list, day) {
+    let out = null;
+    list.forEach((p) => {
+      if (p.day <= day && (!out || p.day > out.day)) out = p;
+    });
+    return out;
   }
 
   function show(day) {
@@ -280,23 +362,29 @@ function wireChart(root, progress, status, range, history) {
     cross.setAttribute("x2", px);
     cross.style.display = "";
 
-    // The reading in force on that day: the last measurement at or before it,
-    // so the tooltip always carries both series rather than dropping "Ist"
-    // between measurements.
-    let held = null;
-    g.points.forEach((p) => {
-      if (p.day <= day && (!held || p.day > held.day)) held = p;
-    });
-
     const iso = isoForDay(range.start, day);
-    const rows = [{ label: "Soll", value: fmtNum(sollAt(day)), dashed: true }];
-    if (held) {
-      rows.unshift({
-        label: held.day === day ? "Ist" : `Ist (Stand ${fmtDate(held.date)})`,
-        value: fmtNum(held.value),
+    const hp = held(g.points, day);
+    const hc = held(g.conf, day);
+    const soll = sollAt(day);
+
+    const rows = [];
+    if (hp) {
+      rows.push({
+        label: hp.day === day ? "Fortschritt" : `Fortschritt (${fmtDate(hp.date)})`,
+        value: `${Math.round(hp.frac * 100)} %`,
+        sub: `${fmtNum(hp.value)} Pkt.`,
         color: TOTAL_COLOR,
       });
     }
+    if (hc) {
+      rows.push({
+        label: hc.day === day ? "Selbsteinschätzung" : `Selbsteinschätzung (${fmtDate(hc.date)})`,
+        value: `${Math.round(hc.frac * 100)} %`,
+        sub: `${fmtNum(hc.value)} / ${fmtNum(g.confMax)}`,
+        color: CONF_COLOR,
+      });
+    }
+    rows.push({ label: "Soll", value: `${soll.pct} %`, sub: `${fmtNum(soll.value)} Pkt.`, dashed: true });
 
     tip.textContent = "";
     const head = document.createElement("div");
@@ -314,7 +402,10 @@ function wireChart(root, progress, status, range, history) {
       const lab = document.createElement("span");
       lab.className = "tip-label";
       lab.textContent = r.label;
-      row.append(key, val, lab);
+      const sub = document.createElement("span");
+      sub.className = "tip-sub";
+      sub.textContent = r.sub;
+      row.append(key, val, lab, sub);
       tip.appendChild(row);
     });
 
@@ -385,24 +476,107 @@ function metersHtml(progress) {
 
 // ---------------------------------------------------------------- table view
 
-function tableHtml(history, progress) {
+function tableHtml(history, progress, confidence) {
   const dates = Object.keys(history).sort().reverse();
   if (!dates.length) return `<p style="color:var(--ink-soft)">Noch keine Messpunkte.</p>`;
   const rows = dates
     .map((d, i) => {
       const prev = dates[i + 1];
-      const delta = prev == null ? null : history[d] - history[prev];
-      const pct = progress.total ? Math.round((history[d] / progress.total) * 100) : 0;
-      return `<tr><td>${fmtDate(d)}</td><td class="num">${fmtNum(history[d])}</td><td class="num">${pct} %</td><td class="num">${
-        delta == null ? "—" : (delta >= 0 ? "+" : "−") + fmtNum(Math.abs(delta))
-      }</td></tr>`;
+      const delta = prev == null ? null : history[d].p - history[prev].p;
+      const pct = progress.total ? Math.round((history[d].p / progress.total) * 100) : 0;
+      const c = history[d].c;
+      const cPct = c === null || !confidence.total ? null : Math.round((c / confidence.total) * 100);
+      return `<tr>
+        <td>${fmtDate(d)}</td>
+        <td class="num">${fmtNum(history[d].p)}</td>
+        <td class="num">${pct} %</td>
+        <td class="num">${delta == null ? "—" : (delta >= 0 ? "+" : "−") + fmtNum(Math.abs(delta))}</td>
+        <td class="num">${c === null ? "—" : fmtNum(c)}</td>
+        <td class="num">${cPct === null ? "—" : cPct + " %"}</td>
+      </tr>`;
     })
     .join("");
   return `
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Datum</th><th>Punkte</th><th>Anteil</th><th>Δ zum Vortag</th></tr></thead>
+        <thead><tr>
+          <th>Datum</th><th>Punkte</th><th>Anteil</th><th>Δ zum Vortag</th>
+          <th>Selbsteinsch.</th><th>Anteil</th>
+        </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+// ------------------------------------------------------------- self-rating
+
+const DISTRICT_LABEL = {
+  grammar: "Grammatik",
+  examskill: "Prüfungsteile",
+  vocab: "Wortschatz",
+};
+
+function ratingsHtml(confidence) {
+  const byCategory = new Map();
+  confidence.zones.forEach((z) => {
+    if (!byCategory.has(z.category)) byCategory.set(z.category, []);
+    byCategory.get(z.category).push(z);
+  });
+
+  const groups = ["grammar", "examskill", "vocab"]
+    .filter((c) => byCategory.has(c))
+    .map((c) => {
+      const list = byCategory.get(c);
+      const rated = list.filter((z) => z.value !== null);
+      const sum = rated.reduce((n, z) => n + z.value, 0);
+      const rows = list
+        .map(
+          (z) => `
+        <div class="rate-row" data-zone="${z.id}">
+          <span class="rate-name">${z.name}</span>
+          <span class="rate-buttons" role="radiogroup" aria-label="Selbsteinschätzung ${z.name}">
+            ${CONFIDENCE_LEVELS.map(
+              (lvl) => `<button type="button" class="rate-btn" role="radio"
+                 aria-checked="${z.value === lvl.value}"
+                 data-value="${lvl.value}" data-picked="${z.value === lvl.value}"
+                 title="${lvl.value} — ${lvl.label}: ${lvl.hint}">${lvl.value}</button>`
+            ).join("")}
+          </span>
+          <span class="rate-word">${z.value === null ? "—" : CONFIDENCE_LEVELS[z.value].label}</span>
+        </div>`
+        )
+        .join("");
+      return `
+        <div class="rate-group">
+          <div class="rate-head">
+            <b>${DISTRICT_LABEL[c] || c}</b>
+            <span>${fmtNum(sum)} / ${fmtNum(list.length * MAX_CONFIDENCE)} · ${rated.length} von ${
+        list.length
+      } bewertet</span>
+          </div>
+          ${rows}
+        </div>`;
+    })
+    .join("");
+
+  return `<div class="ratings">
+    <p class="rate-legend">${CONFIDENCE_LEVELS.map((l) => `<span><b>${l.value}</b> ${l.label}</span>`).join("")}</p>
+    ${groups}
+  </div>`;
+}
+
+function wireRatings(root, rerender) {
+  root.querySelectorAll(".rate-row").forEach((row) => {
+    const zoneId = row.dataset.zone;
+    row.querySelectorAll(".rate-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const value = Number(btn.dataset.value);
+        // Clicking the picked level again clears it back to "not yet rated".
+        const already = btn.dataset.picked === "true";
+        setConfidenceFor(zoneId, already ? null : value);
+        recordToday();
+        rerender();
+      });
+    });
+  });
 }

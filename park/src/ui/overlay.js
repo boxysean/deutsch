@@ -2,6 +2,12 @@ import { getZone } from "../data/zones.js";
 import { CATEGORIES } from "../data/categories.js";
 import { DISTRICT } from "../iso/palette.js";
 import { getPreview } from "../content/previews.js";
+import {
+  CONFIDENCE_LEVELS,
+  getConfidenceFor,
+  setConfidenceFor,
+  recordToday,
+} from "../content/lib/progress.js";
 
 const MODULE_LOADERS = {
   grammarFoundations: () => import("../content/grammarFoundations/index.js"),
@@ -128,10 +134,57 @@ async function openDetail(zone) {
   try {
     const mod = await MODULE_LOADERS[zone.module]();
     mod.mount(els.content, zone);
+    // Rating a topic makes most sense right after working on it, so every
+    // learning zone carries the same strip; the Fernsehturm holds the full list.
+    if (zone.category !== "info") mountConfidenceStrip(els.content, zone);
   } catch (err) {
     console.error("Failed to load zone module", zone.module, err);
     els.content.innerHTML = `<p>Inhalt konnte nicht geladen werden.</p>`;
   }
+}
+
+// A compact copy of the Fernsehturm's rating control, pinned to the foot of
+// every topic page.
+function mountConfidenceStrip(container, zone) {
+  const strip = document.createElement("div");
+  strip.className = "conf-strip";
+  strip.innerHTML = `
+    <span class="conf-q">Wie sicher fühlst du dich bei diesem Thema?</span>
+    <span class="rate-buttons" role="radiogroup" aria-label="Selbsteinschätzung ${zone.name}"></span>
+    <span class="rate-word"></span>
+  `;
+  const buttons = strip.querySelector(".rate-buttons");
+  const word = strip.querySelector(".rate-word");
+
+  function paint() {
+    const current = getConfidenceFor(zone.id);
+    buttons.querySelectorAll(".rate-btn").forEach((b) => {
+      const on = Number(b.dataset.value) === current;
+      b.dataset.picked = on ? "true" : "false";
+      b.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    word.textContent = current === null ? "noch nicht bewertet" : CONFIDENCE_LEVELS[current].label;
+  }
+
+  CONFIDENCE_LEVELS.forEach((lvl) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rate-btn";
+    btn.setAttribute("role", "radio");
+    btn.dataset.value = String(lvl.value);
+    btn.textContent = String(lvl.value);
+    btn.title = `${lvl.value} — ${lvl.label}: ${lvl.hint}`;
+    btn.addEventListener("click", () => {
+      const already = getConfidenceFor(zone.id) === lvl.value;
+      setConfidenceFor(zone.id, already ? null : lvl.value);
+      recordToday();
+      paint();
+    });
+    buttons.appendChild(btn);
+  });
+
+  paint();
+  container.appendChild(strip);
 }
 
 function closeDetail() {
