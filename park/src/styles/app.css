@@ -76,6 +76,22 @@
 }
 .map-label[data-active="true"] .ml-dot{ background:#ffd23f; }
 
+/* The Dom's label is the only one that is a button rather than a place name,
+   so it is styled like one: filled, with a caret to say "opens something". */
+.map-label[data-info="true"]{
+  background: var(--label-color); color:#fffdf7;
+  border-color:#21202b; font-weight:800;
+  padding: 0.28rem 0.6rem 0.28rem 0.5rem;
+  box-shadow: 0 3px 0 rgba(33,32,43,0.7);
+}
+.map-label[data-info="true"] .ml-name::after{
+  content:" ›"; font-weight:800; opacity:0.85;
+}
+.map-label[data-info="true"]:hover{
+  background:#fffdf7; color: var(--label-color);
+  box-shadow: 0 4px 0 rgba(33,32,43,0.7);
+}
+
 /* The highlighted label is exempt from de-cluttering, so it needs to paint
    over any neighbour it now overlaps. */
 .map-label[data-hovered="true"],
@@ -186,3 +202,13 @@
   .panel{ width:100vw; }
   .hud-legend{ display:none; }
 }
+
+/* ---------- Dom: mastery checklist ---------- */
+.mastery-row{
+  display:flex; align-items:flex-start; gap:0.55rem;
+  padding:0.4rem 0.5rem; border-radius:5px; cursor:pointer;
+  font-size:0.92rem; line-height:1.4;
+}
+.mastery-row:hover{ background: var(--paper-raised); }
+.mastery-row input{ margin-top:0.25rem; accent-color: var(--good); flex:none; }
+.mastery-row[data-done="true"] span{ color: var(--ink-soft); text-decoration: line-through; }

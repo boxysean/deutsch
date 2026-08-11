@@ -25,6 +25,13 @@ export const CATEGORIES = {
     cols: 2,
     rows: 2,
   },
+  info: {
+    label: "Dom",
+    color: 0x8a5cc4,
+    anchor: { x: 0, z: 0 },
+    cols: 1,
+    rows: 1,
+  },
 };
 
 export const PLAZA = { x: 0, z: 0, radius: 6 };

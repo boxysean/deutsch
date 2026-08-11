@@ -8,6 +8,8 @@ const MODULE_LOADERS = {
   lesenExam: () => import("../content/lesenExam/index.js"),
   vocabTheme: () => import("../content/vocabTheme/index.js"),
   grammarTopic: () => import("../content/grammarTopic/index.js"),
+  infoHub: () => import("../content/infoHub/index.js"),
+  examSkill: () => import("../content/examSkill/index.js"),
 };
 
 let els = null;

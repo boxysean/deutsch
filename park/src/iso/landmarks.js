@@ -1,5 +1,5 @@
 import { OUTLINE, faces } from "./palette.js";
-import { drawBox } from "./sprites.js";
+import { drawBox, drawBlob } from "./sprites.js";
 
 // Purely decorative national motifs. They aren't zones and can't be clicked —
 // they're skyline flavour, the way a theme park drops a landmark in for fun.
@@ -195,6 +195,128 @@ function gothicSpire(ctx, x, baseY, h, w) {
   ctx.lineTo(Math.round(x) + 0.5, baseY - h - 7);
   ctx.moveTo(Math.round(x) - 2.5, baseY - h - 4.5);
   ctx.lineTo(Math.round(x) + 3.5, baseY - h - 4.5);
+  ctx.stroke();
+}
+
+// ------------------------------------------------- Stephansdom (Vienna)
+
+// The Steffl: a very tall slender south tower, and the steep roof with its
+// glazed chevron tiles — the two things that make it unmistakable.
+export function drawStephansdom(ctx, x, y) {
+  const stone = "#ddd5c2";
+  const stoneDark = "#bbb2a0";
+  const stoneShade = "#a49b8a";
+  const roofDark = "#3f4a52";
+
+  // ---- nave -------------------------------------------------------------
+  const naveW = 34;
+  const naveH = 30;
+  const naveY = y - 8;
+  poly(ctx, [[x - naveW / 2, naveY], [x + naveW / 2, naveY], [x + naveW / 2, naveY - naveH], [x - naveW / 2, naveY - naveH]], stone, OUTLINE);
+  poly(ctx, [[x + 6, naveY], [x + naveW / 2, naveY], [x + naveW / 2, naveY - naveH], [x + 6, naveY - naveH]], stoneDark, null);
+
+  // buttresses
+  for (const bx of [-14, -5, 4, 13]) {
+    px(ctx, x + bx, naveY - naveH + 4, 3, naveH - 4, stoneShade);
+  }
+  // lancet windows
+  for (const wx of [-10, -1, 8]) {
+    px(ctx, x + wx, naveY - naveH + 10, 4, 12, "#5d6b84");
+    outlineRect(ctx, x + wx, naveY - naveH + 10, 4, 12);
+  }
+
+  // ---- the famous chevron-tiled roof ------------------------------------
+  const roofTop = naveY - naveH - 26;
+  poly(ctx, [[x - naveW / 2 - 2, naveY - naveH], [x + naveW / 2 + 2, naveY - naveH], [x + 4, roofTop], [x - 4, roofTop]], roofDark, OUTLINE);
+
+  // glazed zigzag tiles in the Habsburg colours
+  const bands = ["#c9a227", "#2f6d4f", "#f2ece0", "#8d2b2b"];
+  const rows = 7;
+  for (let r = 0; r < rows; r++) {
+    const t0 = r / rows;
+    const t1 = (r + 1) / rows;
+    const yTop = naveY - naveH + (roofTop - (naveY - naveH)) * t0;
+    const yBot = naveY - naveH + (roofTop - (naveY - naveH)) * t1;
+    const halfTop = (naveW / 2 + 2) * (1 - t0) + 4 * t0;
+    const halfBot = (naveW / 2 + 2) * (1 - t1) + 4 * t1;
+    const cols = 6;
+    for (let c = 0; c < cols; c++) {
+      const color = bands[(r + c) % bands.length];
+      const u0 = c / cols;
+      const u1 = (c + 1) / cols;
+      poly(
+        ctx,
+        [
+          [x - halfTop + halfTop * 2 * u0, yTop],
+          [x - halfTop + halfTop * 2 * u1, yTop],
+          [x - halfBot + halfBot * 2 * u1, yBot],
+          [x - halfBot + halfBot * 2 * u0, yBot],
+        ],
+        color,
+        null
+      );
+    }
+  }
+  poly(ctx, [[x - naveW / 2 - 2, naveY - naveH], [x + naveW / 2 + 2, naveY - naveH], [x + 4, roofTop], [x - 4, roofTop]], null, OUTLINE);
+
+  // ---- Südturm: the Steffl ----------------------------------------------
+  const tx = x - 24;
+  const tBase = y - 2;
+  const tiers = [
+    { h: 30, w: 15 },
+    { h: 26, w: 12 },
+    { h: 22, w: 9 },
+  ];
+  let ty = tBase;
+  tiers.forEach((tier, i) => {
+    poly(ctx, [[tx - tier.w / 2, ty], [tx + tier.w / 2, ty], [tx + tier.w / 2, ty - tier.h], [tx - tier.w / 2, ty - tier.h]], stone, OUTLINE);
+    poly(ctx, [[tx + 1, ty], [tx + tier.w / 2, ty], [tx + tier.w / 2, ty - tier.h], [tx + 1, ty - tier.h]], stoneDark, null);
+    // tall gothic openings
+    px(ctx, tx - 2, ty - tier.h + 6, 3, tier.h - 12, "#5d6b84");
+    if (i === 1) {
+      // clock face
+      px(ctx, tx - 3, ty - tier.h + 5, 6, 6, "#f4efe2");
+      outlineRect(ctx, tx - 3, ty - tier.h + 5, 6, 6);
+    }
+    ty -= tier.h;
+  });
+
+  // the long tapering spire
+  poly(ctx, [[tx - 5, ty], [tx + 5, ty], [tx, ty - 40]], stone, OUTLINE);
+  poly(ctx, [[tx, ty], [tx + 5, ty], [tx, ty - 40]], stoneDark, null);
+  // crockets up the spire
+  ctx.strokeStyle = stoneShade;
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 6; i++) {
+    const v = i / 6;
+    const half = 5 * (1 - v);
+    const sy = ty - 40 * v;
+    ctx.beginPath();
+    ctx.moveTo(tx - half, sy);
+    ctx.lineTo(tx + half, sy);
+    ctx.stroke();
+  }
+  // gilt double-eagle finial
+  ctx.strokeStyle = "#e0b83a";
+  ctx.beginPath();
+  ctx.moveTo(Math.round(tx) + 0.5, ty - 40);
+  ctx.lineTo(Math.round(tx) + 0.5, ty - 48);
+  ctx.moveTo(Math.round(tx) - 2.5, ty - 45);
+  ctx.lineTo(Math.round(tx) + 3.5, ty - 45);
+  ctx.stroke();
+
+  // ---- Nordturm: never finished, capped with its Renaissance dome -------
+  const nx = x + 22;
+  const nBase = y - 4;
+  const nH = 40;
+  poly(ctx, [[nx - 8, nBase], [nx + 8, nBase], [nx + 8, nBase - nH], [nx - 8, nBase - nH]], stone, OUTLINE);
+  poly(ctx, [[nx + 1, nBase], [nx + 8, nBase], [nx + 8, nBase - nH], [nx + 1, nBase - nH]], stoneDark, null);
+  px(ctx, nx - 2, nBase - nH + 8, 4, 14, "#5d6b84");
+  drawBlob(ctx, nx, nBase - nH - 5, 9, 7, faces(0.3, 0.22, 0.42));
+  ctx.strokeStyle = "#e0b83a";
+  ctx.beginPath();
+  ctx.moveTo(Math.round(nx) + 0.5, nBase - nH - 11);
+  ctx.lineTo(Math.round(nx) + 0.5, nBase - nH - 17);
   ctx.stroke();
 }
 
