@@ -7,7 +7,7 @@ import {
   applyImport,
   localKeys,
 } from "../lib/transfer.js";
-import { recordToday } from "../lib/progress.js";
+import { recordToday, notifyConfidenceChanged } from "../lib/progress.js";
 
 // The Riesenrad: it goes round and comes back to where it started, which is
 // roughly what a save file does. This is the only screen that touches every
@@ -210,6 +210,9 @@ export function mount(container) {
 
   function finish(message) {
     staged = null;
+    // An import can change every rating at once; tell the map so its route
+    // marker and score badges follow without a reload.
+    notifyConfidenceChanged();
     recordToday();
     render();
     note(body, `✓ ${message} Öffne die Häuser neu, um den übernommenen Stand zu sehen.`, "good");

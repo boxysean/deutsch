@@ -1,5 +1,6 @@
 import { DISTRICT } from "../iso/palette.js";
 import { getConfidenceFor } from "../content/lib/progress.js";
+import { nextZone } from "../content/lib/route.js";
 
 // Always-on map labels as DOM, anchored to each building's roof. Kept out of
 // the canvas so the type stays crisp against the pixelated scene.
@@ -38,7 +39,8 @@ export function createLabels(zones, renderer, onSelect) {
     // you feel weak. Absent until the topic has been rated.
     el.innerHTML =
       `${marker}<span class="ml-score" hidden></span>` +
-      `<span class="ml-name">${zone.labelName || zone.name}</span>`;
+      `<span class="ml-name">${zone.labelName || zone.name}</span>` +
+      `<span class="ml-next" hidden>Als Nächstes</span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(zone.id);
@@ -169,7 +171,18 @@ export function createLabels(zones, renderer, onSelect) {
   // A rating changed somewhere: repaint the badges. Widths change with them, so
   // the cache is refreshed and the next update re-runs the de-clutter.
   function refreshScores(remeasure = true) {
+    const next = nextZone();
     items.forEach((it) => {
+      // Exactly one label wears the "Als Nächstes" flag, so the map answers
+      // "what now?" without opening anything.
+      const isNext = !!next && next.id === it.zone.id;
+      it.el.dataset.next = isNext ? "true" : "false";
+      // The next step must never be crowded out — it is the one label that has
+      // to stay readable. Tier changes only when a rating does, not per frame,
+      // so the de-clutter stays stable.
+      it.tier = it.zone.pinned || isNext ? -1 : it.zone.status === "built" ? 0 : 1;
+      const flag = it.el.querySelector(".ml-next");
+      if (flag) flag.hidden = !isNext;
       const badge = it.el.querySelector(".ml-score");
       if (!badge) return;
       const value = it.zone.category === "info" ? null : getConfidenceFor(it.zone.id);

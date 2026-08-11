@@ -9,6 +9,7 @@ import { createLabels } from "./ui/labels.js";
 import { initHud } from "./ui/hud.js";
 import { initOverlay, onZoneChange, openZonePanel, closeZonePanel } from "./ui/overlay.js";
 import { recordToday, onConfidenceChange } from "./content/lib/progress.js";
+import { nextZone } from "./content/lib/route.js";
 
 const canvas = document.getElementById("scene");
 const world = buildWorld();
@@ -17,7 +18,7 @@ const renderer = createRenderer(canvas, world);
 renderer.resize();
 renderer.fit();
 
-initHud();
+initHud((id) => openZonePanel(id));
 
 // The progress curve needs a datapoint per day, so take one on load and again
 // when the tab is hidden — not only when the Fernsehturm is opened.
@@ -32,8 +33,14 @@ initOverlay();
 onZoneChange((id) => labels.setActive(id));
 
 // Rating a topic anywhere — the drawer, its page, the Fernsehturm — updates the
-// number shown on its map label.
-onConfidenceChange(() => labels.refreshScores());
+// number on its map label and, when it settles a step, moves the route on.
+function syncRoute() {
+  const next = nextZone();
+  renderer.state.nextId = next ? next.id : null;
+  labels.refreshScores();
+}
+onConfidenceChange(syncRoute);
+syncRoute();
 
 setupInteraction(canvas, renderer, {
   onHover: (id) => labels.setHovered(id),
