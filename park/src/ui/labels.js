@@ -1,4 +1,5 @@
 import { DISTRICT } from "../iso/palette.js";
+import { getConfidenceFor } from "../content/lib/progress.js";
 
 // Always-on map labels as DOM, anchored to each building's roof. Kept out of
 // the canvas so the type stays crisp against the pixelated scene.
@@ -33,7 +34,11 @@ export function createLabels(zones, renderer, onSelect) {
     const marker = zone.icon
       ? `<span class="ml-icon">${zone.icon}</span>`
       : `<span class="ml-dot"></span>`;
-    el.innerHTML = `${marker}<span class="ml-name">${zone.labelName || zone.name}</span>`;
+    // The self-rating rides next to the icon so a glance at the map shows where
+    // you feel weak. Absent until the topic has been rated.
+    el.innerHTML =
+      `${marker}<span class="ml-score" hidden></span>` +
+      `<span class="ml-name">${zone.labelName || zone.name}</span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(zone.id);
@@ -74,6 +79,8 @@ export function createLabels(zones, renderer, onSelect) {
     });
     lastKey = null; // force the next update to re-lay-out
   }
+  // Paint the badges before the first measure, so cached widths include them.
+  refreshScores(false);
   measure();
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(measure).catch(() => {});
@@ -159,5 +166,19 @@ export function createLabels(zones, renderer, onSelect) {
     });
   }
 
-  return { update, setHovered, setActive };
+  // A rating changed somewhere: repaint the badges. Widths change with them, so
+  // the cache is refreshed and the next update re-runs the de-clutter.
+  function refreshScores(remeasure = true) {
+    items.forEach((it) => {
+      const badge = it.el.querySelector(".ml-score");
+      if (!badge) return;
+      const value = it.zone.category === "info" ? null : getConfidenceFor(it.zone.id);
+      badge.textContent = value === null ? "" : String(value);
+      badge.hidden = value === null;
+      badge.dataset.value = value === null ? "" : String(value);
+    });
+    if (remeasure) measure();
+  }
+
+  return { update, setHovered, setActive, refreshScores };
 }

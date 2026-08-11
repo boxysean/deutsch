@@ -8,7 +8,7 @@ import { setupInteraction } from "./iso/interaction.js";
 import { createLabels } from "./ui/labels.js";
 import { initHud } from "./ui/hud.js";
 import { initOverlay, onZoneChange, openZonePanel, closeZonePanel } from "./ui/overlay.js";
-import { recordToday } from "./content/lib/progress.js";
+import { recordToday, onConfidenceChange } from "./content/lib/progress.js";
 
 const canvas = document.getElementById("scene");
 const world = buildWorld();
@@ -30,6 +30,10 @@ const labels = createLabels(ZONES, renderer, (id) => openZonePanel(id));
 
 initOverlay();
 onZoneChange((id) => labels.setActive(id));
+
+// Rating a topic anywhere — the drawer, its page, the Fernsehturm — updates the
+// number shown on its map label.
+onConfidenceChange(() => labels.refreshScores());
 
 setupInteraction(canvas, renderer, {
   onHover: (id) => labels.setHovered(id),
