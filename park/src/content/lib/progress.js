@@ -148,11 +148,28 @@ export function getConfidenceFor(zoneId) {
   return Number.isInteger(v) && v >= 0 && v <= MAX_CONFIDENCE ? v : null;
 }
 
+// The same rating can be set from the map label's drawer, from a topic page or
+// from the Fernsehturm's list, and all three views show it. Rather than thread
+// callbacks between them, a rating change is announced once here.
+const confidenceListeners = new Set();
+
+export function onConfidenceChange(fn) {
+  confidenceListeners.add(fn);
+  return () => confidenceListeners.delete(fn);
+}
+
 export function setConfidenceFor(zoneId, value) {
   const all = getConfidence();
   if (value === null) delete all[zoneId];
   else all[zoneId] = Math.min(MAX_CONFIDENCE, Math.max(0, Math.round(value)));
   plan.save("confidence", all);
+  confidenceListeners.forEach((fn) => {
+    try {
+      fn(zoneId, value);
+    } catch (e) {
+      console.error("confidence listener failed", e);
+    }
+  });
   return all;
 }
 

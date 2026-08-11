@@ -426,3 +426,12 @@ td.num, th.num{ font-family: ui-monospace, monospace; }
 }
 .io-confirm p{ font-size:0.86rem; margin-bottom:0.6rem; }
 button[data-danger="true"]{ background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* The rating control inside the bottom drawer. */
+.sheet-rating{ margin-bottom:1rem; }
+.sheet-rating[hidden]{ display:none; }
+.conf-strip.conf-compact{
+  margin-top:0; padding:0.5rem 0.7rem; gap:0.55rem;
+}
+.conf-strip.conf-compact .conf-q{ font-size:0.8rem; }
+.conf-strip.conf-compact .rate-btn{ width:1.7rem; }

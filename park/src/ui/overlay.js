@@ -6,6 +6,7 @@ import {
   CONFIDENCE_LEVELS,
   getConfidenceFor,
   setConfidenceFor,
+  onConfidenceChange,
   recordToday,
 } from "../content/lib/progress.js";
 
@@ -23,6 +24,10 @@ const MODULE_LOADERS = {
 let els = null;
 let onChangeCallback = null;
 let currentZoneId = null;
+// The rating controls currently on screen. Each holds a subscription, so they
+// are disposed when their view closes rather than piling up.
+let sheetRating = null;
+let detailRating = null;
 
 export function initOverlay() {
   els = {
@@ -32,6 +37,7 @@ export function initOverlay() {
     sheetTitle: document.getElementById("sheet-title"),
     sheetDesc: document.getElementById("sheet-desc"),
     sheetStats: document.getElementById("sheet-stats"),
+    sheetRating: document.getElementById("sheet-rating"),
     sheetOpen: document.getElementById("sheet-open"),
     sheetClose: document.getElementById("sheet-close"),
     backdrop: document.getElementById("panel-backdrop"),
@@ -116,6 +122,18 @@ function showSheet(zone) {
 
   els.sheetOpen.disabled = !built;
   els.sheetOpen.textContent = built ? "Ausführlich öffnen" : "Noch kein Inhalt";
+
+  // Score the topic straight from the drawer — no need to open the full page.
+  // The Dom, the Fernsehturm and the Riesenrad are not topics, so they get none.
+  if (sheetRating) sheetRating.dispose();
+  sheetRating = null;
+  els.sheetRating.innerHTML = "";
+  if (zone.category !== "info") {
+    sheetRating = buildRatingControl(zone, { compact: true });
+    els.sheetRating.appendChild(sheetRating.el);
+  }
+  els.sheetRating.hidden = zone.category === "info";
+
   els.sheet.hidden = false;
 }
 
@@ -137,25 +155,32 @@ async function openDetail(zone) {
     mod.mount(els.content, zone);
     // Rating a topic makes most sense right after working on it, so every
     // learning zone carries the same strip; the Fernsehturm holds the full list.
-    if (zone.category !== "info") mountConfidenceStrip(els.content, zone);
+    if (zone.category !== "info") {
+      const rating = buildRatingControl(zone, { compact: false });
+      detailRating = rating;
+      els.content.appendChild(rating.el);
+    }
   } catch (err) {
     console.error("Failed to load zone module", zone.module, err);
     els.content.innerHTML = `<p>Inhalt konnte nicht geladen werden.</p>`;
   }
 }
 
-// A compact copy of the Fernsehturm's rating control, pinned to the foot of
-// every topic page.
-function mountConfidenceStrip(container, zone) {
-  const strip = document.createElement("div");
-  strip.className = "conf-strip";
-  strip.innerHTML = `
-    <span class="conf-q">Wie sicher fühlst du dich bei diesem Thema?</span>
-    <span class="rate-buttons" role="radiogroup" aria-label="Selbsteinschätzung ${zone.name}"></span>
+// One rating control, used in two places: the drawer that opens when you click
+// a house, and the foot of that house's full page. Both write through
+// setConfidenceFor, which announces the change so every other view follows.
+function buildRatingControl(zone, { compact }) {
+  const wrap = document.createElement("div");
+  wrap.className = compact ? "conf-strip conf-compact" : "conf-strip";
+  wrap.innerHTML = `
+    <span class="conf-q">${compact ? "Wie sicher?" : "Wie sicher fühlst du dich bei diesem Thema?"}</span>
+    <span class="rate-buttons" role="radiogroup"></span>
     <span class="rate-word"></span>
   `;
-  const buttons = strip.querySelector(".rate-buttons");
-  const word = strip.querySelector(".rate-word");
+  wrap.querySelector(".rate-buttons").setAttribute("aria-label", `Selbsteinschätzung ${zone.name}`);
+
+  const buttons = wrap.querySelector(".rate-buttons");
+  const word = wrap.querySelector(".rate-word");
 
   function paint() {
     const current = getConfidenceFor(zone.id);
@@ -175,20 +200,29 @@ function mountConfidenceStrip(container, zone) {
     btn.dataset.value = String(lvl.value);
     btn.textContent = String(lvl.value);
     btn.title = `${lvl.value} — ${lvl.label}: ${lvl.hint}`;
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const already = getConfidenceFor(zone.id) === lvl.value;
       setConfidenceFor(zone.id, already ? null : lvl.value);
       recordToday();
-      paint();
     });
     buttons.appendChild(btn);
   });
 
+  // Repaint on any change, so the drawer and the page agree even when the
+  // rating was set from the other one.
+  const off = onConfidenceChange((id) => {
+    if (id === zone.id) paint();
+  });
   paint();
-  container.appendChild(strip);
+  return { el: wrap, dispose: off };
 }
 
 function closeDetail() {
+  if (detailRating) {
+    detailRating.dispose();
+    detailRating = null;
+  }
   if (!els.panel.hidden) {
     els.panel.hidden = true;
     els.backdrop.hidden = true;
@@ -199,6 +233,10 @@ function closeDetail() {
 function closeAll() {
   currentZoneId = null;
   closeDetail();
+  if (sheetRating) {
+    sheetRating.dispose();
+    sheetRating = null;
+  }
   if (els.sheet) els.sheet.hidden = true;
   if (onChangeCallback) onChangeCallback(null);
 }

@@ -212,3 +212,21 @@
 .mastery-row:hover{ background: var(--paper-raised); }
 .mastery-row input{ margin-top:0.25rem; accent-color: var(--good); flex:none; }
 .mastery-row[data-done="true"] span{ color: var(--ink-soft); text-decoration: line-through; }
+
+/* The self-rating, shown on the map label beside the icon. Stays visible when
+   the label collapses to its icon — a bare number is the whole point. */
+.map-label .ml-score{
+  flex:none; min-width:1.05rem; padding:0 0.2rem;
+  font-size:0.68rem; font-weight:800; line-height:1.25;
+  text-align:center; border-radius:3px;
+  background: var(--label-color); color:#fffdf7;
+  border:1.5px solid #21202b;
+  font-variant-numeric: tabular-nums;
+}
+.map-label .ml-score[hidden]{ display:none; }
+/* 0 means "no confidence", so it must not read as a filled badge. */
+.map-label .ml-score[data-value="0"]{ background:#fffdf7; color:#21202b; }
+.map-label:hover .ml-score,
+.map-label[data-hovered="true"] .ml-score,
+.map-label[data-active="true"] .ml-score{ background:#fffdf7; color:#21202b; }
+.map-label[data-collapsed="true"]{ gap:0.22rem; }
