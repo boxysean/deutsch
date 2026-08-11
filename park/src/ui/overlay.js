@@ -17,6 +17,7 @@ const MODULE_LOADERS = {
   infoHub: () => import("../content/infoHub/index.js"),
   examSkill: () => import("../content/examSkill/index.js"),
   progressTower: () => import("../content/progressTower/index.js"),
+  dataTransfer: () => import("../content/dataTransfer/index.js"),
 };
 
 let els = null;

@@ -2,6 +2,7 @@ import { THEMES } from "./vocabTheme/data.js";
 import { TOPICS } from "./grammarTopic/data.js";
 import { SKILLS } from "./examSkill/data.js";
 import { computeProgress, planStatus, getHistory } from "./lib/progress.js";
+import { localKeys, summarize, buildExport } from "./lib/transfer.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
@@ -160,6 +161,19 @@ function progressTower() {
   };
 }
 
+function dataTransfer() {
+  const s = summarize(buildExport());
+  return {
+    summary:
+      "Alles liegt nur in diesem Browser. Hier packst du deinen Stand in eine Datei — Vokabeln, Übungen, Checkliste, Lernplan und Selbsteinschätzung — und lädst ihn auf einem anderen Gerät wieder ein.",
+    stats: [
+      { label: "Einträge gespeichert", value: String(localKeys().length) },
+      { label: "Messpunkte", value: String(s.measurements) },
+      { label: "Bewertete Themen", value: String(s.ratedTopics) },
+    ],
+  };
+}
+
 const BUILDERS = {
   grammarFoundations,
   lesenExam,
@@ -168,6 +182,7 @@ const BUILDERS = {
   infoHub,
   examSkill,
   progressTower,
+  dataTransfer,
 };
 
 export function getPreview(zone) {
