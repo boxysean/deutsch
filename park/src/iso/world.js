@@ -256,7 +256,7 @@ export function buildWorld() {
   // The Dom on the town square: a Stephansdom-style cathedral, and the one
   // clickable thing that isn't a learning zone — it explains the app and the
   // exam. Placed by hand rather than by the street layout.
-  const domZone = ZONES.find((z) => z.category === "info");
+  const domZone = ZONES.find((z) => z.id === "dom");
   if (domZone) {
     const at = { tx: PLAZA.tx + 3, ty: PLAZA.ty + 3 };
     for (let dx = -1; dx <= 2; dx++) {
@@ -278,11 +278,30 @@ export function buildWorld() {
   objects.push({ kind: "beertable", tx: PLAZA.tx + 1, ty: PLAZA.ty + 3 });
   objects.push({ kind: "pretzel", tx: PLAZA.tx - 1, ty: PLAZA.ty + 2 });
 
+  // The Berliner Fernsehturm is the one landmark you can click: it holds the
+  // progress dashboard. It keeps its paved apron like the other monuments.
+  const towerZone = ZONES.find((z) => z.id === "fernsehturm");
+  if (towerZone) {
+    const at = { tx: 21, ty: -16 };
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) setTile(at.tx + dx, at.ty + dy, "plaza");
+    }
+    claim(at.tx, at.ty);
+    zonePlacement.set(towerZone.id, at);
+    objects.push({
+      kind: "building",
+      tx: at.tx,
+      ty: at.ty,
+      zone: towerZone,
+      // The antenna reaches ~160px above the tile, far beyond height + roofH.
+      spec: { render: "fernsehturm", footprint: 2, height: 10, roofH: 6, labelLevels: 18, built: true },
+    });
+  }
+
   // Decorative national landmarks — pure skyline flavour, not clickable.
   // Each gets a small paved apron and sits clear of the streets.
   const monuments = [
     { kind: "riesenrad", tx: -9, ty: 13 }, // Wiener Riesenrad
-    { kind: "fernsehturm", tx: 11, ty: -19 }, // Berliner Fernsehturm
     { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
     { kind: "brandenburg", tx: 6, ty: 15 }, // Brandenburger Tor
     { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein

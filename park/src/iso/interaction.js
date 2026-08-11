@@ -22,6 +22,7 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect }) {
   let dragging = false;
   let dragMoved = 0;
   let last = null;
+  let downId = null;
 
   function pointerWorld(e) {
     const rect = canvas.getBoundingClientRect();
@@ -40,6 +41,7 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect }) {
 
   canvas.addEventListener("pointerdown", (e) => {
     dragging = true;
+    downId = e.pointerId;
     dragMoved = 0;
     last = { x: e.clientX, y: e.clientY };
     canvas.setPointerCapture(e.pointerId);
@@ -62,15 +64,21 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect }) {
   });
 
   canvas.addEventListener("pointerup", (e) => {
+    // A press that began on a label and finished over the map is not a click on
+    // the map: without this the stale dragMoved from the last pan would let it
+    // open whatever house happened to be under the release point.
+    const startedHere = downId === e.pointerId;
+    downId = null;
     dragging = false;
     canvas.style.cursor = "grab";
-    if (dragMoved > 6) return; // that was a pan
+    if (!startedHere || dragMoved > 6) return; // released elsewhere, or a pan
     const id = pick(e);
     if (id) onSelect(id);
   });
 
   canvas.addEventListener("pointerleave", () => {
     dragging = false;
+    downId = null;
     onHover(null);
   });
 

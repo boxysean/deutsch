@@ -8,6 +8,7 @@ import { setupInteraction } from "./iso/interaction.js";
 import { createLabels } from "./ui/labels.js";
 import { initHud } from "./ui/hud.js";
 import { initOverlay, onZoneChange, openZonePanel } from "./ui/overlay.js";
+import { recordToday } from "./content/lib/progress.js";
 
 const canvas = document.getElementById("scene");
 const world = buildWorld();
@@ -17,6 +18,13 @@ renderer.resize();
 renderer.fit();
 
 initHud();
+
+// The progress curve needs a datapoint per day, so take one on load and again
+// when the tab is hidden — not only when the Fernsehturm is opened.
+recordToday();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") recordToday();
+});
 
 const labels = createLabels(ZONES, renderer, (id) => openZonePanel(id));
 
