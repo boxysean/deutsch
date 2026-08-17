@@ -182,16 +182,19 @@ td.num, th.num{ font-family: ui-monospace, monospace; }
 .self-mark .tag{ font-size:0.74rem; color: var(--ink-soft); }
 .self-mark button[data-picked="true"]{ background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-.vocab-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
-.vocab-stats{ font-family: ui-monospace, monospace; font-size:0.82rem; color: var(--ink-soft); }
-.vocab-stats b{ color: var(--good); }
-.vocab-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap:0.75rem; }
+/* ---------- Tag 1's vocabulary grid ----------
+   The 20 theme zones use the deck below; Day 1 keeps its own grid, so these
+   stay. Deleting them silently breaks that page. */
+.vocab-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+.vocab-stats{ font-size:0.85rem; color: var(--ink-soft); }
+.vocab-stats b{ color: var(--ink); font-family: ui-monospace, monospace; }
+.vocab-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(13rem,1fr)); gap:0.7rem; }
 .flash{
-  position:relative; border:1px solid var(--rule); border-radius:6px; background: var(--paper-raised);
-  padding: 0.9rem 0.9rem 0.7rem; min-height: 6.6rem; display:flex; flex-direction:column; justify-content:space-between;
-  cursor:pointer; user-select:none;
+  position:relative; background: var(--paper-raised); border:1px solid var(--rule);
+  border-radius:8px; padding:0.8rem 0.9rem; cursor:pointer; min-height:5.5rem;
 }
-.flash[data-mastered="true"]{ border-color: var(--good); }
+.flash:hover{ border-color: var(--rule-strong); }
+.flash[data-mastered="true"]{ border-color: var(--good); background: var(--good-soft); }
 .flash .badge{
   position:absolute; top:0.55rem; right:0.55rem; font-size:0.62rem; font-weight:700; letter-spacing:0.04em;
   text-transform:uppercase; color: var(--accent); background: var(--accent-soft); padding:0.1rem 0.4rem; border-radius:999px;
@@ -201,6 +204,90 @@ td.num, th.num{ font-family: ui-monospace, monospace; }
 .flash .rate{ display:none; gap:0.4rem; margin-top:0.5rem; }
 .flash[data-flipped="true"] .rate{ display:flex; }
 .flash .rate button{ flex:1; padding:0.3rem 0; font-size:0.72rem; }
+
+/* ---------- vocabulary: the deck ---------- */
+.deck-bar{ display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:0.8rem; font-size:0.82rem; }
+.deck-count{ color: var(--ink-soft); }
+.deck-sicher b{ font-variant-numeric: tabular-nums; }
+.deck-spacer{ flex:1; }
+.seg{ display:inline-flex; border:1px solid var(--rule-strong); border-radius:6px; overflow:hidden; }
+.seg-btn{
+  border:none; border-radius:0; padding:0.28rem 0.6rem; font-size:0.76rem;
+  background: var(--paper-raised); color: var(--ink-soft);
+}
+.seg-btn + .seg-btn{ border-left:1px solid var(--rule); }
+.seg-btn[data-picked="true"]{ background: var(--ink); color: var(--paper); font-weight:700; }
+
+.deck-boxes{ display:flex; gap:0.35rem; margin-bottom:1rem; flex-wrap:wrap; }
+.box-chip{
+  display:inline-flex; align-items:baseline; gap:0.3rem;
+  padding:0.15rem 0.5rem; border-radius:999px; font-size:0.7rem;
+  background: var(--paper-raised); border:1px solid var(--rule); color: var(--ink-soft);
+}
+.box-chip b{ color: var(--ink); font-variant-numeric: tabular-nums; }
+.box-chip[data-box="0"]{ border-color: var(--accent); }
+.box-chip[data-box="4"]{ border-color: var(--good); }
+
+.flashcard{
+  position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:15rem; padding:2.4rem 1.6rem 2.8rem; margin:0 auto; max-width:34rem;
+  background: var(--paper-raised); border:2px solid var(--rule-strong); border-radius:12px;
+  cursor:pointer; text-align:center; user-select:none;
+  box-shadow: 0 2px 0 var(--rule);
+}
+.flashcard:hover{ border-color: var(--ink); }
+.flashcard:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.fc-side, .fc-box{
+  position:absolute; top:0.7rem; font-size:0.66rem; letter-spacing:0.04em;
+  text-transform:uppercase; color: var(--ink-soft);
+}
+.fc-side{ left:0.9rem; }
+.fc-box{ right:0.9rem; }
+.fc-front{ font-size:1.9rem; font-weight:700; line-height:1.25; }
+.fc-back{ display:none; margin-top:1.1rem; padding-top:1.1rem; border-top:1px solid var(--rule); width:100%; }
+.flashcard[data-flipped="true"] .fc-back{ display:block; }
+.fc-answer{ font-size:1.35rem; font-weight:600; color: var(--ink); }
+.fc-note{ margin-top:0.5rem; font-size:0.85rem; color: var(--accent); }
+.fc-hint{ position:absolute; bottom:0.9rem; font-size:0.72rem; color: var(--ink-soft); }
+
+.deck-actions{ margin-top:1.1rem; }
+.deck-actions .grade-row{ display:none; gap:0.5rem; justify-content:center; flex-wrap:wrap; }
+.deck-actions[data-flipped="true"] .grade-row{ display:flex; }
+.deck-actions[data-flipped="true"] .reveal-btn{ display:none; }
+.deck-actions .reveal-btn{ display:block; margin:0 auto; }
+.grade-btn{
+  display:flex; flex-direction:column; align-items:center; gap:0.1rem;
+  min-width:8rem; padding:0.45rem 0.8rem;
+}
+.grade-btn span{ font-size:0.68rem; color: var(--ink-soft); font-weight:400; }
+.grade-btn[data-grade="again"]{ border-color: var(--accent); }
+.grade-btn[data-grade="easy"]{ border-color: var(--good); }
+
+.deck-nav{ display:flex; align-items:center; gap:0.8rem; margin-top:1.3rem; }
+.deck-nav .deck-hint{ flex:1; text-align:center; font-size:0.72rem; color: var(--ink-soft); }
+
+/* ---------- vocabulary: the word list ---------- */
+.list-bar{ display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; margin-bottom:0.8rem; }
+.list-bar input[type="search"]{
+  flex:1; min-width:10rem; background: var(--paper-raised); border:1px solid var(--rule);
+  border-radius:6px; padding:0.35rem 0.6rem; outline:none; font-size:0.88rem;
+}
+.list-bar input[type="search"]:focus{ border-color: var(--focus); }
+.list-toggle{ display:inline-flex; align-items:center; gap:0.35rem; font-size:0.8rem; color: var(--ink-soft); }
+.list-count{ font-size:0.76rem; color: var(--ink-soft); }
+.word-table td{ vertical-align:top; }
+.word-table tr[data-sicher="true"] td:first-child b{ color: var(--good); }
+.word-table .note-cell{ color: var(--ink-soft); font-size:0.86rem; }
+.word-table .badge{
+  font-size:0.62rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+  color: var(--accent); background: var(--accent-soft); padding:0.1rem 0.4rem; border-radius:999px;
+}
+.box-pill{
+  display:inline-block; min-width:1.5rem; padding:0.05rem 0.35rem; border-radius:999px;
+  font-size:0.72rem; font-variant-numeric: tabular-nums;
+  background: var(--rule); color: var(--ink-soft);
+}
+.box-pill[data-box="3"], .box-pill[data-box="4"]{ background: var(--good-soft); color: var(--good); }
 
 .prod-grid{ display:grid; grid-template-columns: minmax(0,1fr) 15rem; gap:1.5rem; align-items:start; }
 .prod-grid textarea{
@@ -472,3 +559,8 @@ button[data-danger="true"]{ background: var(--accent); color: var(--accent-ink);
 .route-step[data-state="settled"] .name{ color: var(--ink-soft); text-decoration: line-through; }
 .route-step[data-state="next"]{ background: rgba(255,210,63,0.22); font-weight:700; }
 .route-step[data-state="next"] .cat{ color: var(--ink); }
+kbd{
+  display:inline-block; margin-left:0.4rem; padding:0.05rem 0.35rem;
+  border-radius:4px; font-family: ui-monospace, monospace; font-size:0.72rem;
+  background: rgba(255,255,255,0.22); border:1px solid rgba(255,255,255,0.35);
+}
