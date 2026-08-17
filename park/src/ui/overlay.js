@@ -8,6 +8,9 @@ import {
   getConfidenceFor,
   setConfidenceFor,
   onConfidenceChange,
+  getTopicNote,
+  setTopicNote,
+  onTopicNoteChange,
   recordToday,
 } from "../content/lib/progress.js";
 
@@ -183,9 +186,17 @@ function buildRatingControl(zone, { compact }) {
   const wrap = document.createElement("div");
   wrap.className = compact ? "conf-strip conf-compact" : "conf-strip";
   wrap.innerHTML = `
-    <span class="conf-q">${compact ? "Wie sicher?" : "Wie sicher fühlst du dich bei diesem Thema?"}</span>
-    <span class="rate-buttons" role="radiogroup"></span>
-    <span class="rate-word"></span>
+    <div class="conf-row">
+      <span class="conf-q">${compact ? "Wie sicher?" : "Wie sicher fühlst du dich bei diesem Thema?"}</span>
+      <span class="rate-buttons" role="radiogroup"></span>
+      <span class="rate-word"></span>
+    </div>
+    <div class="topic-note">
+      <label for="tn-${zone.id}">Notiz zu diesem Thema — woran du zuletzt gehangen bist</label>
+      <textarea id="tn-${zone.id}" rows="${compact ? 2 : 3}" spellcheck="false"
+        placeholder="z. B. „Wechselpräpositionen: wohin = Akkusativ. Verwechsle ich ständig mit dem Dativ.“"></textarea>
+      <span class="note-state"></span>
+    </div>
   `;
   wrap.querySelector(".rate-buttons").setAttribute("aria-label", `Selbsteinschätzung ${zone.name}`);
 
@@ -225,8 +236,42 @@ function buildRatingControl(zone, { compact }) {
   const off = onConfidenceChange((id) => {
     if (id === null || id === zone.id) paint();
   });
+  // The topic note: saved as you type, and flushed on blur so nothing is lost
+  // by closing the page mid-sentence.
+  const noteEl = wrap.querySelector("textarea");
+  const noteState = wrap.querySelector(".note-state");
+  let timer = null;
+  noteEl.value = getTopicNote(zone.id);
+  function commit() {
+    clearTimeout(timer);
+    setTopicNote(zone.id, noteEl.value);
+    noteState.textContent = noteEl.value.trim() ? "gespeichert" : "";
+  }
+  noteEl.addEventListener("input", () => {
+    clearTimeout(timer);
+    noteState.textContent = "…";
+    timer = setTimeout(commit, 400);
+  });
+  noteEl.addEventListener("blur", commit);
+
+  // Follow a change made in the other copy of this control, unless the reader
+  // is mid-sentence in this one.
+  const offNote = onTopicNoteChange((id, text) => {
+    if (id !== zone.id || document.activeElement === noteEl) return;
+    clearTimeout(timer);
+    noteEl.value = text;
+    noteState.textContent = text ? "gespeichert" : "";
+  });
+
   paint();
-  return { el: wrap, dispose: off };
+  return {
+    el: wrap,
+    dispose() {
+      commit();
+      off();
+      offNote();
+    },
+  };
 }
 
 function closeDetail() {

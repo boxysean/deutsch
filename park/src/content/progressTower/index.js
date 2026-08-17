@@ -23,7 +23,16 @@ import {
 //   the meters — the district trio ordered red → blue → green, adjacent-safe
 //   under deuteranopia (the map's own red/green/blue order is not).
 const TOTAL_COLOR = "var(--series-progress)";
-const CONF_COLOR = "var(--series-confidence)";
+
+// Grammar and vocabulary are different kinds of confidence, so they get their
+// own curves — in the districts' own colours, ordered purple → red → blue →
+// green, which is the ordering that clears the adjacent CVD checks in both
+// modes.
+const CONF_SERIES = [
+  { key: "cg", cat: "grammar", label: "Grammatik", cls: "s-cg", color: "var(--series-grammar)" },
+  { key: "ce", cat: "examskill", label: "Prüfungsteile", cls: "s-ce", color: "var(--series-exam)" },
+  { key: "cv", cat: "vocab", label: "Wortschatz", cls: "s-cv", color: "var(--series-vocab)" },
+];
 
 // Both measures share one y-axis by being indexed to their own maximum — a
 // second y-scale would invent a relationship between points and self-rating.
@@ -42,7 +51,7 @@ export function mount(container, zone) {
   recordToday();
 
   container.innerHTML = `
-    <p class="lede measure">Der Fernsehturm sieht über die ganze Stadt — und über deinen Lernplan. Zwei Kurven laufen hier nebeneinander: was du <b>gearbeitet</b> hast (jedes gelöste Item, jede sichere Vokabel, jeder Haken zählt als ein Punkt) und wie sicher du dich <b>fühlst</b> (deine eigene Bewertung pro Thema). Einmal pro Tag wird beides gespeichert, daraus wachsen die Kurven.</p>
+    <p class="lede measure">Der Fernsehturm sieht über die ganze Stadt — und über deinen Lernplan. Vier Kurven laufen hier nebeneinander: was du <b>gearbeitet</b> hast (jedes gelöste Item, jedes sichere Wort, jeder Haken zählt als ein Punkt) und wie sicher du dich <b>fühlst</b> — getrennt nach Grammatik, Prüfungsteilen und Wortschatz, weil das drei verschiedene Arten von Sicherheit sind. Einmal pro Tag wird alles gespeichert, daraus wachsen die Kurven.</p>
     <div id="pt-range"></div>
     <div id="pt-body"></div>
   `;
@@ -92,11 +101,11 @@ export function mount(container, zone) {
 
       <div class="subhead">Fortschritt über die Zeit</div>
       <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
-        Vom ${fmtDate(range.start)} bis zum ${fmtDate(range.end)}. Beide Kurven zeigen den Anteil am jeweils eigenen Maximum — ${fmtNum(
+        Vom ${fmtDate(range.start)} bis zum ${fmtDate(range.end)}. Alle Kurven zeigen den Anteil am jeweils eigenen Maximum — ${fmtNum(
         progress.total
-      )} Punkte beim Fortschritt, ${fmtNum(
-        confidence.total
-      )} bei der Selbsteinschätzung — damit sie sich eine Achse teilen können. Die gestrichelte Linie ist dein Soll.
+      )} Punkte beim Fortschritt, ${CONF_SERIES.map(
+        (sr) => `${fmtNum((confidence.byCategory[sr.cat] || {}).total || 0)} bei ${sr.label}`
+      ).join(", ")} — damit sie sich eine Achse teilen können. Die gestrichelte Linie ist dein Soll.
       </p>
       ${chartHtml(progress, confidence, status, range, history)}
 
@@ -183,13 +192,16 @@ function heroHtml(progress, confidence, status, range) {
         <b class="kpi-value">${fmtNum(status.remaining)}</b>
         <span class="kpi-sub">Punkte bis 100 %</span>
       </div>
-      <div class="kpi">
-        <span class="kpi-label">Selbsteinschätzung</span>
-        <b class="kpi-value">${confidence.total ? Math.round((confidence.done / confidence.total) * 100) : 0} %</b>
-        <span class="kpi-sub">${fmtNum(confidence.done)} / ${fmtNum(confidence.total)} · ${fmtNum(
-      confidence.rated
-    )} von ${fmtNum(confidence.zoneCount)} Themen</span>
-      </div>
+      ${CONF_SERIES.map((sr) => {
+        const c = confidence.byCategory[sr.cat] || { done: 0, total: 0, rated: 0, zoneCount: 0 };
+        return `<div class="kpi">
+          <span class="kpi-label">Selbsteinsch. ${sr.label}</span>
+          <b class="kpi-value">${c.total ? Math.round((c.done / c.total) * 100) : 0} %</b>
+          <span class="kpi-sub">${fmtNum(c.done)} / ${fmtNum(c.total)} · ${fmtNum(c.rated)} von ${fmtNum(
+          c.zoneCount
+        )} Themen</span>
+        </div>`;
+      }).join("")}
     </div>
   `;
 }
@@ -216,8 +228,6 @@ function chartGeometry(progress, confidence, status, range, history) {
   const plotH = H - M.top - M.bottom;
 
   const x = (dayIndex) => M.left + (Math.min(Math.max(dayIndex, 0), span) / span) * plotW;
-  // y takes a fraction of that series' own maximum, so both curves share one
-  // axis without either being rescaled against the other.
   const y = (fraction) => M.top + plotH - Math.min(Math.max(fraction, 0), 1) * plotH;
 
   const dates = Object.keys(history)
@@ -225,29 +235,36 @@ function chartGeometry(progress, confidence, status, range, history) {
     .filter((d) => d >= range.start && d <= range.end);
 
   const pointsMax = Math.max(progress.total, 1);
-  const confMax = Math.max(confidence.total, 1);
-
   const points = dates.map((d) => ({
     date: d,
     day: daysBetween(range.start, d),
     value: history[d].p,
     frac: history[d].p / pointsMax,
   }));
-  const conf = dates
-    .filter((d) => history[d].c !== null)
-    .map((d) => ({
-      date: d,
-      day: daysBetween(range.start, d),
-      value: history[d].c,
-      frac: history[d].c / confMax,
-    }));
 
-  return { span, plotW, plotH, x, y, points, conf, pointsMax, confMax };
+  // Each district's curve is a share of its own maximum, so three lines of very
+  // different sizes still share one axis.
+  const conf = {};
+  CONF_SERIES.forEach((s) => {
+    const max = Math.max((confidence.byCategory[s.cat] || {}).total || 0, 1);
+    conf[s.key] = dates
+      .filter((d) => history[d][s.key] !== null && history[d][s.key] !== undefined)
+      .map((d) => ({
+        date: d,
+        day: daysBetween(range.start, d),
+        value: history[d][s.key],
+        frac: history[d][s.key] / max,
+        max,
+      }));
+  });
+
+  return { span, plotW, plotH, x, y, points, conf, pointsMax };
 }
 
 function chartHtml(progress, confidence, status, range, history) {
   const g = chartGeometry(progress, confidence, status, range, history);
   const { x, y, points, conf, span, plotH } = g;
+  const anyConf = CONF_SERIES.some((s) => conf[s.key].length);
 
   // Gridlines: hairline, solid, recessive — never dashed.
   const grid = [0, 0.25, 0.5, 0.75, 1]
@@ -284,26 +301,32 @@ function chartHtml(progress, confidence, status, range, history) {
 
   // End labels are placed to avoid collision: if the two curves finish within
   // a line-height of each other, the lower one drops below its dot.
-  const lastP = points[points.length - 1] || null;
-  const lastC = conf[conf.length - 1] || null;
-  let pOffset = 4;
-  let cOffset = 4;
-  if (lastP && lastC && Math.abs(y(lastP.frac) - y(lastC.frac)) < 14) {
-    if (y(lastP.frac) <= y(lastC.frac)) { pOffset = -6; cOffset = 14; }
-    else { pOffset = 14; cOffset = -6; }
+  // End labels are nudged apart when curves finish close together, so four
+  // labels at the right edge stay attached to their own line.
+  const ends = [];
+  const pushEnd = (list, cls) => {
+    const last = list[list.length - 1];
+    if (last) ends.push({ cls, yy: y(last.frac), pct: Math.round(last.frac * 100), x: x(last.day) });
+  };
+  pushEnd(points, "s-progress");
+  CONF_SERIES.forEach((s) => pushEnd(conf[s.key], s.cls));
+  ends.sort((a, b) => a.yy - b.yy);
+  for (let i = 1; i < ends.length; i++) {
+    if (ends[i].yy - ends[i - 1].yy < 13) ends[i].yy = ends[i - 1].yy + 13;
   }
 
-  const seriesSvg = (list, cls, offset, withArea) => {
+  const seriesSvg = (list, cls, withArea) => {
     if (!list.length) return "";
     const line = list.map((p) => `${x(p.day)},${y(p.frac)}`).join(" ");
     const last = list[list.length - 1];
+    const label = ends.find((e) => e.cls === cls);
     const area = withArea
       ? `<polygon class="area ${cls}" points="${x(list[0].day)},${y(0)} ${line} ${x(last.day)},${y(0)}"></polygon>`
       : "";
     return `${area}
       <polyline class="series ${cls}" points="${line}"></polyline>
       <circle class="end-dot ${cls}" cx="${x(last.day)}" cy="${y(last.frac)}" r="5"></circle>
-      <text class="end-label" x="${x(last.day) + 10}" y="${y(last.frac) + offset}">${Math.round(last.frac * 100)} %</text>`;
+      <text class="end-label" x="${x(last.day) + 10}" y="${label.yy + 4}">${label.pct} %</text>`;
   };
 
   const emptyMsg = status.started
@@ -313,7 +336,7 @@ function chartHtml(progress, confidence, status, range, history) {
     ? ""
     : `<text class="empty" x="${M.left + 6}" y="${M.top + 20}">${emptyMsg}</text>`;
 
-  const confNote = conf.length
+  const confNote = anyConf
     ? ""
     : `<text class="empty" x="${M.left + 6}" y="${M.top + 38}">Die Selbsteinschätzung erscheint, sobald du unten Themen bewertest.</text>`;
 
@@ -335,8 +358,8 @@ function chartHtml(progress, confidence, status, range, history) {
                <text class="today-label" x="${x(todayDay)}" y="${M.top - 6}" text-anchor="middle">heute</text>`
             : ""
         }
-        ${seriesSvg(conf, "s-conf", cOffset, false)}
-        ${seriesSvg(points, "s-progress", pOffset, true)}
+        ${CONF_SERIES.map((s) => seriesSvg(conf[s.key], s.cls, false)).join("")}
+        ${seriesSvg(points, "s-progress", true)}
         ${empty}
         ${points.length ? confNote : ""}
         <line class="crosshair" x1="0" y1="${M.top}" x2="0" y2="${M.top + plotH}" style="display:none"></line>
@@ -345,7 +368,10 @@ function chartHtml(progress, confidence, status, range, history) {
       <div class="chart-tip" hidden></div>
       <figcaption>
         <span class="key"><span class="key-line" style="background:${TOTAL_COLOR}"></span>Fortschritt — Punkte, in % vom Ziel</span>
-        <span class="key"><span class="key-line" style="background:${CONF_COLOR}"></span>Selbsteinschätzung — in % vom Maximum</span>
+        ${CONF_SERIES.map(
+          (s) =>
+            `<span class="key"><span class="key-line" style="background:${s.color}"></span>Selbsteinschätzung ${s.label}</span>`
+        ).join("")}
         <span class="key"><span class="key-line dashed"></span>Soll — gleichmäßiger Plan</span>
       </figcaption>
     </figure>
@@ -389,7 +415,6 @@ function wireChart(root, progress, confidence, status, range, history) {
 
     const iso = isoForDay(range.start, day);
     const hp = held(g.points, day);
-    const hc = held(g.conf, day);
     const soll = sollAt(day);
 
     const rows = [];
@@ -401,14 +426,16 @@ function wireChart(root, progress, confidence, status, range, history) {
         color: TOTAL_COLOR,
       });
     }
-    if (hc) {
+    CONF_SERIES.forEach((sr) => {
+      const h = held(g.conf[sr.key], day);
+      if (!h) return;
       rows.push({
-        label: hc.day === day ? "Selbsteinschätzung" : `Selbsteinschätzung (${fmtDate(hc.date)})`,
-        value: `${Math.round(hc.frac * 100)} %`,
-        sub: `${fmtNum(hc.value)} / ${fmtNum(g.confMax)}`,
-        color: CONF_COLOR,
+        label: h.day === day ? sr.label : `${sr.label} (${fmtDate(h.date)})`,
+        value: `${Math.round(h.frac * 100)} %`,
+        sub: `${fmtNum(h.value)} / ${fmtNum(h.max)}`,
+        color: sr.color,
       });
-    }
+    });
     rows.push({ label: "Soll", value: `${soll.pct} %`, sub: `${fmtNum(soll.value)} Pkt.`, dashed: true });
 
     tip.textContent = "";
@@ -509,15 +536,20 @@ function tableHtml(history, progress, confidence) {
       const prev = dates[i + 1];
       const delta = prev == null ? null : history[d].p - history[prev].p;
       const pct = progress.total ? Math.round((history[d].p / progress.total) * 100) : 0;
-      const c = history[d].c;
-      const cPct = c === null || !confidence.total ? null : Math.round((c / confidence.total) * 100);
+      const cell = (key, cat) => {
+        const v = history[d][key];
+        const max = (confidence.byCategory[cat] || {}).total || 0;
+        if (v === null || v === undefined) return `<td class="num">—</td>`;
+        return `<td class="num">${fmtNum(v)}${max ? ` <span style="color:var(--ink-soft)">(${Math.round(
+          (v / max) * 100
+        )} %)</span>` : ""}</td>`;
+      };
       return `<tr>
         <td>${fmtDate(d)}</td>
         <td class="num">${fmtNum(history[d].p)}</td>
         <td class="num">${pct} %</td>
         <td class="num">${delta == null ? "—" : (delta >= 0 ? "+" : "−") + fmtNum(Math.abs(delta))}</td>
-        <td class="num">${c === null ? "—" : fmtNum(c)}</td>
-        <td class="num">${cPct === null ? "—" : cPct + " %"}</td>
+        ${CONF_SERIES.map((sr) => cell(sr.key, sr.cat)).join("")}
       </tr>`;
     })
     .join("");
@@ -526,7 +558,7 @@ function tableHtml(history, progress, confidence) {
       <table>
         <thead><tr>
           <th>Datum</th><th>Punkte</th><th>Anteil</th><th>Δ zum Vortag</th>
-          <th>Selbsteinsch.</th><th>Anteil</th>
+          ${CONF_SERIES.map((sr) => `<th class="num">${sr.label}</th>`).join("")}
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
