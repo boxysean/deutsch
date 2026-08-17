@@ -64,7 +64,7 @@ export const THEMES_A1B = {
   "a1-kleidung-farben": {
     phrasesTitle: "Redemittel — Kleidung kaufen",
     intro:
-      "Kleidung und Farben gehören zusammen, weil sie in der Prüfung zusammen vorkommen: eine Person wird beschrieben oder ein Kleidungsstück im Geschäft gesucht. Farben stehen auf A1 fast immer nach dem Verb (<em>Die Jacke ist blau</em>) — dort brauchen sie keine Endung.",
+      "Kleidung und Farben gehören zusammen, weil sie im Alltag zusammen vorkommen: eine Person wird beschrieben oder ein Kleidungsstück im Geschäft gesucht. Farben stehen auf A1 fast immer nach dem Verb (<em>Die Jacke ist blau</em>) — dort brauchen sie keine Endung.",
     words: [
       ["die Kleidung", "clothing"],
       ["das Hemd", "shirt"],

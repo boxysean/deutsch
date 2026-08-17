@@ -115,23 +115,26 @@ export const ZONES_A1 = [
   },
 
   // ---------------- Exam district (4) ----------------
-  // Start Deutsch 1 has the same four parts as A2, in shorter form. The
-  // trainers are not written yet; the houses stand so the route is complete.
+  // The trainers are not written yet; the houses stand so the route is complete.
+  // These subtitles describe what A1 ABILITY looks like, not what the ÖSD A1
+  // paper contains. The paper's structure has not been checked against a
+  // primary source in this project, and naming parts you cannot verify is how
+  // a study plan ends up drilling the wrong thing.
   {
     id: "a1-lesen", order: 10, icon: "📖", category: "examskill", name: "Lesen",
-    subtitle: "Start Deutsch 1 · 3 Teile", archetype: "pavilion", status: "stub",
+    subtitle: "Kurze Alltagstexte verstehen", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-hoeren", order: 16, icon: "🎧", category: "examskill", name: "Hören",
-    subtitle: "Start Deutsch 1 · 3 Teile", archetype: "pavilion", status: "stub",
+    subtitle: "Langsam und deutlich Gesprochenes", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-schreiben", order: 23, icon: "📝", category: "examskill", name: "Schreiben",
-    subtitle: "Formular · kurze Mitteilung", archetype: "pavilion", status: "stub",
+    subtitle: "Einfache Angaben und Mitteilungen", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-sprechen", order: 26, icon: "💬", category: "examskill", name: "Sprechen",
-    subtitle: "Vorstellen · fragen & antworten · bitten", archetype: "pavilion", status: "stub",
+    subtitle: "Sich vorstellen, fragen, bitten", archetype: "pavilion", status: "stub",
   },
 
   // ---------------- Landmarks (5) ----------------

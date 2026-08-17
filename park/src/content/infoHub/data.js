@@ -2,8 +2,10 @@
 // its exam. Split out of index.js so progress.js can total the checklist
 // without importing the page that draws it.
 //
-// Sources: the ÖSD Durchführungsbestimmungen and official Modellsätze for each
-// level — A2 (Okt. 2023) and A1 (Start Deutsch 1).
+// A2's figures come off the ÖSD Durchführungsbestimmungen (Okt. 2023) and the
+// official Modellsatz. A1 has NO checked source in this project: its checklist
+// is written from the CEFR A1 descriptors, and its exam table carries no
+// figures at all. Do not add any without a primary source in hand.
 
 // Everything the exam expects, grouped the way the exam itself is structured.
 // Sources: ÖSD Zertifikat A2 Durchführungsbestimmungen (Okt. 2023) and the
@@ -141,19 +143,24 @@ const MASTERY_A1 = [
       ["a1-f-lesen", "Lesen: kurze Notizen, Anzeigen und Schilder verstehen"],
       ["a1-f-hoeren", "Hören: Durchsagen und kurze Gespräche in langsamem, klarem Deutsch"],
       ["a1-f-formular", "Schreiben: ein einfaches Formular ausfüllen"],
-      ["a1-f-mitteilung", "Schreiben: eine kurze Mitteilung mit drei Leitpunkten"],
-      ["a1-f-vorstellen", "Sprechen: sich mit den Stichwörtern vorstellen"],
+      ["a1-f-mitteilung", "Schreiben: eine kurze Mitteilung, die alle vorgegebenen Punkte abdeckt"],
+      ["a1-f-vorstellen", "Sprechen: sich anhand von Stichwörtern vorstellen"],
       ["a1-f-fragen", "Sprechen: zu einem Stichwort fragen und antworten"],
       ["a1-f-bitten", "Sprechen: eine Bitte formulieren und darauf reagieren"],
     ],
   },
 ];
 
+// Deliberately without figures. The number of parts, the durations, the points
+// and the minimum scores are all unchecked for A1 in this project — unlike A2,
+// where every figure comes off the Durchführungsbestimmungen and the Modellsatz.
+// An earlier version of this table carried invented durations while the note
+// beneath it claimed the numbers were blank; the note was the honest half.
 const EXAM_A1 = [
-  ["Lesen", "3 Teile", "25 Min", "—", "—"],
-  ["Hören", "3 Teile", "ca. 20 Min", "—", "—"],
-  ["Schreiben", "2 Teile · Formular + Mitteilung", "20 Min", "—", "—"],
-  ["Sprechen", "3 Teile", "ca. 15 Min", "—", "—"],
+  ["Lesen", "Kurze Alltagstexte", "—", "—", "—"],
+  ["Hören", "Langsam und deutlich Gesprochenes", "—", "—", "—"],
+  ["Schreiben", "Einfache Angaben und Mitteilungen", "—", "—", "—"],
+  ["Sprechen", "Sich vorstellen, fragen, bitten", "—", "—", "—"],
 ];
 
 // Keyed by level id, so the Dom and the progress count both read the level on
