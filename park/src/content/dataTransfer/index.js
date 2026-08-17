@@ -120,7 +120,12 @@ export function mount(container) {
     if (!result.ok) {
       staged = { error: result.error, source };
     } else {
-      staged = { envelope: result.envelope, summary: summarize(result.envelope), source };
+      staged = {
+        envelope: result.envelope,
+        summary: summarize(result.envelope),
+        source,
+        upgraded: result.upgraded || 0,
+      };
     }
     renderStaged();
   }
@@ -157,6 +162,15 @@ export function mount(container) {
           <div><b>${fmtNum(s.ratedTopics)}</b><span>${s.ratedTopics === 1 ? "bewertetes Thema" : "bewertete Themen"}</span></div>
         </div>
         ${areasHtml(s)}
+        ${
+          staged.upgraded
+            ? `<p class="note measure" style="margin-top:0.7rem">Diese Sicherung stammt aus einer Version vor den Niveaus. <b>${fmtNum(
+                staged.upgraded
+              )}</b> ${
+                staged.upgraded === 1 ? "Eintrag wurde" : "Einträge wurden"
+              } dem Niveau <b>A2</b> zugeordnet — damals gab es nur A2. Für A1 bleibt dieser Stand leer.</p>`
+            : ""
+        }
         ${
           s.range
             ? `<p style="font-size:0.8rem;color:var(--ink-soft);margin-top:0.6rem">Lernplan in der Datei: ${s.range.start} bis ${s.range.end}</p>`
