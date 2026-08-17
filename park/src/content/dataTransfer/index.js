@@ -74,7 +74,7 @@ export function mount(container) {
 
       <div class="subhead">Gut zu wissen</div>
       <div class="measure rule-box">
-        <p><b>Was mitkommt:</b> Vokabelkarten, Grammatikübungen, Tag 1, Lesen, die Prüfungs-Trainer, die Checkliste im Dom sowie Lernplan, Verlauf und Selbsteinschätzung — alles unter dem Namensraum <span class="mono">deutsch-</span>.</p>
+        <p><b>Was mitkommt:</b> Vokabelkarten, Grammatikübungen, Tag 1, Lesen, die Prüfungs-Trainer, die Checkliste im Dom sowie Lernplan, Verlauf und Selbsteinschätzung — alles unter dem Namensraum <span class="mono">deutsch-</span>, und zwar für <b>alle Niveaus</b>. Eine Sicherung ist dein ganzer Stand, nicht nur die Stadt, in der du gerade stehst.</p>
         <p><b>Was nicht mitkommt:</b> nichts anderes. Die Datei enthält keine Namen, keine Geräte-Infos und keine Inhalte der App selbst — nur deine Eingaben.</p>
         <p><b>Zwei Wege beim Import:</b> <b>Zusammenführen</b> ergänzt nur Lücken — Messpunkte werden vereinigt, bei Selbsteinschätzungen gewinnt der höhere Wert, und vorhandene Antworten bleiben stehen. <b>Alles ersetzen</b> wirft den Stand in diesem Browser weg und schreibt die Datei — vorher bekommst du eine Sicherung angeboten.</p>
       </div>

@@ -1,6 +1,6 @@
-import { THEMES } from "../vocabTheme/data.js";
-import { ZONES } from "../../data/zones.js";
-import { makeStore } from "../lib/storage.js";
+import { themesFor } from "../registry.js";
+import { getZones } from "../../data/zones/index.js";
+import { makeLevelStore } from "../lib/storage.js";
 import { createDeck, boxOf, withBox, wordIsSicher, BOXES, SICHER_AT } from "../vocabTheme/deck.js";
 
 // The Brandenburger Tor: one gate, every road through it. A practice session
@@ -10,11 +10,14 @@ import { createDeck, boxOf, withBox, wordIsSicher, BOXES, SICHER_AT } from "../v
 // It writes straight back into each theme's own storage — the same boxes, the
 // same notes — so a word drilled here is a word drilled in its own house, and
 // the progress total sees it immediately.
-const store = makeStore("deutsch-vokabel:");
+const store = makeLevelStore("vokabel:");
 
 const SESSION_SIZES = [20, 50, 0]; // 0 = every card
 
 export function mount(container) {
+  const THEMES = themesFor();
+  const ZONE_NAMES = new Map(getZones().map((z) => [z.id, z.name]));
+  const zoneName = (id) => ZONE_NAMES.get(id) || id;
   const themeIds = Object.keys(THEMES);
 
   // One card per word across every theme, carrying where it came from.
@@ -143,8 +146,3 @@ export function mount(container) {
   startSession();
 }
 
-// The readable theme name lives on its zone, which is also what the map shows.
-const ZONE_NAMES = new Map(ZONES.map((z) => [z.id, z.name]));
-function zoneName(id) {
-  return ZONE_NAMES.get(id) || id;
-}

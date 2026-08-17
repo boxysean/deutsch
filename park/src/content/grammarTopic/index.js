@@ -1,9 +1,9 @@
 import { TOPICS } from "./data.js";
-import { makeStore, normalize, wordsPresent } from "../lib/storage.js";
+import { makeLevelStore, normalize, wordsPresent } from "../lib/storage.js";
 
 // Generic renderer for a single grammar zone. Everything comes from data, so a
 // new grammar topic is a data entry plus flipping that zone to status "built".
-const store = makeStore("deutsch-grammatik:");
+const store = makeLevelStore("grammatik:");
 
 export function mount(container, zone) {
   const topic = TOPICS[zone.id];

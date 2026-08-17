@@ -19,6 +19,11 @@ function hitBuilding(obj, renderer, wx, wy) {
 }
 
 export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismiss }) {
+  // All listeners share one signal, so tearing the level down is a single
+  // abort() rather than four removeEventListener calls that have to keep
+  // referencing the same closures.
+  const ac = new AbortController();
+  const on = { signal: ac.signal };
   let dragging = false;
   let dragMoved = 0;
   let last = null;
@@ -45,7 +50,7 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismis
     dragMoved = 0;
     last = { x: e.clientX, y: e.clientY };
     canvas.setPointerCapture(e.pointerId);
-  });
+  }, on);
 
   canvas.addEventListener("pointermove", (e) => {
     if (dragging && last) {
@@ -61,7 +66,7 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismis
     const id = pick(e);
     canvas.style.cursor = id ? "pointer" : "grab";
     onHover(id);
-  });
+  }, on);
 
   canvas.addEventListener("pointerup", (e) => {
     // A press that began on a label and finished over the map is not a click on
@@ -77,13 +82,13 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismis
     // whatever is open, the way tapping outside a sheet does everywhere else.
     if (id) onSelect(id);
     else if (onDismiss) onDismiss();
-  });
+  }, on);
 
   canvas.addEventListener("pointerleave", () => {
     dragging = false;
     downId = null;
     onHover(null);
-  });
+  }, on);
 
   canvas.addEventListener(
     "wheel",
@@ -94,6 +99,12 @@ export function setupInteraction(canvas, renderer, { onHover, onSelect, onDismis
       if (next < 1 || next > 5) return;
       renderer.setZoom(next);
     },
-    { passive: false }
+    { passive: false, signal: ac.signal }
   );
+
+  return {
+    destroy() {
+      ac.abort();
+    },
+  };
 }

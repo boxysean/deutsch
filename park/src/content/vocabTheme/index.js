@@ -1,5 +1,5 @@
 import { THEMES } from "./data.js";
-import { makeStore } from "../lib/storage.js";
+import { makeLevelStore } from "../lib/storage.js";
 import {
   createDeck,
   boxOf,
@@ -20,7 +20,7 @@ import {
 // climbs a box when you get it right and falls to the bottom when you don't,
 // and the deck is ordered by box, so the words you keep missing come round
 // again first. Each direction has its own ladder.
-const store = makeStore("deutsch-vokabel:");
+const store = makeLevelStore("vokabel:");
 
 
 export function mount(container, zone) {

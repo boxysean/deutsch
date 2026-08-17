@@ -1,4 +1,4 @@
-import { ZONES } from "../data/zones.js";
+import { getZones } from "../data/zones/index.js";
 import { makeRng, pick, range } from "./rng.js";
 import { DISTRICT, ROOF_HUES } from "./palette.js";
 
@@ -116,6 +116,11 @@ function treeAt(tx, ty, rng) {
 }
 
 export function buildWorld() {
+  const ZONES = getZones();
+  // Landmarks are looked up by archetype rather than by id: each level has its
+  // own Dom, Fernsehturm and Riesenrad, whose ids differ by level prefix but
+  // whose place on the map is the same.
+  const byArchetype = (a) => ZONES.find((z) => z.archetype === a);
   const tiles = new Map();
   const objects = [];
   const zonePlacement = new Map();
@@ -248,7 +253,7 @@ export function buildWorld() {
   // The Dom on the town square: a Stephansdom-style cathedral, and the one
   // clickable thing that isn't a learning zone — it explains the app and the
   // exam. Placed by hand rather than by the street layout.
-  const domZone = ZONES.find((z) => z.id === "dom");
+  const domZone = byArchetype("dom");
   if (domZone) {
     const at = { tx: PLAZA.tx + 3, ty: PLAZA.ty + 3 };
     for (let dx = -1; dx <= 2; dx++) {
@@ -274,16 +279,16 @@ export function buildWorld() {
   // the progress dashboard, the Riesenrad the import/export. Both keep the
   // paved apron the decorative monuments get.
   const clickableLandmarks = [
-    { id: "fernsehturm", tx: 21, ty: -16, render: "fernsehturm", height: 10, roofH: 6, labelLevels: 18 },
-    { id: "riesenrad", tx: -20, ty: 17, render: "riesenrad", height: 6, roofH: 4, labelLevels: 12 },
-    { id: "brandenburger-tor", tx: 6, ty: 15, render: "brandenburg", height: 5, roofH: 3, labelLevels: 8 },
+    { archetype: "tower", tx: 21, ty: -16, render: "fernsehturm", height: 10, roofH: 6, labelLevels: 18 },
+    { archetype: "wheel", tx: -20, ty: 17, render: "riesenrad", height: 6, roofH: 4, labelLevels: 12 },
+    { archetype: "gate", tx: 6, ty: 15, render: "brandenburg", height: 5, roofH: 3, labelLevels: 8 },
     // Out on the open west side rather than up among the grammar houses: the
     // Dom is tall, and at the top of the map its label rides above the spire
     // and straight under the HUD bar when you zoom all the way out.
-    { id: "koelner-dom", tx: -23, ty: 5, render: "dom", height: 9, roofH: 6, labelLevels: 16 },
+    { archetype: "cathedral", tx: -23, ty: 5, render: "dom", height: 9, roofH: 6, labelLevels: 16 },
   ];
   clickableLandmarks.forEach((lm) => {
-    const zone = ZONES.find((z) => z.id === lm.id);
+    const zone = byArchetype(lm.archetype);
     if (!zone) return;
     for (let dx = -1; dx <= 1; dx++) {
       for (let dy = -1; dy <= 1; dy++) setTile(lm.tx + dx, lm.ty + dy, "plaza");

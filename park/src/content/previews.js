@@ -1,27 +1,21 @@
-import { THEMES } from "./vocabTheme/data.js";
-import { TOPICS } from "./grammarTopic/data.js";
-import { SKILLS } from "./examSkill/data.js";
 import { computeProgress, planStatus, getHistory } from "./lib/progress.js";
+import { readLevel } from "./lib/storage.js";
+import { themesFor, topicsFor, skillsFor } from "./registry.js";
 import { localKeys, summarize, buildExport } from "./lib/transfer.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
 // house stays instant.
-function read(key, fallback) {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : JSON.parse(v);
-  } catch (e) {
-    return fallback;
-  }
-}
+// Level-scoped: a preview must show the numbers for the town you are looking
+// at, not the sum of every level you have ever opened.
+const read = readLevel;
 
 function grammarFoundations() {
-  const diagnose = read("deutsch-tag01:diagnose", {});
+  const diagnose = read("tag01:diagnose", {});
   const answered = Object.values(diagnose).filter((d) => d && String(d.v || "").trim()).length;
-  const vocab = read("deutsch-tag01:vocab", {});
+  const vocab = read("tag01:vocab", {});
   const mastered = Object.values(vocab).filter((v) => v && v.mastered).length;
-  const journal = read("deutsch-tag01:journal", []);
+  const journal = read("tag01:journal", []);
 
   return {
     summary:
@@ -35,8 +29,8 @@ function grammarFoundations() {
 }
 
 function lesenExam() {
-  const a1 = read("deutsch-lesen:aufgabe1", {});
-  const a2 = read("deutsch-lesen:aufgabe2", {});
+  const a1 = read("lesen:aufgabe1", {});
+  const a2 = read("lesen:aufgabe2", {});
   const a1done = Object.values(a1).filter((v) => v).length;
   const a2done = Object.keys(a2).length;
 
@@ -52,9 +46,9 @@ function lesenExam() {
 }
 
 function vocabTheme(zone) {
-  const theme = THEMES[zone.id];
+  const theme = themesFor()[zone.id];
   const total = theme ? theme.words.length : 0;
-  const state = read(`deutsch-vokabel:${zone.id}:state`, {});
+  const state = read(`vokabel:${zone.id}:state`, {});
   const mastered = Object.values(state).filter((v) => v && v.mastered).length;
 
   return {
@@ -68,20 +62,20 @@ function vocabTheme(zone) {
 }
 
 function grammarTopic(zone) {
-  const topic = TOPICS[zone.id];
+  const topic = topicsFor()[zone.id];
   if (!topic) return { summary: "Grammatikthema.", stats: [] };
 
   const gaps = topic.exercises.filter((e) => e.kind !== "reveal");
   const gapTotal = gaps.reduce((n, e) => n + e.items.length, 0);
   const gapDone = gaps.reduce((n, e) => {
-    const saved = read(`deutsch-grammatik:${zone.id}:${e.id}`, {});
+    const saved = read(`grammatik:${zone.id}:${e.id}`, {});
     return n + Object.values(saved).filter((v) => String(v || "").trim()).length;
   }, 0);
 
   const reveals = topic.exercises.filter((e) => e.kind === "reveal");
   const revTotal = reveals.reduce((n, e) => n + e.items.length, 0);
   const revDone = reveals.reduce((n, e) => {
-    const saved = read(`deutsch-grammatik:${zone.id}:${e.id}`, {});
+    const saved = read(`grammatik:${zone.id}:${e.id}`, {});
     return n + Object.values(saved).filter((v) => v && v.mark).length;
   }, 0);
 
@@ -96,7 +90,7 @@ function grammarTopic(zone) {
 }
 
 function infoHub() {
-  const state = read("deutsch-info:mastery", {});
+  const state = read("info:mastery", {});
   const done = Object.values(state).filter(Boolean).length;
   return {
     summary:
@@ -116,26 +110,26 @@ const EXAM_META = {
 };
 
 function examSkill(zone) {
-  const skill = SKILLS[zone.id];
+  const skill = skillsFor()[zone.id];
   if (!skill) return { summary: zone.teaser || "Prüfungsteil.", stats: [] };
 
   const blocks = skill.training;
   const gaps = blocks.filter((b) => b.kind === "gap");
   const gapTotal = gaps.reduce((n, b) => n + b.items.length, 0);
   const gapDone = gaps.reduce((n, b) => {
-    const saved = read(`deutsch-pruefung:${zone.id}:${b.id}`, {});
+    const saved = read(`pruefung:${zone.id}:${b.id}`, {});
     return n + Object.values(saved).filter((v) => String(v || "").trim()).length;
   }, 0);
 
   const reveals = blocks.filter((b) => b.kind === "reveal");
   const revTotal = reveals.reduce((n, b) => n + b.items.length, 0);
   const revDone = reveals.reduce((n, b) => {
-    const saved = read(`deutsch-pruefung:${zone.id}:${b.id}`, {});
+    const saved = read(`pruefung:${zone.id}:${b.id}`, {});
     return n + Object.values(saved).filter((v) => v && v.mark).length;
   }, 0);
 
   const writings = blocks.filter((b) => b.kind === "writing");
-  const written = writings.filter((b) => String(read(`deutsch-pruefung:${zone.id}:${b.id}`, "")).trim()).length;
+  const written = writings.filter((b) => String(read(`pruefung:${zone.id}:${b.id}`, "")).trim()).length;
 
   const meta = EXAM_META[zone.id] || [];
   const stats = [{ label: "Prüfungsteil", value: meta[1] || "" }];
@@ -162,10 +156,10 @@ function progressTower() {
 }
 
 function tableHall() {
-  const learned = read("deutsch-info:tables", {});
+  const learned = read("info:tables", {});
   let tables = 0;
   let topics = 0;
-  Object.values(TOPICS).forEach((t) => {
+  Object.values(topicsFor()).forEach((t) => {
     if ((t.tables || []).length) {
       topics++;
       tables += t.tables.length;
@@ -183,12 +177,13 @@ function tableHall() {
 }
 
 function mixedDeck() {
+  const THEMES = themesFor();
   const themes = Object.keys(THEMES);
   let total = 0;
   let sicher = 0;
   themes.forEach((id) => {
     total += THEMES[id].words.length;
-    const st = read(`deutsch-vokabel:${id}:state`, {});
+    const st = read(`vokabel:${id}:state`, {});
     sicher += Object.values(st).filter((v) => v && v.box >= 3).length;
   });
   return {

@@ -1,18 +1,12 @@
 import { aufgabe1, aufgabe2 } from "./data.js";
+import { makeLevelStore } from "../lib/storage.js";
 
-const LS_PREFIX = "deutsch-lesen:";
+const store = makeLevelStore("lesen:");
 function save(key, val) {
-  try {
-    localStorage.setItem(LS_PREFIX + key, JSON.stringify(val));
-  } catch (e) {}
+  store.save(key, val);
 }
 function load(key, fallback) {
-  try {
-    const v = localStorage.getItem(LS_PREFIX + key);
-    return v === null ? fallback : JSON.parse(v);
-  } catch (e) {
-    return fallback;
-  }
+  return store.load(key, fallback);
 }
 
 export function mount(container) {

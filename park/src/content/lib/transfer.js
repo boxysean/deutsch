@@ -5,21 +5,38 @@
 // namespace rather than a hand-maintained list means a new module's data is
 // included the day it ships.
 
+import { LEVELS } from "../../data/levels.js";
+
 export const NAMESPACE = "deutsch-";
 export const FORMAT = 1;
 export const APP = "deutsche-welt";
 
-// Which prefix belongs to which part of the town, for the human-readable
-// summary. Anything unrecognised still travels — it just lands in "Sonstiges".
-const AREAS = [
-  ["deutsch-vokabel:", "Wortschatz"],
-  ["deutsch-grammatik:", "Grammatik"],
-  ["deutsch-tag01:", "Tag 1"],
-  ["deutsch-lesen:", "Lesen"],
-  ["deutsch-pruefung:", "Prüfungsteile"],
-  ["deutsch-info:", "Checkliste"],
-  ["deutsch-plan:", "Lernplan"],
+// Which area belongs to which part of a town, for the human-readable summary.
+// A backup carries EVERY level — one file is your whole account, not one map —
+// so the labels name the level too. Anything unrecognised still travels; it
+// just lands in "Sonstiges".
+const AREA_NAMES = [
+  ["vokabel:", "Wortschatz"],
+  ["grammatik:", "Grammatik"],
+  ["tag01:", "Tag 1"],
+  ["lesen:", "Lesen"],
+  ["pruefung:", "Prüfungsteile"],
+  ["info:", "Checkliste"],
+  ["plan:", "Lernplan"],
 ];
+
+const AREAS = LEVELS.flatMap((lvl) =>
+  AREA_NAMES.map(([area, label]) => [`${NAMESPACE}${lvl.id}-${area}`, `${lvl.label} · ${label}`])
+);
+
+// The plan keys are per level, so the summary's headline figures are read from
+// whichever level has a history at all — usually the one being backed up.
+function planKey(data, suffix) {
+  const hit = LEVELS.map((l) => `${NAMESPACE}${l.id}-plan:${suffix}`).find((k) =>
+    isPlainObject(data[k])
+  );
+  return hit ? data[hit] : null;
+}
 
 function isPlainObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -127,15 +144,15 @@ export function summarize(envelope) {
   const other = keys.filter((k) => !known.some((p) => k.startsWith(p))).length;
   if (other) areas.push({ label: "Sonstiges", count: other });
 
-  const history = isPlainObject(data["deutsch-plan:history"]) ? data["deutsch-plan:history"] : {};
+  const history = planKey(data, "history") || {};
   const dates = Object.keys(history).sort();
   const lastDate = dates[dates.length - 1] || null;
   const lastEntry = lastDate ? history[lastDate] : null;
   const lastPoints = typeof lastEntry === "number" ? lastEntry : lastEntry && typeof lastEntry.p === "number" ? lastEntry.p : null;
   const lastConf = lastEntry && typeof lastEntry.c === "number" ? lastEntry.c : null;
 
-  const confidence = isPlainObject(data["deutsch-plan:confidence"]) ? data["deutsch-plan:confidence"] : {};
-  const range = isPlainObject(data["deutsch-plan:range"]) ? data["deutsch-plan:range"] : null;
+  const confidence = planKey(data, "confidence") || {};
+  const range = planKey(data, "range");
 
   return {
     keyCount: keys.length,
@@ -249,9 +266,9 @@ export function applyImport(envelope, mode) {
 
     const local = decode(localRaw).value;
     let next;
-    if (key === "deutsch-plan:history" && isPlainObject(local) && isPlainObject(incoming)) {
+    if (/-plan:history$/.test(key) && isPlainObject(local) && isPlainObject(incoming)) {
       next = mergeHistory(local, incoming);
-    } else if (key === "deutsch-plan:confidence" && isPlainObject(local) && isPlainObject(incoming)) {
+    } else if (/-plan:confidence$/.test(key) && isPlainObject(local) && isPlainObject(incoming)) {
       next = mergeHigher(local, incoming);
     } else {
       next = mergeGeneric(local, incoming);
