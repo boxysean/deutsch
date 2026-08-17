@@ -167,10 +167,90 @@ const EXAM_A1 = [
   ["Sprechen", "3 Aufgaben", "ca. 10 Min", "25 Punkte", "—"],
 ];
 
+// ZDÖ B1 is structurally unlike A1 and A2: Lesen and Sprachbausteine are ONE
+// subtest sharing a clock and a score, and there is NO per-subtest minimum —
+// only 60% of each module. Figures from the ZDÖ B1 Durchführungsbestimmungen
+// (März 2019) §1.4, §4.1–4.3, §5, §6.1–6.3, task types from the Modellsatz.
+const EXAM_B1 = [
+  ["Lesen & Sprachbausteine", "5 Aufgaben · 40 Items", "90 Min", "105 Punkte", "—"],
+  ["Hören", "3 Aufgaben · 20 Items", "ca. 30 Min", "75 Punkte", "—"],
+  ["Schreiben", "1 Aufgabe · 2 Varianten", "40 Min", "45 Punkte", "—"],
+  ["Sprechen", "3 Aufgaben", "ca. 15 Min", "75 Punkte", "—"],
+];
+
+// Written from the CEFR B1 descriptors and the Modellsatz's task types. The
+// ZDÖ B1 documents specify no grammar syllabus and no word list, so the
+// grammar and vocabulary rows are a selection, not a citation.
+const MASTERY_B1 = [
+  {
+    group: "Grammatik — Satzbau",
+    items: [
+      ["b1-neben", "Nebensätze mit weil, dass, obwohl, damit, während, bevor, nachdem"],
+      ["b1-relativ", "Relativsätze in allen Kasus, auch mit Präposition (der Mann, mit dem …)"],
+      ["b1-infinitiv", "Infinitiv mit zu, und um…zu / ohne…zu / statt…zu"],
+      ["b1-indirekt", "Indirekte Fragen: Ich weiß nicht, ob / wann / warum …"],
+      ["b1-konnektoren", "Zweiteilige Konnektoren: entweder…oder, nicht nur…sondern auch, je…desto"],
+      ["b1-tmp", "Mittelfeld: temporal – kausal – modal – lokal"],
+    ],
+  },
+  {
+    group: "Grammatik — Verben und Zeiten",
+    items: [
+      ["b1-praet", "Präteritum der häufigen Verben — die Vergangenheit, die man schreibt"],
+      ["b1-plusq", "Plusquamperfekt und die Zeitenfolge mit nachdem"],
+      ["b1-passiv", "Passiv im Präsens und Präteritum, auch mit Modalverb"],
+      ["b1-konj2", "Konjunktiv II: Wünsche, höfliche Bitten, irreale Bedingungen"],
+      ["b1-vermutung", "Vermutungen: Futur I und Modalverben subjektiv (Er dürfte krank sein.)"],
+      ["b1-verbpraep", "Verben mit fester Präposition samt da(r)- und wo(r)-Verbindungen"],
+    ],
+  },
+  {
+    group: "Grammatik — Nomen und Adjektive",
+    items: [
+      ["b1-adj", "Adjektivendungen in allen Kasus, nach der-, ein- und Nullartikel"],
+      ["b1-vergleich", "Komparativ und Superlativ, attributiv (der bessere Weg)"],
+      ["b1-genitiv", "Genitiv: des Vaters — und wegen, während, trotz"],
+      ["b1-partizip", "Partizip I und II als Adjektiv (der lachende Mann, das geöffnete Fenster)"],
+      ["b1-wortbildung", "Wortbildung: Vorsilben und Nachsilben erkennen und nutzen"],
+    ],
+  },
+  {
+    group: "Wortschatz — die Themenfelder",
+    items: [
+      ["b1-w-meinung", "Meinung äußern, zustimmen, widersprechen, abwägen"],
+      ["b1-w-arbeit", "Arbeit, Bewerbung, Ausbildung, Weiterbildung"],
+      ["b1-w-amt", "Behörden, Ämter, Anträge, Fristen"],
+      ["b1-w-gesund", "Gesundheit, Vorsorge, Versicherung"],
+      ["b1-w-geld", "Konsum, Geld, Verträge, Kündigung"],
+      ["b1-w-umwelt", "Umwelt, Klima, Nachhaltigkeit"],
+      ["b1-w-medien", "Medien, Internet, Datenschutz"],
+      ["b1-w-at", "Österreichisches Standarddeutsch und Landeskunde"],
+    ],
+  },
+  {
+    group: "Prüfungsfertigkeiten",
+    items: [
+      ["b1-f-lesen1", "Lesen 1: fünf Texten aus zehn Überschriften die passende zuordnen"],
+      ["b1-f-lesen2", "Lesen 2: Zeitungsartikel, fünf Fragen mit je drei Antworten"],
+      ["b1-f-lesen3", "Lesen 3: zehn Situationen und zwölf Anzeigen — 0 eintragen, wenn keine passt"],
+      ["b1-f-sb1", "Sprachbausteine 1: Lückentext, pro Lücke A, B oder C"],
+      ["b1-f-sb2", "Sprachbausteine 2: Brief aus einer Wortliste ergänzen, jedes Wort nur ein Mal"],
+      ["b1-f-hoeren1", "Hören 1: fünf Stellungnahmen zu einem Thema zuordnen"],
+      ["b1-f-hoeren2", "Hören 2: Radiogespräch, richtig/falsch"],
+      ["b1-f-hoeren3", "Hören 3: fünf kurze Alltagstexte, richtig/falsch plus Auswahl"],
+      ["b1-f-schreiben", "Schreiben: eine der zwei Varianten wählen und alle Leitpunkte abdecken"],
+      ["b1-f-sprechen1", "Sprechen 1: Kontaktaufnahme — die Partnerin/den Partner kennenlernen"],
+      ["b1-f-sprechen2", "Sprechen 2: Gespräch über ein Thema, eigene Meinung begründen"],
+      ["b1-f-sprechen3", "Sprechen 3: gemeinsam eine Aufgabe lösen und sich einigen"],
+      ["b1-f-60", "Wissen, dass jedes Modul 60 % braucht — aber es keine Einzel-Mindestpunktzahl gibt"],
+    ],
+  },
+];
+
 // Keyed by level id, so the Dom and the progress count both read the level on
 // screen rather than a fixed table.
-export const MASTERY_BY_LEVEL = { a1: MASTERY_A1, a2: MASTERY_A2 };
-export const EXAM_BY_LEVEL = { a1: EXAM_A1, a2: EXAM_A2 };
+export const MASTERY_BY_LEVEL = { a1: MASTERY_A1, a2: MASTERY_A2, b1: MASTERY_B1 };
+export const EXAM_BY_LEVEL = { a1: EXAM_A1, a2: EXAM_A2, b1: EXAM_B1 };
 
 export function masteryFor(level) {
   return MASTERY_BY_LEVEL[level] || [];

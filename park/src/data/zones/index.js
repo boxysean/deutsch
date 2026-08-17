@@ -1,6 +1,7 @@
 import { getLevel } from "../levels.js";
 import { ZONES_A1 } from "./a1.js";
 import { ZONES_A2 } from "./a2.js";
+import { ZONES_B1 } from "./b1.js";
 
 // One registry per level. Everything downstream — the world builder, the map
 // labels, the route, the progress totals — asks for the CURRENT level's zones
@@ -9,6 +10,7 @@ import { ZONES_A2 } from "./a2.js";
 export const ZONES_BY_LEVEL = {
   a1: ZONES_A1,
   a2: ZONES_A2,
+  b1: ZONES_B1,
 };
 
 export function zonesFor(level) {
