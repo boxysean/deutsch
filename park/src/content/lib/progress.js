@@ -10,6 +10,7 @@ import { THEMES } from "../vocabTheme/data.js";
 import { TOPICS } from "../grammarTopic/data.js";
 import { SKILLS } from "../examSkill/data.js";
 import { makeStore } from "./storage.js";
+import { wordIsSicher } from "../vocabTheme/deck.js";
 
 const plan = makeStore("deutsch-plan:");
 
@@ -58,14 +59,16 @@ function grammarCounts() {
   return { done: Math.min(done, total), total };
 }
 
-// Wortschatz: one point per flashcard marked "Ich kann's".
+// Wortschatz: one point per word, earned only when both directions are secure —
+// knowing what a word means is not the same as being able to produce it with
+// its article.
 function vocabCounts() {
   let done = 0;
   let total = 0;
   Object.entries(THEMES).forEach(([zoneId, theme]) => {
     total += theme.words.length;
     const state = read(`deutsch-vokabel:${zoneId}:state`, {});
-    done += Object.values(state).filter((v) => v && v.mastered).length;
+    done += Object.values(state).filter(wordIsSicher).length;
   });
   return { done: Math.min(done, total), total };
 }
@@ -186,6 +189,43 @@ export function setConfidenceFor(zoneId, value) {
   return all;
 }
 
+// A note per topic — what you were thinking last time you worked on it.
+export function getTopicNotes() {
+  const raw = plan.load("topicNotes", {});
+  return raw && typeof raw === "object" ? raw : {};
+}
+
+export function getTopicNote(zoneId) {
+  return getTopicNotes()[zoneId] || "";
+}
+
+// The drawer and the topic page can both be holding a note field for the same
+// zone, so a change in one has to reach the other — otherwise the stale one
+// commits on blur and overwrites the newer text.
+const noteListeners = new Set();
+
+export function onTopicNoteChange(fn) {
+  noteListeners.add(fn);
+  return () => noteListeners.delete(fn);
+}
+
+export function setTopicNote(zoneId, text) {
+  const all = getTopicNotes();
+  const trimmed = String(text || "").trim();
+  if (all[zoneId] === trimmed || (!trimmed && !(zoneId in all))) return all;
+  if (trimmed) all[zoneId] = trimmed;
+  else delete all[zoneId];
+  plan.save("topicNotes", all);
+  noteListeners.forEach((fn) => {
+    try {
+      fn(zoneId, trimmed);
+    } catch (e) {
+      console.error("topic-note listener failed", e);
+    }
+  });
+  return all;
+}
+
 export function computeConfidence() {
   const saved = getConfidence();
   const zones = ratableZones().map((z) => ({
@@ -195,8 +235,25 @@ export function computeConfidence() {
     value: Number.isInteger(saved[z.id]) ? saved[z.id] : null,
   }));
   const rated = zones.filter((z) => z.value !== null);
+
+  // Grammar and vocabulary are different kinds of confidence — one is a rule
+  // you either hold or don't, the other is a pile that grows — so they are
+  // reported apart as well as together.
+  const byCategory = {};
+  ["grammar", "vocab", "examskill"].forEach((cat) => {
+    const list = zones.filter((z) => z.category === cat);
+    const done = list.reduce((n, z) => n + (z.value || 0), 0);
+    byCategory[cat] = {
+      done,
+      total: list.length * MAX_CONFIDENCE,
+      rated: list.filter((z) => z.value !== null).length,
+      zoneCount: list.length,
+    };
+  });
+
   return {
     zones,
+    byCategory,
     rated: rated.length,
     zoneCount: zones.length,
     done: rated.reduce((n, z) => n + z.value, 0),
@@ -215,14 +272,20 @@ export function todayISO(d = new Date()) {
 // self-rating existed are plain numbers, so they are read as points-only and
 // their confidence stays absent rather than being invented as zero.
 function normalizeEntry(v) {
-  if (typeof v === "number") return { p: v, c: null };
+  const num = (x) => (typeof x === "number" ? x : null);
+  if (typeof v === "number") return { p: v, c: null, cg: null, cv: null, ce: null };
   if (v && typeof v === "object") {
     return {
       p: typeof v.p === "number" ? v.p : 0,
-      c: typeof v.c === "number" ? v.c : null,
+      c: num(v.c),
+      // Split by district. Absent on entries written before the split, which is
+      // why those series simply start later rather than being back-filled.
+      cg: num(v.cg),
+      cv: num(v.cv),
+      ce: num(v.ce),
     };
   }
-  return { p: 0, c: null };
+  return { p: 0, c: null, cg: null, cv: null, ce: null };
 }
 
 export function getHistory() {
@@ -242,9 +305,16 @@ export function recordToday() {
   const confidence = computeConfidence();
   const history = getHistory();
   const key = todayISO();
-  const next = { p: points, c: confidence.rated ? confidence.done : null };
+  const cat = confidence.byCategory;
+  const next = {
+    p: points,
+    c: confidence.rated ? confidence.done : null,
+    cg: cat.grammar.rated ? cat.grammar.done : null,
+    cv: cat.vocab.rated ? cat.vocab.done : null,
+    ce: cat.examskill.rated ? cat.examskill.done : null,
+  };
   const cur = history[key];
-  if (cur && cur.p === next.p && cur.c === next.c) return history;
+  if (cur && ["p", "c", "cg", "cv", "ce"].every((k) => cur[k] === next[k])) return history;
   history[key] = next;
   plan.save("history", history);
   return history;

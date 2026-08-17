@@ -1,10 +1,14 @@
 // The flashcard deck, shared by a single theme's zone and by the mixed session
 // at the Brandenburger Tor.
 //
-// The deck owns no storage of its own: the caller supplies the cards and the
-// four accessors for a card's box and note. That is what lets the mixed
-// session write straight back into each theme's own state, so a word drilled
-// there is a word drilled everywhere.
+// A card is a word IN ONE DIRECTION, and each direction carries its own box.
+// DE→EN asks what a German word means; EN→DE asks you to produce the German,
+// article and all, which is the only one of the two that tests gender. Knowing
+// one direction is not knowing the other, so they are tracked apart.
+//
+// The deck owns no storage: the caller supplies the cards for a direction and
+// the accessors for a card's box. That is what lets the mixed session write
+// straight back into each theme's own state.
 
 export const BOXES = 5; // 0..4
 export const SICHER_AT = 3; // box 3 and up counts as "sicher"
@@ -19,13 +23,37 @@ export const GRADES = [
 // A card missed in this session comes back before the end of it.
 const REINSERT_AFTER = 5;
 
-// Entries written before the boxes existed carry only { mastered }. They are
-// read at the "sicher" line rather than being sent back to the start — and both
-// the per-theme deck and the mixed session must agree on that.
-export function boxOf(entry) {
+// Reads a stored word entry for one direction. Two older shapes exist:
+// { mastered } from the first grid, and { box } from the single-direction
+// ladder. Neither distinguished the directions, and both meant "I know this
+// word", so an old value is honoured for BOTH — otherwise everyone's numbers
+// would halve overnight for work they actually did.
+export function boxOf(entry, facing) {
   if (!entry) return 0;
-  if (Number.isInteger(entry.box)) return Math.min(BOXES - 1, Math.max(0, entry.box));
+  const key = facing === "en-de" ? "rev" : "fwd";
+  if (Number.isInteger(entry[key])) return clampBox(entry[key]);
+  if (Number.isInteger(entry.box)) return clampBox(entry.box);
   return entry.mastered ? SICHER_AT : 0;
+}
+
+export function clampBox(n) {
+  return Math.min(BOXES - 1, Math.max(0, n));
+}
+
+// A word counts once, and only when it is secure in both directions.
+export function wordIsSicher(entry) {
+  return boxOf(entry, "de-en") >= SICHER_AT && boxOf(entry, "en-de") >= SICHER_AT;
+}
+
+// Writes one direction without disturbing the other.
+export function withBox(entry, facing, box) {
+  const next = {
+    fwd: boxOf(entry, "de-en"),
+    rev: boxOf(entry, "en-de"),
+  };
+  next[facing === "en-de" ? "rev" : "fwd"] = clampBox(box);
+  next.mastered = next.fwd >= SICHER_AT && next.rev >= SICHER_AT;
+  return next;
 }
 
 export function escapeHtml(str) {
@@ -36,9 +64,8 @@ export function escapeHtml(str) {
 
 /**
  * @param host    element to render into
- * @param cfg.cards      [{ key, de, en, note, source? }]
+ * @param cfg.cardsFor(dir)   the cards for a direction: [{ key, facing, de, en, hint?, source? }]
  * @param cfg.getBox/setBox   read and write a card's box
- * @param cfg.getNote/setNote read and write a card's note
  * @param cfg.dir/setDir      current direction and how to persist it
  * @param cfg.onChange        called after any write, for outside counters
  * @param cfg.toolbarExtra    optional HTML appended to the toolbar
@@ -50,8 +77,13 @@ export function createDeck(host, cfg) {
   let flipped = false;
   let dir = cfg.dir || "de-en";
 
-  const cards = cfg.cards;
-  const byKey = new Map(cards.map((c) => [c.key, c]));
+  let cards = [];
+  let byKey = new Map();
+
+  function loadCards() {
+    cards = cfg.cardsFor(dir);
+    byKey = new Map(cards.map((c) => [c.key, c]));
+  }
 
   function counts() {
     let sicher = 0;
@@ -88,18 +120,12 @@ export function createDeck(host, cfg) {
     flipped = false;
   }
 
-  // In "gemischt" the direction is fixed per position, so paging back and forth
-  // never changes a card under you.
-  function directionFor(index) {
-    if (dir === "de-en" || dir === "en-de") return dir;
-    return index % 2 === 0 ? "de-en" : "en-de";
-  }
-
   function current() {
     return byKey.get(queue[Math.min(pos, queue.length - 1)]);
   }
 
   function render() {
+    if (!cards.length) loadCards();
     if (!queue.length) buildQueue();
     if (!cards.length) {
       host.innerHTML = `<p style="color:var(--ink-soft)">Keine Karten in dieser Auswahl.</p>`;
@@ -107,7 +133,7 @@ export function createDeck(host, cfg) {
     }
     const { sicher, byBox } = counts();
     const card = current();
-    const facing = directionFor(pos);
+    const facing = card.facing;
     const front = facing === "de-en" ? card.de : card.en;
     const back = facing === "de-en" ? card.en : card.de;
     const box = cfg.getBox(card) || 0;
@@ -115,12 +141,23 @@ export function createDeck(host, cfg) {
     host.innerHTML = `
       <div class="deck-bar">
         <span class="deck-count mono">Karte ${pos + 1} / ${queue.length}</span>
-        <span class="deck-sicher">Sicher: <b>${sicher}</b> / ${cards.length}</span>
+        <span class="deck-sicher">Diese Auswahl: <b>${sicher}</b> / ${cards.length} sicher</span>
+        ${
+          cfg.wordCount
+            ? (() => {
+                const w = cfg.wordCount();
+                return `<span class="deck-words" title="Ein Wort zählt erst, wenn beide Richtungen sitzen">Wörter komplett: <b>${w.done}</b> / ${w.total}</span>`;
+              })()
+            : ""
+        }
+        <span class="deck-facing mono">${
+          facing === "de-en" ? "Bedeutung" : "Wort + Artikel"
+        }</span>
         <span class="deck-spacer"></span>
         <span class="seg" id="dk-dir" role="radiogroup" aria-label="Richtung">
           <button class="seg-btn" data-dir="de-en" data-picked="${dir === "de-en"}">DE → EN</button>
           <button class="seg-btn" data-dir="en-de" data-picked="${dir === "en-de"}">EN → DE</button>
-          <button class="seg-btn" data-dir="mixed" data-picked="${dir === "mixed"}">Gemischt</button>
+          <button class="seg-btn" data-dir="mixed" data-picked="${dir === "mixed"}">Beide</button>
         </span>
         <button class="ghost small" id="dk-shuffle">Mischen</button>
         ${cfg.toolbarExtra || ""}
@@ -139,7 +176,7 @@ export function createDeck(host, cfg) {
         <div class="fc-front">${escapeHtml(front)}</div>
         <div class="fc-back">
           <div class="fc-answer">${escapeHtml(back)}</div>
-          ${card.note ? `<div class="fc-note">${escapeHtml(card.note)}</div>` : ""}
+          ${card.hint ? `<div class="fc-note">${escapeHtml(card.hint)}</div>` : ""}
           ${
             cfg.showSource && card.source
               ? `<div class="fc-source">aus <b>${escapeHtml(card.source)}</b></div>`
@@ -158,37 +195,12 @@ export function createDeck(host, cfg) {
         <button class="primary reveal-btn" id="dk-flip">Aufdecken <kbd>Leertaste</kbd></button>
       </div>
 
-      <div class="deck-note">
-        <label for="dk-note">Deine Notiz zu dieser Karte</label>
-        <textarea id="dk-note" rows="2" spellcheck="false"
-          placeholder="Eselsbrücke, Beispielsatz, womit du letztes Mal gehadert hast…">${escapeHtml(
-            cfg.getNote(card) || ""
-          )}</textarea>
-        <span class="note-state" id="dk-note-state"></span>
-      </div>
-
       <div class="deck-nav">
         <button class="ghost small" id="dk-prev" ${pos === 0 ? "disabled" : ""}>← Zurück</button>
         <span class="deck-hint">Leertaste umdrehen · 1 / 2 / 3 bewerten · ← → blättern</span>
         <button class="ghost small" id="dk-next" ${pos >= queue.length - 1 ? "disabled" : ""}>Weiter →</button>
       </div>
     `;
-
-    const noteEl = host.querySelector("#dk-note");
-    const noteState = host.querySelector("#dk-note-state");
-    let noteTimer = null;
-    noteEl.addEventListener("input", () => {
-      clearTimeout(noteTimer);
-      noteState.textContent = "…";
-      noteTimer = setTimeout(() => {
-        saveNote(card, noteEl.value);
-        noteState.textContent = noteEl.value.trim() ? "gespeichert" : "";
-      }, 400);
-    });
-    noteEl.addEventListener("blur", () => {
-      clearTimeout(noteTimer);
-      saveNote(card, noteEl.value);
-    });
 
     host.querySelector("#dk-card").addEventListener("click", flip);
     host.querySelector("#dk-flip").addEventListener("click", flip);
@@ -199,8 +211,13 @@ export function createDeck(host, cfg) {
     host.querySelector("#dk-next").addEventListener("click", () => step(1));
     host.querySelectorAll("#dk-dir .seg-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
+        flushNote();
         dir = btn.dataset.dir;
         if (cfg.setDir) cfg.setDir(dir);
+        // A direction is a different set of cards, not a different view of the
+        // same ones, so the deck is rebuilt rather than re-rendered.
+        loadCards();
+        queue = [];
         flipped = false;
         render();
       });
@@ -213,16 +230,9 @@ export function createDeck(host, cfg) {
     if (cfg.wireToolbar) cfg.wireToolbar(host);
   }
 
-  function saveNote(card, text) {
-    cfg.setNote(card, text.trim());
-    if (cfg.onChange) cfg.onChange();
-  }
-
-  // Anything typed but not yet written is committed before the card changes.
+  // Kept as a no-op hook so callers can flush their own pending edits.
   function flushNote() {
-    const el = host.querySelector("#dk-note");
-    if (!el) return;
-    saveNote(current(), el.value);
+    if (cfg.onLeaveCard) cfg.onLeaveCard();
   }
 
   function flip() {
@@ -289,6 +299,7 @@ export function createDeck(host, cfg) {
   return {
     render,
     rebuild() {
+      loadCards();
       queue = [];
       render();
     },
