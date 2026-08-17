@@ -196,7 +196,9 @@ function routeHtml() {
   for (let w = 0; w < weeks; w++) {
     const slice = steps.slice(w * perWeek, (w + 1) * perWeek);
     if (!slice.length) break;
-    html += `<div class="route-week"><h4>Woche ${w + 1}</h4>` +
+    const from = slice[0].order;
+    const to = slice[slice.length - 1].order;
+    html += `<div class="route-week"><h4>Woche ${w + 1} · Schritte ${from}–${to}</h4>` +
       slice
         .map((z) => {
           const state = isSettled(z.id) ? "settled" : next && next.id === z.id ? "next" : "open";

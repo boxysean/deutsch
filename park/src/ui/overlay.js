@@ -119,7 +119,8 @@ function showSheet(zone) {
           isSettled(zone.id) ? " · erledigt" : (nextZone() || {}).id === zone.id ? " · als Nächstes" : ""
         }</span>`
       : "");
-  els.sheetTitle.textContent = zone.name;
+  els.sheetTitle.textContent =
+    typeof zone.order === "number" ? `${zone.order} · ${zone.name}` : zone.name;
   els.sheetDesc.textContent = preview.summary;
 
   els.sheetStats.innerHTML = preview.stats
@@ -151,7 +152,8 @@ async function openDetail(zone) {
 
   const color = DISTRICT[zone.category].label;
   els.badge.style.background = color;
-  els.title.textContent = zone.name;
+  els.title.textContent =
+    typeof zone.order === "number" ? `${zone.order} · ${zone.name}` : zone.name;
   els.content.innerHTML = "";
   els.backdrop.hidden = false;
   els.panel.hidden = false;

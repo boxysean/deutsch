@@ -134,7 +134,10 @@ export function buildWorld() {
 
   // --- streets, plots and houses ---
   Object.entries(STREETS).forEach(([category, street]) => {
-    const list = ZONES.filter((z) => z.category === category);
+    // Houses are laid out in route order, so walking a street walks the plan.
+    const list = ZONES.filter((z) => z.category === category).sort(
+      (a, b) => (a.order || 0) - (b.order || 0)
+    );
     if (!list.length) return;
 
     const path = walk(street.segments);
@@ -143,11 +146,11 @@ export function buildWorld() {
       setTile(p.tx, p.ty, "path", category);
     });
 
-    const landmark = list.find((z) => z.archetype === "townhall") || null;
-    const lining = list.filter((z) => z !== landmark);
-    const stationCount = Math.ceil(lining.length / 2);
-
-    lining.forEach((zone, i) => {
+    // Every zone lines the street in route order, so step 1 is the house
+    // nearest the plaza and the walk up the street is the plan. The
+    // Grammatik-Fundament used to be pulled out and parked at the far end,
+    // which put step 1 furthest from the start.
+    list.forEach((zone, i) => {
       const stationIndex = street.firstStation + Math.floor(i / 2) * street.spacing;
       const station = path[Math.min(stationIndex, path.length - 1)];
       const side = i % 2 === 0 ? 1 : -1;
@@ -162,9 +165,10 @@ export function buildWorld() {
         setTile(station.tx + perp[0] * d, station.ty + perp[1] * d, "path", category);
       }
 
-      // garden plot around the house
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
+      // a civic landmark stands on a bigger plot, wherever the route puts it
+      const pad = zone.archetype === "townhall" ? 2 : 1;
+      for (let dx = -pad; dx <= pad; dx++) {
+        for (let dy = -pad; dy <= pad; dy++) {
           setTile(tx + dx, ty + dy, "plot", category);
         }
       }
@@ -172,18 +176,6 @@ export function buildWorld() {
       zonePlacement.set(zone.id, { tx, ty });
       objects.push({ kind: "building", tx, ty, zone, spec: buildingFor(zone) });
     });
-
-    if (landmark) {
-      const idx = Math.min(street.firstStation + stationCount * street.spacing, path.length - 1);
-      const end = path[idx];
-      for (let dx = -2; dx <= 2; dx++) {
-        for (let dy = -2; dy <= 2; dy++) {
-          setTile(end.tx + dx, end.ty + dy, "plot", category);
-        }
-      }
-      zonePlacement.set(landmark.id, { tx: end.tx, ty: end.ty });
-      objects.push({ kind: "building", tx: end.tx, ty: end.ty, zone: landmark, spec: buildingFor(landmark) });
-    }
   });
 
   // --- grass everywhere else, plus deterministic scenery ---
