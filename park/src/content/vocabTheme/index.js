@@ -14,6 +14,7 @@ const store = makeStore("deutsch-vokabel:");
 
 const BOXES = 5; // 0..4
 const SICHER_AT = 3; // box 3 and up counts as "sicher" for the progress total
+const TOP_BOX = BOXES - 1; // "auswendig" — the top of the ladder
 
 const GRADES = [
   { id: "again", label: "Nochmal", hint: "Zurück in Box 1", key: "1", delta: null },
@@ -40,6 +41,12 @@ export function mount(container, zone) {
   // rather than being sent back to the start.
   let state = normalizeState(store.load(stateKey, {}), total);
   let dir = store.load(`${zone.id}:dir`, "de-en");
+
+  // Free-text notes per card, kept apart from the box state so a Zurücksetzen
+  // of the ladder never throws away what you wrote.
+  const notesKey = `${zone.id}:notes`;
+  let notes = store.load(notesKey, {});
+  if (!notes || typeof notes !== "object") notes = {};
 
   container.innerHTML = `
     <p class="lede measure">${theme.intro}</p>
@@ -190,12 +197,36 @@ export function mount(container, zone) {
         <button class="primary reveal-btn" id="vt-flip">Aufdecken <kbd>Leertaste</kbd></button>
       </div>
 
+      <div class="deck-note">
+        <label for="vt-note">Deine Notiz zu dieser Karte</label>
+        <textarea id="vt-note" rows="2" spellcheck="false"
+          placeholder="Eselsbrücke, Beispielsatz, womit du letztes Mal gehadert hast…">${escapeHtml(
+            notes[w.id] || ""
+          )}</textarea>
+        <span class="note-state" id="vt-note-state"></span>
+      </div>
+
       <div class="deck-nav">
         <button class="ghost small" id="vt-prev" ${pos === 0 ? "disabled" : ""}>← Zurück</button>
         <span class="deck-hint">Leertaste umdrehen · 1 / 2 / 3 bewerten · ← → blättern</span>
         <button class="ghost small" id="vt-next" ${pos >= queue.length - 1 ? "disabled" : ""}>Weiter →</button>
       </div>
     `;
+
+    const noteEl = deckPanel.querySelector("#vt-note");
+    const noteState = deckPanel.querySelector("#vt-note-state");
+    let noteTimer = null;
+    noteEl.addEventListener("input", () => {
+      // Debounced so every keystroke is not a write, but short enough that
+      // moving to the next card never loses the last few characters.
+      clearTimeout(noteTimer);
+      noteState.textContent = "…";
+      noteTimer = setTimeout(() => saveNote(w.id, noteEl.value, noteState), 400);
+    });
+    noteEl.addEventListener("blur", () => {
+      clearTimeout(noteTimer);
+      saveNote(w.id, noteEl.value, noteState);
+    });
 
     const card = deckPanel.querySelector("#vt-card");
     card.addEventListener("click", flip);
@@ -219,18 +250,39 @@ export function mount(container, zone) {
     });
     deckPanel.querySelector("#vt-reset").addEventListener("click", () => {
       state = normalizeState({}, total);
-      save();
+      save(); // notes are deliberately untouched
       buildQueue();
       renderDeck();
     });
   }
 
+  function saveNote(wordId, text, stateEl) {
+    const trimmed = text.trim();
+    if (trimmed) notes[wordId] = trimmed;
+    else delete notes[wordId];
+    store.save(notesKey, notes);
+    if (stateEl) {
+      stateEl.textContent = trimmed ? "gespeichert" : "";
+      stateEl.dataset.saved = "true";
+    }
+  }
+
+  // Anything typed but not yet written is committed before the card changes.
+  function flushNote() {
+    const el = deckPanel.querySelector("#vt-note");
+    if (!el) return;
+    const wordId = queue[Math.min(pos, queue.length - 1)];
+    saveNote(wordId, el.value, null);
+  }
+
   function flip() {
+    flushNote();
     flipped = !flipped;
     renderDeck();
   }
 
   function step(by) {
+    flushNote();
     pos = Math.min(queue.length - 1, Math.max(0, pos + by));
     flipped = false;
     renderDeck();
@@ -239,6 +291,7 @@ export function mount(container, zone) {
   function grade(id) {
     const g = GRADES.find((x) => x.id === id);
     if (!g) return;
+    flushNote();
     const wordId = queue[pos];
     const cur = state[wordId] || { box: 0 };
     const box = g.delta === null ? 0 : Math.min(BOXES - 1, (cur.box || 0) + g.delta);
@@ -290,41 +343,54 @@ export function mount(container, zone) {
   let filter = "";
   let openOnly = false;
 
+  function updateListCount() {
+    const el = listPanel.querySelector(".list-count");
+    if (el) el.textContent = `${listPanel.querySelectorAll("tbody tr[data-id]").length} / ${total}`;
+  }
+
   function renderTable() {
     const q = filter.trim().toLowerCase();
     const rows = words.filter((w) => {
       const box = (state[w.id] || {}).box || 0;
       if (openOnly && box >= SICHER_AT) return false;
       if (!q) return true;
-      return (w.de + " " + w.en + " " + w.note).toLowerCase().indexOf(q) !== -1;
+      return (w.de + " " + w.en + " " + w.note + " " + (notes[w.id] || "")).toLowerCase().indexOf(q) !== -1;
     });
 
     listPanel.innerHTML = `
       <div class="list-bar">
         <input type="search" id="vt-search" placeholder="Suchen…" value="${filter}" autocomplete="off">
-        <label class="list-toggle"><input type="checkbox" id="vt-open" ${
-          openOnly ? "checked" : ""
-        }> nur noch nicht sichere</label>
+        <span class="list-toggle">
+          <input type="checkbox" id="vt-open" ${openOnly ? "checked" : ""}>
+          <label for="vt-open">nur noch nicht sichere</label>
+        </span>
         <span class="list-count mono">${rows.length} / ${total}</span>
       </div>
+      <p class="list-help">Häkchen = auswendig. Das setzt die Karte auf <b>Box ${
+        TOP_BOX + 1
+      }</b> und zählt als sicher; das Häkchen wegzunehmen schickt sie zurück auf Box 1.</p>
       <div class="tablewrap">
         <table class="word-table">
-          <thead><tr><th>Deutsch</th><th>Englisch</th><th>Hinweis</th><th class="num">Box</th></tr></thead>
+          <thead><tr><th class="tick-col" title="Kann ich auswendig">Ausw.</th><th>Deutsch</th><th>Englisch</th><th>Hinweis</th><th>Notiz</th><th class="num">Box</th></tr></thead>
           <tbody>
             ${
               rows.length
                 ? rows
                     .map((w) => {
                       const box = (state[w.id] || {}).box || 0;
-                      return `<tr data-sicher="${box >= SICHER_AT}">
+                      return `<tr data-id="${w.id}" data-sicher="${box >= SICHER_AT}">
+                        <td class="tick-col"><input type="checkbox" class="know-tick" data-id="${w.id}" ${
+                          box >= TOP_BOX ? "checked" : ""
+                        } aria-label="${w.de} auswendig"></td>
                         <td><b>${w.de}</b></td>
                         <td>${w.en}</td>
                         <td class="note-cell">${w.note ? `<span class="badge">AT</span> ${w.note}` : ""}</td>
+                        <td class="own-note">${escapeHtml(notes[w.id] || "")}</td>
                         <td class="num"><span class="box-pill" data-box="${box}">${box + 1}</span></td>
                       </tr>`;
                     })
                     .join("")
-                : `<tr><td colspan="4" style="color:var(--ink-soft)">Nichts gefunden.</td></tr>`
+                : `<tr><td colspan="6" style="color:var(--ink-soft)">Nichts gefunden.</td></tr>`
             }
           </tbody>
         </table>
@@ -344,6 +410,32 @@ export function mount(container, zone) {
       openOnly = e.target.checked;
       renderTable();
     });
+
+    listPanel.querySelectorAll(".know-tick").forEach((tick) => {
+      tick.addEventListener("change", () => {
+        const id = Number(tick.dataset.id);
+        // Checked jumps to the top box; unchecked drops to the bottom, the same
+        // place a "Nochmal" in the deck would put it.
+        const box = tick.checked ? TOP_BOX : 0;
+        state[id] = { box, mastered: box >= SICHER_AT };
+        save();
+        // The deck's queue is ordered by box, so it has to be rebuilt.
+        queue = [];
+
+        const row = listPanel.querySelector(`tr[data-id="${id}"]`);
+        if (!row) return;
+        if (openOnly && box >= SICHER_AT) {
+          // It no longer belongs in this filtered view.
+          row.remove();
+          updateListCount();
+          return;
+        }
+        row.dataset.sicher = String(box >= SICHER_AT);
+        const pill = row.querySelector(".box-pill");
+        pill.textContent = box + 1;
+        pill.dataset.box = box;
+      });
+    });
   }
 
   activate("deck");
@@ -360,6 +452,13 @@ function normalizeState(raw, total) {
     out[i] = { box, mastered: box >= SICHER_AT };
   }
   return out;
+}
+
+// Notes are user text going back into HTML, so they are escaped on the way out.
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[c]);
 }
 
 function phrasesHtml(theme) {

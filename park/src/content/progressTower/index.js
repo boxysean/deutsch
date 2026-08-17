@@ -43,9 +43,42 @@ export function mount(container, zone) {
 
   container.innerHTML = `
     <p class="lede measure">Der Fernsehturm sieht über die ganze Stadt — und über deinen Lernplan. Zwei Kurven laufen hier nebeneinander: was du <b>gearbeitet</b> hast (jedes gelöste Item, jede sichere Vokabel, jeder Haken zählt als ein Punkt) und wie sicher du dich <b>fühlst</b> (deine eigene Bewertung pro Thema). Einmal pro Tag wird beides gespeichert, daraus wachsen die Kurven.</p>
+    <div id="pt-range"></div>
     <div id="pt-body"></div>
   `;
   const body = container.querySelector("#pt-body");
+
+  // Rendered once and never rebuilt: a date input that is replaced mid-entry
+  // loses focus and the half-typed value, which makes the field impossible to
+  // fill in by keyboard.
+  const rangeHost = container.querySelector("#pt-range");
+  rangeHost.innerHTML = rangeHtml(getRange());
+  const startEl = rangeHost.querySelector("#pt-start");
+  const endEl = rangeHost.querySelector("#pt-end");
+
+  function onRangeInput() {
+    const start = startEl.value;
+    const end = endEl.value;
+    // Ignore incomplete or nonsensical input rather than fighting the user for
+    // the cursor; the note says why nothing moved.
+    const note = rangeHost.querySelector("#pt-range-note");
+    if (!start || !end) {
+      note.textContent = "Beide Daten angeben.";
+      return;
+    }
+    if (start >= end) {
+      note.textContent = "Der Start muss vor dem Prüfungstag liegen.";
+      return;
+    }
+    note.textContent = "";
+    const current = getRange();
+    if (current.start === start && current.end === end) return;
+    setRange(start, end);
+    render();
+  }
+
+  startEl.addEventListener("change", onRangeInput);
+  endEl.addEventListener("change", onRangeInput);
 
   function render() {
     const progress = computeProgress();
@@ -56,7 +89,6 @@ export function mount(container, zone) {
 
     body.innerHTML = `
       ${heroHtml(progress, confidence, status, range)}
-      ${rangeHtml(range, status)}
 
       <div class="subhead">Fortschritt über die Zeit</div>
       <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
@@ -95,14 +127,6 @@ export function mount(container, zone) {
     wireChart(body, progress, confidence, status, range, history);
     wireRatings(body, render);
 
-    body.querySelector("#pt-start").addEventListener("change", (e) => {
-      setRange(e.target.value, getRange().end);
-      render();
-    });
-    body.querySelector("#pt-end").addEventListener("change", (e) => {
-      setRange(getRange().start, e.target.value);
-      render();
-    });
     body.querySelector("#pt-refresh").addEventListener("click", () => {
       recordToday();
       render();
@@ -175,6 +199,7 @@ function rangeHtml(range) {
     <div class="range-row">
       <label>Start <input type="date" id="pt-start" value="${range.start}"></label>
       <label>Prüfung <input type="date" id="pt-end" value="${range.end}"></label>
+      <span class="range-note" id="pt-range-note"></span>
     </div>
   `;
 }

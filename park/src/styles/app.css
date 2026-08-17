@@ -246,3 +246,13 @@
 /* A collapsed label keeps its flag — but only the one label that has one.
    Without :not([hidden]) this rule un-hides all 35 empty chips. */
 .map-label[data-collapsed="true"] .ml-next:not([hidden]){ display:inline; }
+/* The route position, in front of the name. */
+.map-label .ml-step{
+  flex:none; font-size:0.68rem; font-weight:800; color:#6b6a78;
+  font-variant-numeric: tabular-nums;
+}
+.map-label[data-next="true"] .ml-step{ color:#21202b; }
+.map-label:hover .ml-step,
+.map-label[data-hovered="true"] .ml-step,
+.map-label[data-active="true"] .ml-step{ color: rgba(255,253,247,0.85); }
+.map-label[data-info="true"] .ml-step{ display:none; }

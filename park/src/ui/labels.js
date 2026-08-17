@@ -37,10 +37,15 @@ export function createLabels(zones, renderer, onSelect) {
       : `<span class="ml-dot"></span>`;
     // The self-rating rides next to the icon so a glance at the map shows where
     // you feel weak. Absent until the topic has been rated.
+    // Reading order: which step, which topic, how confident. The score sits at
+    // the end so the two numbers are never adjacent.
+    const step =
+      typeof zone.order === "number" ? `<span class="ml-step mono">${zone.order}</span>` : "";
     el.innerHTML =
-      `${marker}<span class="ml-score" hidden></span>` +
+      `${marker}${step}` +
       `<span class="ml-name">${zone.labelName || zone.name}</span>` +
-      `<span class="ml-next" hidden>Als Nächstes</span>`;
+      `<span class="ml-next" hidden>Als Nächstes</span>` +
+      `<span class="ml-score" hidden></span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       onSelect(zone.id);
