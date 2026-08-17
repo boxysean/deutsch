@@ -1,0 +1,154 @@
+import { THEMES } from "../vocabTheme/data.js";
+import { ZONES } from "../../data/zones.js";
+import { makeStore } from "../lib/storage.js";
+import { createDeck, boxOf, BOXES, SICHER_AT } from "../vocabTheme/deck.js";
+
+// The Brandenburger Tor: one gate, every road through it. A practice session
+// drawn from all twenty themes at once, so you are answering words rather than
+// answering a topic.
+//
+// It writes straight back into each theme's own storage — the same boxes, the
+// same notes — so a word drilled here is a word drilled in its own house, and
+// the progress total sees it immediately.
+const store = makeStore("deutsch-vokabel:");
+
+const SESSION_SIZES = [20, 50, 0]; // 0 = every card
+
+export function mount(container) {
+  const themeIds = Object.keys(THEMES);
+
+  // One card per word across every theme, carrying where it came from.
+  const state = {};
+  const notes = {};
+  themeIds.forEach((id) => {
+    state[id] = store.load(`${id}:state`, {}) || {};
+    notes[id] = store.load(`${id}:notes`, {}) || {};
+  });
+
+  const all = [];
+  themeIds.forEach((themeId) => {
+    THEMES[themeId].words.forEach((w, i) => {
+      all.push({
+        key: `${themeId}:${i}`,
+        themeId,
+        wordId: i,
+        de: w[0],
+        en: w[1],
+        note: w[2] || "",
+        source: zoneName(themeId),
+      });
+    });
+  });
+
+  const getBox = (c) => boxOf(state[c.themeId][c.wordId]);
+
+  let size = store.load("mixed:size", 20);
+  if (SESSION_SIZES.indexOf(size) === -1) size = 20;
+  let dir = store.load("mixed:dir", "mixed");
+
+  container.innerHTML = `
+    <p class="lede measure">Das Tor führt in alle Richtungen. Hier kommen die Karten aus <b>allen ${
+      themeIds.length
+    } Wortschatz-Themen</b> gemischt — ohne zu wissen, aus welchem Haus eine Karte stammt, kannst du dich nicht am Thema entlanghangeln. Genau so fragt die Prüfung auch.</p>
+    <div class="mixed-head" id="md-head"></div>
+    <div id="md-deck" data-active="true"></div>
+  `;
+
+  const head = container.querySelector("#md-head");
+  const deckHost = container.querySelector("#md-deck");
+  let deck = null;
+
+  // Weakest boxes first, then shuffled within the session, so a short session is
+  // the words that need it rather than the first twenty alphabetically.
+  function pickSession() {
+    const pool = all.slice().sort((a, b) => {
+      const d = getBox(a) - getBox(b);
+      return d !== 0 ? d : Math.random() - 0.5;
+    });
+    const picked = size === 0 ? pool : pool.slice(0, Math.min(size, pool.length));
+    for (let i = picked.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [picked[i], picked[j]] = [picked[j], picked[i]];
+    }
+    return picked;
+  }
+
+  function overallCounts() {
+    let sicher = 0;
+    const byBox = new Array(BOXES).fill(0);
+    all.forEach((c) => {
+      const box = Math.min(BOXES - 1, getBox(c));
+      byBox[box]++;
+      if (box >= SICHER_AT) sicher++;
+    });
+    return { sicher, byBox };
+  }
+
+  function renderHead() {
+    const { sicher } = overallCounts();
+    head.innerHTML = `
+      <div class="mixed-bar">
+        <span class="mixed-total">Insgesamt sicher: <b>${sicher}</b> / ${all.length} Karten aus ${themeIds.length} Themen</span>
+        <span class="deck-spacer"></span>
+        <span class="seg" role="radiogroup" aria-label="Länge der Session">
+          ${SESSION_SIZES.map(
+            (n) =>
+              `<button class="seg-btn" data-size="${n}" data-picked="${
+                n === size
+              }">${n === 0 ? "Alle" : n + " Karten"}</button>`
+          ).join("")}
+        </span>
+        <button class="ghost small" id="md-new">Neue Session</button>
+      </div>
+    `;
+    head.querySelectorAll(".seg-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        size = Number(btn.dataset.size);
+        store.save("mixed:size", size);
+        startSession();
+      });
+    });
+    head.querySelector("#md-new").addEventListener("click", startSession);
+  }
+
+  function startSession() {
+    if (deck) {
+      deck.flushNote();
+      deck.destroy();
+    }
+    const cards = pickSession();
+    deck = createDeck(deckHost, {
+      cards,
+      dir,
+      setDir(next) {
+        dir = next;
+        store.save("mixed:dir", next);
+      },
+      getBox,
+      setBox(c, box) {
+        state[c.themeId][c.wordId] = { box, mastered: box >= SICHER_AT };
+        store.save(`${c.themeId}:state`, state[c.themeId]);
+      },
+      getNote: (c) => notes[c.themeId][c.wordId] || "",
+      setNote(c, text) {
+        if (text) notes[c.themeId][c.wordId] = text;
+        else delete notes[c.themeId][c.wordId];
+        store.save(`${c.themeId}:notes`, notes[c.themeId]);
+      },
+      // The theme is hidden on the front and revealed with the answer — knowing
+      // the topic in advance is exactly the crutch this session removes.
+      showSource: true,
+      onChange: renderHead,
+    });
+    renderHead();
+    deck.render();
+  }
+
+  startSession();
+}
+
+// The readable theme name lives on its zone, which is also what the map shows.
+const ZONE_NAMES = new Map(ZONES.map((z) => [z.id, z.name]));
+function zoneName(id) {
+  return ZONE_NAMES.get(id) || id;
+}

@@ -276,6 +276,7 @@ export function buildWorld() {
   const clickableLandmarks = [
     { id: "fernsehturm", tx: 21, ty: -16, render: "fernsehturm", height: 10, roofH: 6, labelLevels: 18 },
     { id: "riesenrad", tx: -20, ty: 17, render: "riesenrad", height: 6, roofH: 4, labelLevels: 12 },
+    { id: "brandenburger-tor", tx: 6, ty: 15, render: "brandenburg", height: 5, roofH: 3, labelLevels: 8 },
   ];
   clickableLandmarks.forEach((lm) => {
     const zone = ZONES.find((z) => z.id === lm.id);
@@ -307,7 +308,6 @@ export function buildWorld() {
   // Each gets a small paved apron and sits clear of the streets.
   const monuments = [
     { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
-    { kind: "brandenburg", tx: 6, ty: 15 }, // Brandenburger Tor
     { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein
   ];
   monuments.forEach((m) => {

@@ -113,6 +113,13 @@ export const ZONES = [
     status: "built", module: "examSkill",
   },
 
+  // ---------------- Brandenburger Tor (1) ----------------
+  {
+    id: "brandenburger-tor", icon: "🎴", category: "info", name: "Brandenburger Tor",
+    labelName: "Gemischtes Training", subtitle: "Alle Themen gemischt", archetype: "gate",
+    status: "built", module: "mixedDeck",
+  },
+
   // ---------------- Riesenrad (1) ----------------
   {
     id: "riesenrad", icon: "🎡", category: "info", name: "Riesenrad",
