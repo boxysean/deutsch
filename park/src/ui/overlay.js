@@ -20,6 +20,7 @@ const MODULE_LOADERS = {
   examSkill: () => import("../content/examSkill/index.js"),
   progressTower: () => import("../content/progressTower/index.js"),
   dataTransfer: () => import("../content/dataTransfer/index.js"),
+  mixedDeck: () => import("../content/mixedDeck/index.js"),
 };
 
 let els = null;

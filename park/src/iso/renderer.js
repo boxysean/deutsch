@@ -231,6 +231,7 @@ export function createRenderer(canvas, world) {
       stephansdom: (c) => drawStephansdom(sctx, c.x, c.y),
       fernsehturm: (c) => drawTvTower(sctx, c.x, c.y, state.time),
       riesenrad: (c) => drawFerrisWheel(sctx, c.x, c.y, state.time),
+      brandenburg: (c) => drawBrandenburgGate(sctx, c.x, c.y),
     };
     if (LANDMARK[spec.render]) {
       LANDMARK[spec.render]({ x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) });
@@ -434,9 +435,6 @@ export function createRenderer(canvas, world) {
         break;
       case "dom":
         drawCathedral(sctx, c.x, c.y);
-        break;
-      case "brandenburg":
-        drawBrandenburgGate(sctx, c.x, c.y);
         break;
       case "castle":
         drawCastle(sctx, c.x, c.y);

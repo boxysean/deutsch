@@ -161,6 +161,26 @@ function progressTower() {
   };
 }
 
+function mixedDeck() {
+  const themes = Object.keys(THEMES);
+  let total = 0;
+  let sicher = 0;
+  themes.forEach((id) => {
+    total += THEMES[id].words.length;
+    const st = read(`deutsch-vokabel:${id}:state`, {});
+    sicher += Object.values(st).filter((v) => v && v.box >= 3).length;
+  });
+  return {
+    summary:
+      "Karten aus allen Wortschatz-Themen, gemischt. Eine Übungsrunde, ohne dass du weißt, aus welchem Haus die Karte kommt — genau so fragt die Prüfung auch.",
+    stats: [
+      { label: "Karten insgesamt", value: String(total) },
+      { label: "Davon sicher", value: String(sicher) },
+      { label: "Themen", value: String(themes.length) },
+    ],
+  };
+}
+
 function dataTransfer() {
   const s = summarize(buildExport());
   return {
@@ -183,6 +203,7 @@ const BUILDERS = {
   examSkill,
   progressTower,
   dataTransfer,
+  mixedDeck,
 };
 
 export function getPreview(zone) {

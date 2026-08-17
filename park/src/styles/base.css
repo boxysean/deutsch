@@ -581,3 +581,8 @@ kbd{
 .word-table .tick-col{ width:3.2rem; text-align:center; }
 .word-table .tick-col input{ accent-color: var(--good); width:1rem; height:1rem; }
 .word-table thead .tick-col{ font-size:0.7rem; }
+
+/* Brandenburger Tor: the mixed session. */
+.mixed-bar{ display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:1rem; font-size:0.82rem; }
+.mixed-total b{ font-variant-numeric: tabular-nums; }
+.fc-source{ margin-top:0.6rem; font-size:0.76rem; color: var(--ink-soft); }
