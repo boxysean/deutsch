@@ -24,6 +24,7 @@ const MODULE_LOADERS = {
   progressTower: () => import("../content/progressTower/index.js"),
   dataTransfer: () => import("../content/dataTransfer/index.js"),
   mixedDeck: () => import("../content/mixedDeck/index.js"),
+  tableHall: () => import("../content/tableHall/index.js"),
 };
 
 let els = null;

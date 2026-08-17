@@ -113,6 +113,13 @@ export const ZONES = [
     status: "built", module: "examSkill",
   },
 
+  // ---------------- Kölner Dom (1) ----------------
+  {
+    id: "koelner-dom", icon: "📋", category: "info", name: "Kölner Dom",
+    labelName: "Alle Tabellen", subtitle: "Grammatik zum Auswendiglernen", archetype: "cathedral",
+    status: "built", module: "tableHall",
+  },
+
   // ---------------- Brandenburger Tor (1) ----------------
   {
     id: "brandenburger-tor", icon: "🎴", category: "info", name: "Brandenburger Tor",

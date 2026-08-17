@@ -15,8 +15,8 @@ const STREETS = {
   grammar: {
     segments: [{ dir: [0, -1], len: 40 }],
     firstStation: 10,
-    spacing: 5,
-    offset: 3,
+    spacing: 6,
+    offset: 4,
   },
   vocab: {
     segments: [
@@ -24,14 +24,14 @@ const STREETS = {
       { dir: [0, 1], len: 32 },
     ],
     firstStation: 10,
-    spacing: 5,
-    offset: 3,
+    spacing: 6,
+    offset: 4,
   },
   examskill: {
     segments: [{ dir: [-1, 0], len: 20 }],
     firstStation: 10,
-    spacing: 5,
-    offset: 3,
+    spacing: 6,
+    offset: 4,
   },
 };
 
@@ -277,6 +277,10 @@ export function buildWorld() {
     { id: "fernsehturm", tx: 21, ty: -16, render: "fernsehturm", height: 10, roofH: 6, labelLevels: 18 },
     { id: "riesenrad", tx: -20, ty: 17, render: "riesenrad", height: 6, roofH: 4, labelLevels: 12 },
     { id: "brandenburger-tor", tx: 6, ty: 15, render: "brandenburg", height: 5, roofH: 3, labelLevels: 8 },
+    // Out on the open west side rather than up among the grammar houses: the
+    // Dom is tall, and at the top of the map its label rides above the spire
+    // and straight under the HUD bar when you zoom all the way out.
+    { id: "koelner-dom", tx: -23, ty: 5, render: "dom", height: 9, roofH: 6, labelLevels: 16 },
   ];
   clickableLandmarks.forEach((lm) => {
     const zone = ZONES.find((z) => z.id === lm.id);
@@ -307,7 +311,6 @@ export function buildWorld() {
   // Decorative national landmarks — pure skyline flavour, not clickable.
   // Each gets a small paved apron and sits clear of the streets.
   const monuments = [
-    { kind: "dom", tx: -15, ty: -15 }, // Kölner Dom
     { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein
   ];
   monuments.forEach((m) => {

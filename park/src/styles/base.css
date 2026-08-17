@@ -609,3 +609,33 @@ kbd{
 .chart .s-cv{ stroke: var(--series-vocab); }
 .chart circle.s-cv{ fill: var(--series-vocab); }
 .deck-words b{ font-variant-numeric: tabular-nums; color: var(--good); }
+
+/* ---------- Kölner Dom: the table hall ---------- */
+.hall-bar{ display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:1rem; font-size:0.84rem; }
+.hall-count b{ font-variant-numeric: tabular-nums; }
+.hall-toc{ display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:1.6rem; }
+.hall-toc a{
+  display:inline-flex; align-items:center; gap:0.35rem; text-decoration:none;
+  padding:0.2rem 0.55rem; border-radius:999px; font-size:0.76rem;
+  background: var(--paper-raised); border:1px solid var(--rule); color: var(--ink);
+}
+.hall-toc a:hover{ border-color: var(--ink); }
+.hall-toc .mono{ color: var(--ink-soft); }
+.hall-toc .toc-n{ color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.hall-table{
+  margin-bottom:1.6rem; padding:0.9rem 1rem 1rem;
+  background: var(--paper-raised); border:1px solid var(--rule); border-radius:8px;
+}
+.hall-table[data-learned="true"]{ border-color: var(--good); }
+.hall-table-head{ display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem; }
+.hall-lede{ font-size:0.84rem; color: var(--ink-soft); margin-bottom:0.7rem; }
+.hall-learned{ display:inline-flex; align-items:center; gap:0.3rem; font-size:0.78rem; color: var(--ink-soft); }
+.hall-learned input{ accent-color: var(--good); }
+.hall-table td.key-col{ font-weight:650; }
+.hall-table[data-covered="true"] td.coverable{ cursor:pointer; }
+.hall-table[data-covered="true"] td.coverable[data-revealed="false"] span{ visibility:hidden; }
+.hall-table[data-covered="true"] td.coverable[data-revealed="false"]{
+  background: var(--rule); border-radius:4px;
+}
+.hall-table[data-covered="true"] td.coverable[data-revealed="true"]{ background: var(--good-soft); }

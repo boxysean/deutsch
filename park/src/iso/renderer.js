@@ -20,6 +20,7 @@ import {
   drawMatterhorn,
 } from "./landmarks.js";
 import { faces, hsl, DISTRICT, GROUND, TRIM, OUTLINE } from "./palette.js";
+import { PLAZA } from "./world.js";
 import {
   drawMountain,
   drawPerson,
@@ -81,6 +82,21 @@ export function createRenderer(canvas, world) {
   }
 
   // Fit the whole town on screen and centre it.
+  //
+  // Spreading the houses further apart does not, on its own, uncrowd the
+  // labels: fit() simply zooms out to keep the bigger town in frame, and the
+  // labels are a fixed CSS size, so they end up as tangled as before. Measured
+  // at 1500×950 with every label counted: at zoom-to-fit, widening the street
+  // spacing from 5 to 7 tiles moved the worst label gap from 3px to 4px.
+  //
+  // What works is a floor on the fit zoom. The opening view is then framed on
+  // the plaza and the far ends of the streets are a pan (or one scroll out)
+  // away — which is what the route pennant and the HUD button are for. With the
+  // floor in place, 6 tiles of spacing is the point where no label collapses
+  // and none overlaps, while still opening on about half the town; 7 gains
+  // nothing but costs another house off-screen.
+  const MIN_FIT_ZOOM = 2;
+
   function fit() {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     world.zonePlacement.forEach((p) => {
@@ -97,7 +113,7 @@ export function createRenderer(canvas, world) {
     const margin = 40;
 
     let zoom = 4;
-    while (zoom > 1) {
+    while (zoom > MIN_FIT_ZOOM) {
       if (
         contentW + margin <= state.cssW / zoom &&
         contentH + margin <= state.cssH / zoom
@@ -106,8 +122,12 @@ export function createRenderer(canvas, world) {
     }
     setZoom(zoom, false);
 
-    state.camX = (minX + maxX) / 2;
-    state.camY = (minY + maxY) / 2;
+    // Centre on the plaza rather than the bounding box: at a zoom that does not
+    // show everything, the middle of the town is the useful place to start.
+    const centre = isoToScreen(PLAZA.tx, PLAZA.ty);
+    const fits = contentW + margin <= state.cssW / zoom && contentH + margin <= state.cssH / zoom;
+    state.camX = fits ? (minX + maxX) / 2 : centre.x;
+    state.camY = fits ? (minY + maxY) / 2 : centre.y;
   }
 
   function setZoom(z, keepCentre = true) {
@@ -232,6 +252,7 @@ export function createRenderer(canvas, world) {
       fernsehturm: (c) => drawTvTower(sctx, c.x, c.y, state.time),
       riesenrad: (c) => drawFerrisWheel(sctx, c.x, c.y, state.time),
       brandenburg: (c) => drawBrandenburgGate(sctx, c.x, c.y),
+      dom: (c) => drawCathedral(sctx, c.x, c.y),
     };
     if (LANDMARK[spec.render]) {
       LANDMARK[spec.render]({ x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) });
@@ -432,9 +453,6 @@ export function createRenderer(canvas, world) {
         break;
       case "pretzel":
         drawPretzelSign(sctx, c.x, c.y);
-        break;
-      case "dom":
-        drawCathedral(sctx, c.x, c.y);
         break;
       case "castle":
         drawCastle(sctx, c.x, c.y);
