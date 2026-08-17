@@ -74,7 +74,7 @@ export function mount(container) {
 
       <div class="subhead">Gut zu wissen</div>
       <div class="measure rule-box">
-        <p><b>Was mitkommt:</b> Vokabelkarten, Grammatikübungen, Tag 1, Lesen, die Prüfungs-Trainer, die Checkliste im Dom sowie Lernplan, Verlauf und Selbsteinschätzung — alles unter dem Namensraum <span class="mono">deutsch-</span>.</p>
+        <p><b>Was mitkommt:</b> Vokabelkarten, Grammatikübungen, Tag 1, Lesen, die Prüfungs-Trainer, die Checkliste im Dom sowie Lernplan, Verlauf und Selbsteinschätzung — alles unter dem Namensraum <span class="mono">deutsch-</span>, und zwar für <b>alle Niveaus</b>. Eine Sicherung ist dein ganzer Stand, nicht nur die Stadt, in der du gerade stehst.</p>
         <p><b>Was nicht mitkommt:</b> nichts anderes. Die Datei enthält keine Namen, keine Geräte-Infos und keine Inhalte der App selbst — nur deine Eingaben.</p>
         <p><b>Zwei Wege beim Import:</b> <b>Zusammenführen</b> ergänzt nur Lücken — Messpunkte werden vereinigt, bei Selbsteinschätzungen gewinnt der höhere Wert, und vorhandene Antworten bleiben stehen. <b>Alles ersetzen</b> wirft den Stand in diesem Browser weg und schreibt die Datei — vorher bekommst du eine Sicherung angeboten.</p>
       </div>
@@ -120,7 +120,12 @@ export function mount(container) {
     if (!result.ok) {
       staged = { error: result.error, source };
     } else {
-      staged = { envelope: result.envelope, summary: summarize(result.envelope), source };
+      staged = {
+        envelope: result.envelope,
+        summary: summarize(result.envelope),
+        source,
+        upgraded: result.upgraded || 0,
+      };
     }
     renderStaged();
   }
@@ -157,6 +162,15 @@ export function mount(container) {
           <div><b>${fmtNum(s.ratedTopics)}</b><span>${s.ratedTopics === 1 ? "bewertetes Thema" : "bewertete Themen"}</span></div>
         </div>
         ${areasHtml(s)}
+        ${
+          staged.upgraded
+            ? `<p class="note measure" style="margin-top:0.7rem">Diese Sicherung stammt aus einer Version vor den Niveaus. <b>${fmtNum(
+                staged.upgraded
+              )}</b> ${
+                staged.upgraded === 1 ? "Eintrag wurde" : "Einträge wurden"
+              } dem Niveau <b>A2</b> zugeordnet — damals gab es nur A2. Für A1 bleibt dieser Stand leer.</p>`
+            : ""
+        }
         ${
           s.range
             ? `<p style="font-size:0.8rem;color:var(--ink-soft);margin-top:0.6rem">Lernplan in der Datei: ${s.range.start} bis ${s.range.end}</p>`

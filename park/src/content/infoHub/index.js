@@ -1,5 +1,7 @@
-import { ZONES } from "../../data/zones.js";
-import { makeStore } from "../lib/storage.js";
+import { getZones } from "../../data/zones/index.js";
+import { makeLevelStore } from "../lib/storage.js";
+import { masteryFor, examFor } from "./data.js";
+import { getLevel, levelInfo } from "../../data/levels.js";
 import { DISTRICT } from "../../iso/palette.js";
 import { route, isSettled, nextZone, routeProgress } from "../lib/route.js";
 import { getRange, daysBetween } from "../lib/progress.js";
@@ -7,91 +9,11 @@ import { getRange, daysBetween } from "../lib/progress.js";
 // The Dom on the town square. Not a learning zone — it explains what this is,
 // what the ÖSD Zertifikat A2 actually asks of you, and what you still have to
 // master. The checklist is the only part that stores anything.
-const store = makeStore("deutsch-info:");
-
-// Everything the exam expects, grouped the way the exam itself is structured.
-// Sources: ÖSD Zertifikat A2 Durchführungsbestimmungen (Okt. 2023) and the
-// official Modellsatz.
-const MASTERY = [
-  {
-    group: "Grammatik — Kasus und Artikel",
-    items: [
-      ["nom-akk", "Nominativ und Akkusativ sicher unterscheiden (der → den, ein → einen)"],
-      ["dativ", "Dativ bilden — auch im Plural (den Kindern)"],
-      ["artikel", "Bestimmte, unbestimmte und Negativartikel deklinieren (kein-)"],
-      ["possessiv", "Possessivartikel: mein, dein, sein, ihr … in allen drei Kasus"],
-      ["personalpron", "Personalpronomen im Akkusativ und Dativ (mich/mir, ihn/ihm)"],
-    ],
-  },
-  {
-    group: "Grammatik — Präpositionen",
-    items: [
-      ["praep-akk", "Präpositionen mit Akkusativ: für, ohne, gegen, um, durch"],
-      ["praep-dat", "Präpositionen mit Dativ: mit, nach, bei, seit, von, zu, aus"],
-      ["wechsel", "Wechselpräpositionen: Akkusativ bei wohin?, Dativ bei wo?"],
-      ["verb-praep", "Verben mit fester Präposition (warten auf, Angst haben vor)"],
-      ["da-wo", "da(r)- und wo(r)- für Sachen, Präposition + Pronomen für Personen"],
-    ],
-  },
-  {
-    group: "Grammatik — Verben und Zeiten",
-    items: [
-      ["praesens", "Präsens inkl. Stammwechsel (fahren → du fährst, geben → du gibst)"],
-      ["modal", "Alle sechs Modalverben im Präsens und Präteritum"],
-      ["trennbar", "Trennbare und untrennbare Verben, Präfix am Satzende"],
-      ["perfekt", "Perfekt mit haben und sein, Partizip II regelmäßig und unregelmäßig"],
-      ["praeteritum", "Präteritum von sein, haben und den Modalverben"],
-      ["reflexiv", "Reflexive Verben (sich freuen, sich interessieren)"],
-      ["imperativ", "Imperativ: du-, ihr- und Sie-Form"],
-      ["konjunktiv", "Höflichkeitsformen: möchte, könnte, hätte gern, würde"],
-    ],
-  },
-  {
-    group: "Grammatik — Satzbau",
-    items: [
-      ["v2", "Verb an Position 2, Subjekt rückt hinter das Verb"],
-      ["klammer", "Satzklammer: zweiter Verbteil ans Satzende"],
-      ["neben", "Nebensätze mit weil, dass, wenn, ob — Verb ganz am Ende"],
-      ["fragen", "W-Fragen und Ja/Nein-Fragen"],
-      ["tmp", "Reihenfolge im Mittelfeld: temporal – modal – lokal"],
-      ["adjektiv", "Adjektivendungen nach der-, ein- und Nullartikel"],
-      ["vergleich", "Komparativ und Superlativ, auch unregelmäßig (gut/besser/am besten)"],
-    ],
-  },
-  {
-    group: "Wortschatz — die Themenfelder",
-    items: [
-      ["w-person", "Person, Familie, Wohnen, Alltag"],
-      ["w-versorgung", "Einkaufen, Essen und Trinken, Geld und Preise"],
-      ["w-koerper", "Körper, Gesundheit, beim Arzt"],
-      ["w-arbeit", "Arbeit, Beruf, Ausbildung, Sprachen lernen"],
-      ["w-freizeit", "Freizeit, Reisen, Verkehr, Orientierung in der Stadt"],
-      ["w-umfeld", "Wetter, Termine, Feste, Medien, Umwelt, Heimat"],
-      ["w-at", "Österreichische Varianten: Semmel, Erdapfel, Paradeiser, Obers, Jänner"],
-    ],
-  },
-  {
-    group: "Prüfungsfertigkeiten",
-    items: [
-      ["f-lesen", "Lesen: Kurztexte Überschriften zuordnen, Detailfragen zu einem längeren Text"],
-      ["f-hoeren", "Hören: Notizen zu einer Durchsage, Mehrfachauswahl, Interview mit fünf Personen"],
-      ["f-schreiben", "Schreiben: Antwort-E-Mail von ca. 50 Wörtern, alle vier Leitpunkte abdecken"],
-      ["f-anrede", "Anrede und Gruß richtig wählen (Liebe/Lieber …, Liebe Grüße)"],
-      ["f-vorstellen", "Sprechen 1: sich zu fünf von sechs Themen frei vorstellen"],
-      ["f-planen", "Sprechen 2: gemeinsam etwas planen, Vorschläge machen und reagieren"],
-      ["f-redemittel", "Redemittel: Vorschlag, Zustimmung, Ablehnung, Nachfragen"],
-    ],
-  },
-];
-
-const EXAM = [
-  ["Lesen", "2 Aufgaben · 10 Items", "30 Min", "25 Punkte", "min. 5"],
-  ["Hören", "3 Aufgaben · 14 Items", "ca. 15 Min", "30 Punkte", "min. 6"],
-  ["Schreiben", "1 Aufgabe", "30 Min", "15 Punkte", "—"],
-  ["Sprechen", "2 Aufgaben", "ca. 10 Min", "20 Punkte", "min. 10"],
-];
+const store = makeLevelStore("info:");
 
 export function mount(container, zone) {
+  const MASTERY = masteryFor(getLevel());
+  const EXAM = examFor(getLevel());
   const total = MASTERY.reduce((n, g) => n + g.items.length, 0);
 
   container.innerHTML = `
@@ -102,8 +24,8 @@ export function mount(container, zone) {
 
   const tabs = [
     { id: "spiel", label: "Das Spiel", html: gameHtml() },
-    { id: "pruefung", label: "Die Prüfung", html: examHtml() },
-    { id: "koennen", label: "Was du können musst", html: masteryHtml(total) },
+    { id: "pruefung", label: "Die Prüfung", html: examHtml(getLevel(), EXAM) },
+    { id: "koennen", label: "Was du können musst", html: masteryHtml(total, MASTERY) },
     { id: "route", label: "Lernpfad", html: routeHtml() },
   ];
 
@@ -140,8 +62,8 @@ export function mount(container, zone) {
 }
 
 function gameHtml() {
-  const built = ZONES.filter((z) => z.category !== "info" && z.status === "built");
-  const learning = ZONES.filter((z) => z.category !== "info");
+  const built = getZones().filter((z) => z.category !== "info" && z.status === "built");
+  const learning = getZones().filter((z) => z.category !== "info");
 
   return `
     <div class="subhead" style="margin-top:0">So funktioniert es</div>
@@ -216,7 +138,46 @@ function routeHtml() {
   return html;
 }
 
-function examHtml() {
+function examHtml(level, EXAM) {
+  return level === "a1" ? examHtmlA1(EXAM) : examHtmlA2(EXAM);
+}
+
+// A1's numbers are deliberately absent rather than guessed. Every figure on the
+// A2 page below is read off the official Durchführungsbestimmungen and the
+// Modellsatz; nothing equivalent has been checked for A1 in this project, and a
+// plausible-looking invented duration is worse than an honest gap — you would
+// plan against it.
+function examHtmlA1(EXAM) {
+  const rows = EXAM.map(
+    (r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="num">${r[4]}</td></tr>`
+  ).join("");
+
+  return `
+    <div class="subhead" style="margin-top:0">ÖSD Zertifikat A1 — Aufbau</div>
+    <div class="measure rule-box">
+      <p>Wie auf A2 gibt es eine <b>schriftliche</b> und eine <b>mündliche</b> Prüfung, mit denselben vier Teilen: Lesen, Hören, Schreiben, Sprechen — nur kürzer und in langsamerem, deutlicherem Deutsch.</p>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Teil</th><th>Umfang</th><th>Dauer</th><th>Punkte</th><th>Mindestens</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Was in den einzelnen Teilen verlangt wird</div>
+    <div class="measure rule-box">
+      <p><b>Lesen</b> — kurze Alltagstexte: Notizen, Anzeigen, Schilder, eine einfache E-Mail.</p>
+      <p><b>Hören</b> — Durchsagen und kurze Gespräche, langsam und deutlich gesprochen.</p>
+      <p><b>Schreiben</b> — ein einfaches Formular ausfüllen und eine kurze Mitteilung mit wenigen Leitpunkten schreiben.</p>
+      <p><b>Sprechen</b> — sich anhand von Stichwörtern vorstellen, zu einem Stichwort fragen und antworten, eine Bitte formulieren.</p>
+    </div>
+
+    <p class="note measure"><b>Noch ohne Zahlen.</b> Dauer, Punkte und Mindestpunktzahlen stehen hier bewusst leer: für A2 sind sie aus den offiziellen Durchführungsbestimmungen und dem Modellsatz übernommen, für A1 liegt in diesem Projekt keine geprüfte Quelle vor. Erfundene Werte wären schlimmer als gar keine — man plant danach. Aktuelle Angaben auf <span class="mono">osd.at</span>.</p>
+  `;
+}
+
+function examHtmlA2(EXAM) {
   const rows = EXAM.map(
     (r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="num">${r[4]}</td></tr>`
   ).join("");
@@ -256,7 +217,7 @@ function examHtml() {
   `;
 }
 
-function masteryHtml(total) {
+function masteryHtml(total, MASTERY) {
   const groups = MASTERY.map(
     (g) => `
     <div class="subhead">${g.group}</div>

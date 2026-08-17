@@ -1,7 +1,13 @@
-// 35-zone registry driving both the 3D scene and the overlay content router.
-// category: "grammar" | "vocab" | "examskill"
+// The A2 town: 35 learning zones plus five clickable landmarks.
+//
+// category: "grammar" | "vocab" | "examskill" | "info"
 // status:   "built" (has a content module) | "stub" (shows a teaser only)
-export const ZONES = [
+// order:    position on the one fixed route through this level
+//
+// These ids carry no level prefix, unlike A1's. They are written into saves
+// that already exist on real machines, and renaming them would throw that work
+// away for nothing. See LEVELS[].idPrefix in data/levels.js.
+export const ZONES_A2 = [
   // ---------------- Grammar district (11) ----------------
   {
     id: "grammar-foundations", order: 1, category: "grammar", name: "Grammatik-Fundament",
@@ -152,7 +158,3 @@ export const ZONES = [
     status: "built", module: "infoHub",
   },
 ];
-
-export function getZone(id) {
-  return ZONES.find((z) => z.id === id);
-}

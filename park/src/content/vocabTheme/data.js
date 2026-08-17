@@ -5,8 +5,14 @@ import { THEMES2 } from "./themes2.js";
 import { THEMES3 } from "./themes3.js";
 import { THEMES4 } from "./themes4.js";
 import { THEMES5 } from "./themes5.js";
+import { THEMES_A1 } from "./a1.js";
+import { THEMES_A1B } from "./a1b.js";
 
+// One map across every level; registry.js slices it per level. Zone ids are
+// unique across levels, so A1's "Wohnen" and A2's are simply two entries.
 export const THEMES = {
+  ...THEMES_A1,
+  ...THEMES_A1B,
   ...THEMES2,
   ...THEMES3,
   ...THEMES4,

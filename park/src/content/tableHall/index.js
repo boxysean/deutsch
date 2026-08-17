@@ -1,6 +1,6 @@
-import { TOPICS } from "../grammarTopic/data.js";
-import { ZONES } from "../../data/zones.js";
-import { makeStore } from "../lib/storage.js";
+import { topicsFor } from "../registry.js";
+import { getZones } from "../../data/zones/index.js";
+import { makeLevelStore } from "../lib/storage.js";
 
 // The Kölner Dom: every grammar table in one nave.
 //
@@ -9,7 +9,7 @@ import { makeStore } from "../lib/storage.js";
 // across eleven topics, which is the right place to meet them and the wrong
 // place to memorise them. Here they stand together, in route order, each one
 // coverable so the page can ask instead of tell.
-const store = makeStore("deutsch-info:");
+const store = makeLevelStore("info:");
 
 const STATE_KEY = "tables";
 
@@ -57,14 +57,21 @@ const EXTRA_TABLES = {
 };
 
 export function mount(container) {
-  const order = new Map(ZONES.map((z) => [z.id, z.order || 999]));
-  const names = new Map(ZONES.map((z) => [z.id, z.name]));
+  const zones = getZones();
+  const TOPICS = topicsFor();
+  const order = new Map(zones.map((z) => [z.id, z.order || 999]));
+  const names = new Map(zones.map((z) => [z.id, z.name]));
 
   const tablesOf = (id) => (TOPICS[id]?.tables || []).concat(EXTRA_TABLES[id] || []);
 
   // Every table, grouped by its topic, topics in route order.
+  //
+  // EXTRA_TABLES is keyed by zone id across all levels, so it has to be filtered
+  // to this level as well — otherwise A1's hall picks up A2's hand-written
+  // Schritt-1 tables, which topicsFor() would never have handed over.
+  const here = new Set(zones.map((z) => z.id));
   const groups = [...new Set(Object.keys(TOPICS).concat(Object.keys(EXTRA_TABLES)))]
-    .filter((id) => tablesOf(id).length)
+    .filter((id) => here.has(id) && tablesOf(id).length)
     .sort((a, b) => (order.get(a) || 999) - (order.get(b) || 999))
     .map((id) => ({
       id,

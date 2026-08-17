@@ -198,5 +198,17 @@ export function createLabels(zones, renderer, onSelect) {
     if (remeasure) measure();
   }
 
-  return { update, setHovered, setActive, refreshScores };
+  return {
+    update,
+    setHovered,
+    setActive,
+    refreshScores,
+    // Switching level builds a second set of labels into the same container.
+    // Without this the old town's labels stay in the DOM, invisible only
+    // because their zones are no longer on any map.
+    destroy() {
+      items.forEach((it) => it.el.remove());
+      items.length = 0;
+    },
+  };
 }

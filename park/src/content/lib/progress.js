@@ -5,26 +5,25 @@
 // It also keeps a dated history, so the tower can plot a curve rather than a
 // single figure.
 
-import { ZONES } from "../../data/zones.js";
-import { THEMES } from "../vocabTheme/data.js";
-import { TOPICS } from "../grammarTopic/data.js";
-import { SKILLS } from "../examSkill/data.js";
-import { makeStore } from "./storage.js";
+import { getZones } from "../../data/zones/index.js";
+import { themesFor, topicsFor, skillsFor } from "../registry.js";
+import { makeLevelStore, readLevel } from "./storage.js";
+import { masteryCount } from "../infoHub/data.js";
+import { getLevel } from "../../data/levels.js";
 import { wordIsSicher } from "../vocabTheme/deck.js";
 
-const plan = makeStore("deutsch-plan:");
+// Every number on this page belongs to ONE level. The stores and the content
+// slices below resolve against whichever level is on screen, so an A2 total
+// never quietly includes A1 words — a percentage that mixes them would be
+// worse than no percentage at all.
+const plan = makeLevelStore("plan:");
 
 // The user's own plan: start of September to the end of December.
 export const DEFAULT_RANGE = { start: "2026-09-01", end: "2026-12-31" };
 
-function read(key, fallback) {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : JSON.parse(v);
-  } catch (e) {
-    return fallback;
-  }
-}
+// Level-scoped: "grammatik:akkusativ:l1" resolves to
+// "deutsch-a2-grammatik:akkusativ:l1" for as long as A2 is the level on screen.
+const read = readLevel;
 
 const filled = (v) => String(v == null ? "" : v).trim().length > 0;
 
@@ -36,10 +35,10 @@ function grammarCounts() {
   let done = 0;
   let total = 0;
 
-  Object.entries(TOPICS).forEach(([zoneId, topic]) => {
+  Object.entries(topicsFor()).forEach(([zoneId, topic]) => {
     topic.exercises.forEach((ex) => {
       total += ex.items.length;
-      const saved = read(`deutsch-grammatik:${zoneId}:${ex.id}`, {});
+      const saved = read(`grammatik:${zoneId}:${ex.id}`, {});
       if (ex.kind === "reveal") {
         done += Object.values(saved).filter((v) => v && v.mark === "ok").length;
       } else {
@@ -48,11 +47,11 @@ function grammarCounts() {
     });
   });
 
-  const diagnose = read("deutsch-tag01:diagnose", {});
+  const diagnose = read("tag01:diagnose", {});
   total += 20;
   done += Object.values(diagnose).filter((d) => d && filled(d.v)).length;
 
-  const tagVocab = read("deutsch-tag01:vocab", {});
+  const tagVocab = read("tag01:vocab", {});
   total += 28;
   done += Object.values(tagVocab).filter((v) => v && v.mastered).length;
 
@@ -65,9 +64,9 @@ function grammarCounts() {
 function vocabCounts() {
   let done = 0;
   let total = 0;
-  Object.entries(THEMES).forEach(([zoneId, theme]) => {
+  Object.entries(themesFor()).forEach(([zoneId, theme]) => {
     total += theme.words.length;
-    const state = read(`deutsch-vokabel:${zoneId}:state`, {});
+    const state = read(`vokabel:${zoneId}:state`, {});
     done += Object.values(state).filter(wordIsSicher).length;
   });
   return { done: Math.min(done, total), total };
@@ -79,14 +78,19 @@ function examCounts() {
   let done = 0;
   let total = 0;
 
-  total += 10; // Lesen: two tasks of five items
-  const a1 = read("deutsch-lesen:aufgabe1", {});
-  const a2 = read("deutsch-lesen:aufgabe2", {});
-  done += Object.values(a1).filter(Boolean).length + Object.keys(a2).length;
+  // Only counted where the level actually has the Lesen model paper. A level
+  // whose exam trainers are still stubs must not be given a denominator for
+  // work it cannot offer.
+  if (getZones().some((z) => z.module === "lesenExam")) {
+    total += 10; // Lesen: two tasks of five items
+    const a1 = read("lesen:aufgabe1", {});
+    const a2 = read("lesen:aufgabe2", {});
+    done += Object.values(a1).filter(Boolean).length + Object.keys(a2).length;
+  }
 
-  Object.entries(SKILLS).forEach(([zoneId, skill]) => {
+  Object.entries(skillsFor()).forEach(([zoneId, skill]) => {
     skill.training.forEach((block) => {
-      const saved = read(`deutsch-pruefung:${zoneId}:${block.id}`, block.kind === "writing" ? "" : {});
+      const saved = read(`pruefung:${zoneId}:${block.id}`, block.kind === "writing" ? "" : {});
       if (block.kind === "writing") {
         total += 1;
         if (filled(saved)) done += 1;
@@ -100,10 +104,10 @@ function examCounts() {
     });
   });
 
-  const domZone = ZONES.find((z) => z.id === "dom");
+  const domZone = getZones().find((z) => z.archetype === "dom");
   if (domZone) {
-    const mastery = read("deutsch-info:mastery", {});
-    total += 39;
+    const mastery = read("info:mastery", {});
+    total += masteryCount(getLevel());
     done += Object.values(mastery).filter(Boolean).length;
   }
 
@@ -138,7 +142,7 @@ export const MAX_CONFIDENCE = 3;
 
 // Only the learning zones get rated; the Dom and the Fernsehturm are not topics.
 export function ratableZones() {
-  return ZONES.filter((z) => z.category !== "info");
+  return getZones().filter((z) => z.category !== "info");
 }
 
 export function getConfidence() {

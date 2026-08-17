@@ -1,4 +1,5 @@
-import { getZone } from "../data/zones.js";
+import { getZone, levelOfZone } from "../data/zones/index.js";
+import { getLevel, setLevel, isLevel } from "../data/levels.js";
 import { CATEGORIES } from "../data/categories.js";
 import { DISTRICT } from "../iso/palette.js";
 import { getPreview } from "../content/previews.js";
@@ -58,19 +59,18 @@ export function initOverlay() {
     location.hash = "";
   });
   els.sheetOpen.addEventListener("click", () => {
-    if (currentZoneId) location.hash = `zone/${currentZoneId}/detail`;
+    if (currentZoneId) location.hash = zoneHash(currentZoneId, true);
   });
   // Closing the expanded page drops back to the sheet rather than all the way out.
   els.close.addEventListener("click", () => {
-    if (currentZoneId) location.hash = `zone/${currentZoneId}`;
-    else location.hash = "";
+    location.hash = currentZoneId ? zoneHash(currentZoneId) : "";
   });
   els.backdrop.addEventListener("click", () => {
-    if (currentZoneId) location.hash = `zone/${currentZoneId}`;
+    if (currentZoneId) location.hash = zoneHash(currentZoneId);
   });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    if (!els.panel.hidden && currentZoneId) location.hash = `zone/${currentZoneId}`;
+    if (!els.panel.hidden && currentZoneId) location.hash = zoneHash(currentZoneId);
     else if (!els.sheet.hidden) location.hash = "";
   });
 
@@ -82,13 +82,26 @@ export function onZoneChange(cb) {
   onChangeCallback = cb;
 }
 
+// #a2/zone/akkusativ/detail — the level comes first, so a shared link opens
+// the right town as well as the right house. Links written before levels
+// existed have no level segment; those are resolved from the zone id, which is
+// unique across levels.
+const HASH = /^#(?:([a-z][a-z0-9]*)\/)?zone\/([^/]+)(\/detail)?$/;
+
 function handleHash() {
-  const match = location.hash.match(/^#zone\/([^/]+)(\/detail)?$/);
+  const match = location.hash.match(HASH);
   if (!match) {
     closeAll();
     return;
   }
-  const [, id, detail] = match;
+  const [, hashLevel, id, detail] = match;
+  const wanted = isLevel(hashLevel) ? hashLevel : levelOfZone(id);
+  // Following a link into the other town switches to it. main.js listens for
+  // that and rebuilds the map, then re-runs this handler against the new level.
+  if (wanted && wanted !== getLevel()) {
+    setLevel(wanted);
+    return;
+  }
   const zone = getZone(id);
   if (!zone) {
     closeAll();
@@ -298,8 +311,19 @@ function closeAll() {
   if (onChangeCallback) onChangeCallback(null);
 }
 
+export function zoneHash(id, detail = false) {
+  return `${getLevel()}/zone/${id}${detail ? "/detail" : ""}`;
+}
+
 export function openZonePanel(id) {
-  location.hash = `zone/${id}`;
+  location.hash = zoneHash(id);
+}
+
+// Called by main.js after it has rebuilt the map for a new level, so the
+// overlay re-reads the hash against the zones that now exist.
+export function refreshOverlay() {
+  closeAll();
+  handleHash();
 }
 
 export function closeZonePanel() {

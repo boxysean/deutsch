@@ -10,7 +10,7 @@
 // The route never reorders itself. "Next" is simply the first step you have not
 // yet called your own, so you always know where you are.
 
-import { ZONES } from "../../data/zones.js";
+import { getZones } from "../../data/zones/index.js";
 import { getConfidenceFor, MAX_CONFIDENCE } from "./progress.js";
 
 // Rating a topic 2 (mittel) or 3 (hoch) counts as taking it off the route.
@@ -18,7 +18,7 @@ import { getConfidenceFor, MAX_CONFIDENCE } from "./progress.js";
 export const SETTLED_AT = 2;
 
 export function route() {
-  return ZONES.filter((z) => typeof z.order === "number").sort((a, b) => a.order - b.order);
+  return getZones().filter((z) => typeof z.order === "number").sort((a, b) => a.order - b.order);
 }
 
 export function routeLength() {

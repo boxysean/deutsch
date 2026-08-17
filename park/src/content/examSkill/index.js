@@ -1,9 +1,9 @@
 import { SKILLS } from "./data.js";
-import { makeStore, normalize, wordsPresent } from "../lib/storage.js";
+import { makeLevelStore, normalize, wordsPresent } from "../lib/storage.js";
 
 // Generic renderer for the three remaining Prüfungsteile (Hören, Schreiben,
 // Sprechen). Everything comes from data: Format, Strategie, Training.
-const store = makeStore("deutsch-pruefung:");
+const store = makeLevelStore("pruefung:");
 
 export function mount(container, zone) {
   const skill = SKILLS[zone.id];
