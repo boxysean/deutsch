@@ -7,7 +7,7 @@ import { route, isSettled, nextZone, routeProgress } from "../lib/route.js";
 import { getRange, daysBetween } from "../lib/progress.js";
 
 // The Dom on the town square. Not a learning zone — it explains what this is,
-// what the ÖSD Zertifikat A2 actually asks of you, and what you still have to
+// what this level's ÖSD exam actually asks of you, and what you still have to
 // master. The checklist is the only part that stores anything.
 const store = makeLevelStore("info:");
 
@@ -17,7 +17,7 @@ export function mount(container, zone) {
   const total = MASTERY.reduce((n, g) => n + g.items.length, 0);
 
   container.innerHTML = `
-    <p class="lede measure">Willkommen in <strong>Deutsche Welt</strong> — einer kleinen Alpenstadt, in der jedes Haus ein Thema der ÖSD-A2-Prüfung ist. Dieser Dom am Hauptplatz erklärt das Spiel, die Prüfung und alles, was du zum Bestehen können musst.</p>
+    <p class="lede measure">Willkommen in <strong>Deutsche Welt</strong> — einer kleinen Alpenstadt, in der jedes Haus ein Thema der Prüfung <strong>${levelInfo().exam}</strong> ist. Dieser Dom am Hauptplatz erklärt das Spiel, die Prüfung und alles, was du zum Bestehen können musst.</p>
     <div class="tabs" id="ih-tabs"></div>
     <div id="ih-panels"></div>
   `;
@@ -78,8 +78,8 @@ function gameHtml() {
     <div class="subhead">Bedienung</div>
     <div class="measure rule-box">
       <p><b>Ziehen</b> — Karte verschieben · <b>Scrollen</b> — zoomen · <b>Klick</b> — Haus öffnen</p>
-      <p>Häuser mit einem goldenen Ring sind fertig ausgebaut — inzwischen sind das alle. Blasse Häuser gäbe es nur, wenn ein Thema noch auf Inhalt wartet.</p>
-      <p>Zwei Denkmäler kannst du anklicken: der <b>Fernsehturm</b> zeigt deinen Fortschritt, das <b>Riesenrad</b> nimmt deine Daten mit auf ein anderes Gerät. Kölner Dom, Brandenburger Tor, Neuschwanstein und Matterhorn sind reine Dekoration.</p>
+      <p>Häuser mit einem goldenen Ring sind fertig ausgebaut. Blasse Häuser warten noch auf Inhalt.</p>
+      <p>Vier Denkmäler kannst du anklicken: der <b>Fernsehturm</b> zeigt deinen Fortschritt, das <b>Riesenrad</b> nimmt deine Daten mit auf ein anderes Gerät, der <b>Kölner Dom</b> sammelt alle Grammatik-Tabellen, und am <b>Brandenburger Tor</b> übst du Vokabeln aus allen Themen gemischt. Neuschwanstein und Matterhorn sind reine Dekoration.</p>
       <p>Das Haus mit der <b>goldenen Fahne</b> ist dein nächster Schritt auf dem Lernpfad — oben in der Leiste steht es auch. Den ganzen Pfad siehst du im Tab <em>Lernpfad</em>.</p>
     </div>
 
@@ -142,11 +142,8 @@ function examHtml(level, EXAM) {
   return level === "a1" ? examHtmlA1(EXAM) : examHtmlA2(EXAM);
 }
 
-// A1's numbers are deliberately absent rather than guessed. Every figure on the
-// A2 page below is read off the official Durchführungsbestimmungen and the
-// Modellsatz; nothing equivalent has been checked for A1 in this project, and a
-// plausible-looking invented duration is worse than an honest gap — you would
-// plan against it.
+// Both levels are now read off the official ÖSD documents. For A1 that is the
+// ZA1 Durchführungsbestimmungen (Okt. 2023) and the ZA1 Modellsatz (2024-04-10).
 function examHtmlA1(EXAM) {
   const rows = EXAM.map(
     (r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="num">${r[4]}</td></tr>`
@@ -155,7 +152,10 @@ function examHtmlA1(EXAM) {
   return `
     <div class="subhead" style="margin-top:0">ÖSD Zertifikat A1 — Aufbau</div>
     <div class="measure rule-box">
-      <p>Wie auf A2 gibt es eine <b>schriftliche</b> und eine <b>mündliche</b> Prüfung, mit denselben vier Teilen: Lesen, Hören, Schreiben, Sprechen — nur kürzer und in langsamerem, deutlicherem Deutsch.</p>
+      <p>Die Prüfung besteht aus <b>zwei Modulen</b>, die man einzeln oder gemeinsam ablegen kann:</p>
+      <p><b>Schriftliche Prüfung</b> (Gruppenprüfung) mit Lesen, Hören und Schreiben — zusammen ca. <b>55 Minuten</b>.<br>
+         <b>Mündliche Prüfung</b> als <b>Einzelprüfung</b> — ca. <b>10 Minuten</b>, dazu 10 Minuten Vorbereitung.</p>
+      <p>Wörterbücher sind nicht erlaubt. Jedes Modul kann beliebig oft wiederholt werden.</p>
     </div>
 
     <div class="tablewrap">
@@ -165,15 +165,22 @@ function examHtmlA1(EXAM) {
       </table>
     </div>
 
-    <div class="subhead">Was in den einzelnen Teilen verlangt wird</div>
+    <div class="subhead">Bestehen</div>
     <div class="measure rule-box">
-      <p><b>Lesen</b> — kurze Alltagstexte: Notizen, Anzeigen, Schilder, eine einfache E-Mail.</p>
-      <p><b>Hören</b> — Durchsagen und kurze Gespräche, langsam und deutlich gesprochen.</p>
-      <p><b>Schreiben</b> — ein einfaches Formular ausfüllen und eine kurze Mitteilung mit wenigen Leitpunkten schreiben.</p>
-      <p><b>Sprechen</b> — sich anhand von Stichwörtern vorstellen, zu einem Stichwort fragen und antworten, eine Bitte formulieren.</p>
+      <p>Schriftliche Prüfung: <b>38 von 75 Punkten</b> — <em>und</em> mindestens <b>6 Punkte</b> in Lesen <em>und</em> in Hören. Wer in einem der beiden darunter bleibt, hat die <em>ganze</em> schriftliche Prüfung nicht bestanden, egal wie gut der Rest war. Das ist die wichtigste Zahl auf dieser Seite.</p>
+      <p>Mündliche Prüfung: <b>12 von 25 Punkten</b>.</p>
+      <p>Insgesamt sind 100 Punkte möglich. Prädikate schriftlich: <b>sehr gut</b> ab 66, <b>gut</b> ab 56, <b>bestanden</b> ab 38. Mündlich: <b>sehr gut</b> ab 22, <b>gut</b> ab 19, <b>bestanden</b> ab 12.</p>
     </div>
 
-    <p class="note measure"><b>Noch ohne Zahlen.</b> Dauer, Punkte und Mindestpunktzahlen stehen hier bewusst leer: für A2 sind sie aus den offiziellen Durchführungsbestimmungen und dem Modellsatz übernommen, für A1 liegt in diesem Projekt keine geprüfte Quelle vor. Erfundene Werte wären schlimmer als gar keine — man plant danach. Aktuelle Angaben auf <span class="mono">osd.at</span>.</p>
+    <div class="subhead">Was in den einzelnen Teilen verlangt wird</div>
+    <div class="measure rule-box">
+      <p><b>Lesen</b> (16 Items) — Aufgabe 1: fünf Situationen der passenden Anzeige zuordnen, eine Anzeige ist zu viel. Aufgabe 2: drei Anzeigen mit je zwei Ja/Nein-Fragen. Aufgabe 3: fünf kurze Texte dem passenden Bild zuordnen.</p>
+      <p><b>Hören</b> (15 Items) — Aufgabe 1: fünf Texte den Fotos zuordnen. Aufgabe 2: eine Nachricht hören und die wichtigsten Informationen notieren. Aufgabe 3: fünf befragte Personen, pro Person eine Antwort. <em>Alles nur ein Mal.</em></p>
+      <p><b>Schreiben</b> — Aufgabe 1 (5 Punkte): ein Formular für jemand anderen ausfüllen. Aufgabe 2 (10 Punkte): eine Antwort-E-Mail. Ohne Text gibt es null Punkte.</p>
+      <p><b>Sprechen</b> — Aufgabe 1: aus sechs Themen (Beruf, Sprachen, Lieblingsessen, Sport, Hobbys, Familie) <b>vier</b> wählen und sich vorstellen. Aufgabe 2: eines von drei Bildern beschreiben — wer, wo, was machen die Personen. Aufgabe 3: dieselbe Situation mitspielen.</p>
+    </div>
+
+    <p class="note measure">Angaben nach den ÖSD-Durchführungsbestimmungen ZA1 (Stand Oktober 2023) und dem ÖSD-Modellsatz vom 10.04.2024. Es gibt daneben eine Variante <em>ÖSD Zertifikat A1 / Österreich</em> mit identischem Aufbau sowie <em>ÖSD KID A1</em> für Teilnehmende unter 14. Vor der Anmeldung lohnt ein Blick auf <span class="mono">osd.at</span>.</p>
   `;
 }
 
