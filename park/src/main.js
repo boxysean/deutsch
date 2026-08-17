@@ -59,6 +59,8 @@ function mountLevel() {
     onHover: (id) => labels.setHovered(id),
     onSelect: (id) => openZonePanel(id),
     onDismiss: () => closeZonePanel(),
+    // Pinches that start on a map label have to count too.
+    gestureSurface: document.getElementById("labels"),
   });
 
   const onResize = () => renderer.resize();

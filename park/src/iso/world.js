@@ -1,6 +1,7 @@
 import { getZones } from "../data/zones/index.js";
 import { makeRng, pick, range } from "./rng.js";
-import { DISTRICT, ROOF_HUES } from "./palette.js";
+import { DISTRICT, terrainFor } from "./palette.js";
+import { getLevel } from "../data/levels.js";
 
 // The town is laid out on an integer tile grid. Streets run along the grid
 // axes, which is what gives the classic isometric town look (and matches how
@@ -52,6 +53,7 @@ function walk(segments) {
 function buildingFor(zone) {
   const rng = makeRng(zone.id + "|iso");
   const pal = DISTRICT[zone.category];
+  const ROOF_HUES = terrainFor(getLevel()).roofHues;
   const built = zone.status === "built";
 
   const isLandmark = zone.archetype === "townhall";

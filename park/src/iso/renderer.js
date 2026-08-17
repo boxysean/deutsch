@@ -19,8 +19,9 @@ import {
   drawCastle,
   drawMatterhorn,
 } from "./landmarks.js";
-import { faces, hsl, DISTRICT, GROUND, TRIM, OUTLINE } from "./palette.js";
+import { faces, hsl, DISTRICT, terrainFor, TRIM, OUTLINE } from "./palette.js";
 import { PLAZA } from "./world.js";
+import { getLevel } from "../data/levels.js";
 import {
   drawMountain,
   drawPerson,
@@ -33,6 +34,9 @@ import {
 
 export function createRenderer(canvas, world) {
   const ctx = canvas.getContext("2d");
+  // The renderer is rebuilt per level, so the terrain is resolved once here
+  // rather than looked up per tile.
+  const { ground: GROUND, plots: PLOTS } = terrainFor(getLevel());
 
   // The scene is drawn at 1x into an offscreen buffer, then blitted to the
   // visible canvas at an integer zoom with smoothing off — real chunky pixels.
@@ -169,8 +173,8 @@ export function createRenderer(canvas, world) {
     if (t.type === "path") return checker ? GROUND.path : GROUND.pathAlt;
     if (t.type === "plaza") return GROUND.plaza;
     if (t.type === "plot") {
-      const pal = DISTRICT[t.district];
-      return checker ? pal.plot : pal.plotAlt;
+      const pair = PLOTS[t.district] || PLOTS.info;
+      return checker ? pair[0] : pair[1];
     }
     return GROUND.grass;
   }
