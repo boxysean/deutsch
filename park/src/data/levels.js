@@ -27,6 +27,17 @@ export const LEVELS = [
     tagline: "Der Weg zur Prüfung",
     idPrefix: "",
   },
+  {
+    id: "b1",
+    label: "B1",
+    name: "Oberstadt",
+    // The Austria-specific B1, not the international ÖSD Zertifikat B1: a
+    // different paper with its own structure, including a combined
+    // LESEN & SPRACHBAUSTEINE subtest that neither A1 nor A2 has.
+    exam: "ÖSD Zertifikat Deutsch Österreich B1",
+    tagline: "Selbstständige Sprachverwendung",
+    idPrefix: "b1-",
+  },
 ];
 
 export const DEFAULT_LEVEL = "a2";

@@ -138,8 +138,54 @@ function routeHtml() {
   return html;
 }
 
+const EXAM_PAGES = { a1: examHtmlA1, b1: examHtmlB1 };
+
 function examHtml(level, EXAM) {
-  return level === "a1" ? examHtmlA1(EXAM) : examHtmlA2(EXAM);
+  return (EXAM_PAGES[level] || examHtmlA2)(EXAM);
+}
+
+// ZDÖ B1 — the Austria-specific paper, not the international ÖSD Zertifikat B1.
+// Figures from the ZDÖ B1 Durchführungsbestimmungen (März 2019); task types
+// from the Modellsatz Vers. 2.1 (schriftlich) and 2.0 (mündlich).
+function examHtmlB1(EXAM) {
+  const rows = EXAM.map(
+    (r) => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="num">${r[4]}</td></tr>`
+  ).join("");
+
+  return `
+    <div class="subhead" style="margin-top:0">ÖSD Zertifikat Deutsch Österreich B1 — Aufbau</div>
+    <div class="measure rule-box">
+      <p>Die Prüfung besteht aus <b>zwei Modulen</b>, die man einzeln oder gemeinsam ablegen kann:</p>
+      <p><b>Schriftliche Prüfung</b> (Gruppenprüfung) mit Lesen &amp; Sprachbausteine, Hören und Schreiben — zusammen ca. <b>160 Minuten</b> ohne Pause.<br>
+         <b>Mündliche Prüfung</b> (Einzel- oder Paarprüfung) — ca. <b>15 Minuten</b>, dazu 10 Minuten Vorbereitung.</p>
+      <p>Wörterbücher sind nicht erlaubt. Jedes Modul kann beliebig oft wiederholt werden.</p>
+      <p class="note" style="margin-top:0.6rem">Achtung: Das ist die <b>österreichische</b> B1-Prüfung. Das international ausgestellte <em>ÖSD Zertifikat B1</em> ist eine andere Prüfung mit anderem Aufbau.</p>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Teil</th><th>Umfang</th><th>Dauer</th><th>Punkte</th><th>Mindestens</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    <div class="subhead">Bestehen</div>
+    <div class="measure rule-box">
+      <p>Schriftliche Prüfung: <b>135 von 225 Punkten</b> (60 %). Mündliche Prüfung: <b>45 von 75 Punkten</b> (60 %). Insgesamt sind 300 Punkte möglich.</p>
+      <p><b>Es gibt hier keine Mindestpunktzahl pro Subtest.</b> Anders als auf A1, wo unter 6 Punkten in Lesen oder Hören das ganze Modul fällt, zählt auf ZDÖ B1 nur die Summe — ein schwacher Teil lässt sich also mit einem starken ausgleichen.</p>
+      <p>Prädikate: <b>sehr gut</b> ab 203, <b>gut</b> ab 180, <b>befriedigend</b> ab 158, <b>ausreichend</b> ab 135 (schriftlich).</p>
+    </div>
+
+    <div class="subhead">Was in den einzelnen Teilen verlangt wird</div>
+    <div class="measure rule-box">
+      <p><b>Lesen &amp; Sprachbausteine</b> — <em>ein</em> Subtest mit einer Uhr und einer Punktezahl, nicht zwei. Lesen 1 (ca. 20 Min): fünf Texten aus zehn Überschriften die passende zuordnen. Lesen 2 (ca. 35 Min): ein Zeitungsartikel, fünf Fragen zu je drei Antworten. Lesen 3 (ca. 15 Min): zehn Situationen und zwölf Anzeigen — <em>passt keine, schreibt man 0</em>. Sprachbausteine 1 (ca. 10 Min): Lückentext, pro Lücke A, B oder C. Sprachbausteine 2 (ca. 10 Min): einen Brief aus einer Wortliste ergänzen, jedes Wort nur ein Mal, nicht alle passen.</p>
+      <p><b>Hören</b> — Aufgabe 1: fünf Stellungnahmen zu einem Thema zuordnen. Aufgabe 2: ein Radiogespräch, richtig/falsch. Aufgabe 3: fünf kurze Alltagstexte (Autofahrt, Mobilbox, Kaufhaus-Durchsage, Kino-Ansage, Anruf bei der Volkshochschule).</p>
+      <p><b>Schreiben</b> — eine Aufgabe, aber <b>zwei Varianten zur Wahl</b>. Im Modellsatz: eine persönliche E-Mail an einen Kurskollegen, oder eine Antwort an eine Behörde (waff-Förderung). Bewertet wird die Reinschrift; Notizen zählen nicht.</p>
+      <p><b>Sprechen</b> — Aufgabe 1: Kontaktaufnahme, die Partnerin/den Partner kennenlernen. Aufgabe 2: Gespräch über ein Thema, jede Seite bekommt andere Informationen dazu. Aufgabe 3: gemeinsam eine Aufgabe lösen und sich einigen. Das Einführungsgespräch wird nicht bewertet.</p>
+    </div>
+
+    <p class="note measure">Angaben nach den Durchführungsbestimmungen ÖSD Zertifikat Deutsch Österreich B1 (Stand März 2019) und dem ZDÖ-B1-Modellsatz (schriftlich Vers. 2.1, mündlich Vers. 2.0). Vor der Anmeldung lohnt ein Blick auf <span class="mono">osd.at</span>.</p>
+  `;
 }
 
 // Both levels are now read off the official ÖSD documents. For A1 that is the

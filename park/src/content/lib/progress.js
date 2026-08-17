@@ -47,13 +47,19 @@ function grammarCounts() {
     });
   });
 
-  const diagnose = read("tag01:diagnose", {});
-  total += 20;
-  done += Object.values(diagnose).filter((d) => d && filled(d.v)).length;
+  // Tag 1 is a single bespoke zone that only A2 has. Counted only where it
+  // exists — otherwise every other level carries 48 points of denominator for
+  // work it cannot offer, which is exactly how B1 opened at "0 von 86" with no
+  // content in it at all.
+  if (getZones().some((z) => z.module === "grammarFoundations")) {
+    const diagnose = read("tag01:diagnose", {});
+    total += 20;
+    done += Object.values(diagnose).filter((d) => d && filled(d.v)).length;
 
-  const tagVocab = read("tag01:vocab", {});
-  total += 28;
-  done += Object.values(tagVocab).filter((v) => v && v.mastered).length;
+    const tagVocab = read("tag01:vocab", {});
+    total += 28;
+    done += Object.values(tagVocab).filter((v) => v && v.mastered).length;
+  }
 
   return { done: Math.min(done, total), total };
 }
