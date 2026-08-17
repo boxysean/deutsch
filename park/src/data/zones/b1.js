@@ -28,7 +28,7 @@ export const ZONES_B1 = [
   {
     id: "b1-relativsaetze", order: 8, category: "grammar", name: "Relativsätze",
     subtitle: "der, den, dem · mit Präposition",
-    archetype: "kiosk", status: "stub", module: "grammarTopic",
+    archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "b1-adjektivdeklination", order: 11, category: "grammar", name: "Adjektivdeklination",
@@ -53,12 +53,12 @@ export const ZONES_B1 = [
   {
     id: "b1-konjunktiv2", order: 23, category: "grammar", name: "Konjunktiv II",
     subtitle: "Wünsche · Höflichkeit · Irreales",
-    archetype: "kiosk", status: "stub", module: "grammarTopic",
+    archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "b1-passiv", order: 26, category: "grammar", name: "Passiv",
     subtitle: "Präsens · Präteritum · mit Modalverb",
-    archetype: "kiosk", status: "stub", module: "grammarTopic",
+    archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "b1-plusquamperfekt", order: 29, category: "grammar", name: "Plusquamperfekt",
