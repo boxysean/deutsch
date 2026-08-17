@@ -3,8 +3,15 @@
 import { MORE } from "./more.js";
 import { MORE2 } from "./more2.js";
 import { MORE3 } from "./more3.js";
+import { TOPICS_A1 } from "./a1.js";
+import { TOPICS_A1B } from "./a1b.js";
 
+// One map across every level. Zone ids are unique across levels, so there is
+// nothing to disambiguate here; registry.js slices this by level wherever a
+// total has to belong to one town.
 export const TOPICS = {
+  ...TOPICS_A1,
+  ...TOPICS_A1B,
   ...MORE,
   ...MORE2,
   ...MORE3,

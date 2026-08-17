@@ -65,8 +65,13 @@ export function mount(container) {
   const tablesOf = (id) => (TOPICS[id]?.tables || []).concat(EXTRA_TABLES[id] || []);
 
   // Every table, grouped by its topic, topics in route order.
+  //
+  // EXTRA_TABLES is keyed by zone id across all levels, so it has to be filtered
+  // to this level as well — otherwise A1's hall picks up A2's hand-written
+  // Schritt-1 tables, which topicsFor() would never have handed over.
+  const here = new Set(zones.map((z) => z.id));
   const groups = [...new Set(Object.keys(TOPICS).concat(Object.keys(EXTRA_TABLES)))]
-    .filter((id) => tablesOf(id).length)
+    .filter((id) => here.has(id) && tablesOf(id).length)
     .sort((a, b) => (order.get(a) || 999) - (order.get(b) || 999))
     .map((id) => ({
       id,

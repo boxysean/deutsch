@@ -79,17 +79,22 @@ function mountLevel() {
 }
 
 mountLevel();
-initOverlay();
-onZoneChange((id) => session.labels.setActive(id));
 
-// The switch comes from the HUD buttons or from following a link into the other
-// town. Either way the map is rebuilt and the overlay re-reads the hash against
-// the zones that now exist.
+// Registered BEFORE initOverlay, which reads the hash as soon as it is called.
+// A cold load of #a1/... asks for a level switch during that first read, and if
+// nothing is listening yet the map is never rebuilt — the page would sit on the
+// default level showing no panel, which is exactly what a shared link does.
+//
+// The switch otherwise comes from the HUD buttons. Either way the map is rebuilt
+// and the overlay re-reads the hash against the zones that now exist.
 onLevelChange(() => {
   mountLevel();
   refreshOverlay();
   recordToday();
 });
+
+initOverlay();
+onZoneChange((id) => session.labels.setActive(id));
 
 // The progress curve needs a datapoint per day, so take one on load and again
 // when the tab is hidden — not only when the Fernsehturm is opened. Each level
