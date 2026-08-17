@@ -116,25 +116,23 @@ export const ZONES_A1 = [
 
   // ---------------- Exam district (4) ----------------
   // The trainers are not written yet; the houses stand so the route is complete.
-  // These subtitles describe what A1 ABILITY looks like, not what the ÖSD A1
-  // paper contains. The paper's structure has not been checked against a
-  // primary source in this project, and naming parts you cannot verify is how
-  // a study plan ends up drilling the wrong thing.
+  // The subtitles name the real task types, read off the ZA1 Modellsatz
+  // (10.04.2024) — see infoHub/data.js for the full figures and their source.
   {
     id: "a1-lesen", order: 10, icon: "📖", category: "examskill", name: "Lesen",
-    subtitle: "Kurze Alltagstexte verstehen", archetype: "pavilion", status: "stub",
+    subtitle: "3 Aufgaben · Anzeigen, Ja/Nein, Bilder", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-hoeren", order: 16, icon: "🎧", category: "examskill", name: "Hören",
-    subtitle: "Langsam und deutlich Gesprochenes", archetype: "pavilion", status: "stub",
+    subtitle: "3 Aufgaben · alles nur ein Mal", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-schreiben", order: 23, icon: "📝", category: "examskill", name: "Schreiben",
-    subtitle: "Einfache Angaben und Mitteilungen", archetype: "pavilion", status: "stub",
+    subtitle: "Formular + Antwort-E-Mail", archetype: "pavilion", status: "stub",
   },
   {
     id: "a1-sprechen", order: 26, icon: "💬", category: "examskill", name: "Sprechen",
-    subtitle: "Sich vorstellen, fragen, bitten", archetype: "pavilion", status: "stub",
+    subtitle: "Vorstellen · Bild · Rollenspiel", archetype: "pavilion", status: "stub",
   },
 
   // ---------------- Landmarks (5) ----------------
