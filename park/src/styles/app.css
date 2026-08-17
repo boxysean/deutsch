@@ -56,6 +56,8 @@
 .labels{ position:absolute; inset:0; z-index:12; pointer-events:none; overflow:hidden; }
 .map-label{
   position:absolute; top:0; left:0; pointer-events:auto;
+  /* the map handles pinch itself; without this a finger here page-zooms */
+  touch-action:none;
   display:inline-flex; align-items:center; gap:0.35rem;
   padding: 0.22rem 0.55rem 0.22rem 0.42rem;
   background: #fffdf7; color:#21202b;
