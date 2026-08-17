@@ -18,12 +18,12 @@ export const ZONES_B1 = [
   {
     id: "b1-nebensaetze", order: 2, category: "grammar", name: "Nebensätze & Konnektoren",
     subtitle: "weil · dass · obwohl · damit · während",
-    archetype: "townhall", status: "stub", module: "grammarTopic",
+    archetype: "townhall", status: "built", module: "grammarTopic",
   },
   {
     id: "b1-praeteritum", order: 5, category: "grammar", name: "Präteritum",
     subtitle: "Die Vergangenheit, die man schreibt",
-    archetype: "kiosk", status: "stub", module: "grammarTopic",
+    archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
     id: "b1-relativsaetze", order: 8, category: "grammar", name: "Relativsätze",
@@ -90,7 +90,7 @@ export const ZONES_B1 = [
   {
     id: "b1-meinung", order: 1, icon: "💭", category: "vocab", name: "Meinung & Diskussion",
     subtitle: "Für Sprechen 2 und 3 die wichtigste Liste",
-    archetype: "stall", status: "stub", module: "vocabTheme",
+    archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
     id: "b1-arbeit-beruf", order: 3, icon: "💼", category: "vocab", name: "Arbeit & Bewerbung",
@@ -152,7 +152,7 @@ export const ZONES_B1 = [
   {
     id: "b1-oesterreich", order: 25, icon: "🇦🇹", category: "vocab", name: "Österreich",
     subtitle: "Varianten, Land und Leute — für die ZDÖ-Prüfung",
-    archetype: "stall", status: "stub", module: "vocabTheme",
+    archetype: "stall", status: "built", module: "vocabTheme",
   },
 
   // ---------------- Exam district (4) ----------------
