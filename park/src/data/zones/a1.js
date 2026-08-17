@@ -6,7 +6,7 @@
 // mean a cross-level mix-up is impossible rather than merely unlikely — worth
 // the small asymmetry.
 //
-// The route is one sequence of 26 steps, interleaved the same way A2's is:
+// The route is one sequence of 28 steps, interleaved the same way A2's is:
 // grammar carries the real dependencies (articles before the accusative, the
 // accusative before possessives, sentence order before separable verbs), while
 // vocabulary is placed where its words are first needed, and the exam parts sit
@@ -24,42 +24,42 @@ export const ZONES_A1 = [
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-fragen", order: 6, category: "grammar", name: "Fragen & Satzstellung",
+    id: "a1-fragen", order: 7, category: "grammar", name: "Fragen & Satzstellung",
     subtitle: "W-Fragen · Ja/Nein · Verb an Position 2",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-akkusativ", order: 7, category: "grammar", name: "Akkusativ",
+    id: "a1-akkusativ", order: 8, category: "grammar", name: "Akkusativ",
     subtitle: "den/einen/keinen",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-possessiv", order: 9, category: "grammar", name: "Possessivartikel",
+    id: "a1-possessiv", order: 10, category: "grammar", name: "Possessivartikel",
     subtitle: "mein, dein, sein, ihr",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-modalverben", order: 12, category: "grammar", name: "Modalverben",
+    id: "a1-modalverben", order: 13, category: "grammar", name: "Modalverben",
     subtitle: "können · müssen · wollen · möchten · dürfen",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-trennbare-verben", order: 14, category: "grammar", name: "Trennbare Verben",
+    id: "a1-trennbare-verben", order: 15, category: "grammar", name: "Trennbare Verben",
     subtitle: "aufstehen, einkaufen, anrufen",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-imperativ", order: 17, category: "grammar", name: "Imperativ",
+    id: "a1-imperativ", order: 18, category: "grammar", name: "Imperativ",
     subtitle: "Sie-Form · du-Form · ihr-Form",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-praepositionen", order: 19, category: "grammar", name: "Präpositionen & Orte",
+    id: "a1-praepositionen", order: 20, category: "grammar", name: "Präpositionen & Orte",
     subtitle: "in, auf, bei, mit, zu, nach",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
   {
-    id: "a1-perfekt", order: 21, category: "grammar", name: "Perfekt",
+    id: "a1-perfekt", order: 23, category: "grammar", name: "Perfekt",
     subtitle: "haben/sein + Partizip II",
     archetype: "kiosk", status: "built", module: "grammarTopic",
   },
@@ -70,68 +70,84 @@ export const ZONES_A1 = [
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-zahlen-uhrzeit", order: 4, icon: "🔢", category: "vocab", name: "Zahlen & Uhrzeit",
+    id: "a1-zahlen-uhrzeit", order: 5, icon: "🔢", category: "vocab", name: "Zahlen & Uhrzeit",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-familie", order: 5, icon: "👪", category: "vocab", name: "Familie & Personen",
+    id: "a1-familie", order: 6, icon: "👪", category: "vocab", name: "Familie & Personen",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-wohnen", order: 8, icon: "🏠", category: "vocab", name: "Wohnen & Möbel",
+    id: "a1-wohnen", order: 9, icon: "🏠", category: "vocab", name: "Wohnen & Möbel",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-essen-trinken", order: 11, icon: "🍎", category: "vocab", name: "Essen & Trinken",
+    id: "a1-essen-trinken", order: 12, icon: "🍎", category: "vocab", name: "Essen & Trinken",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-tagesablauf", order: 13, icon: "⏰", category: "vocab", name: "Tagesablauf",
+    id: "a1-tagesablauf", order: 14, icon: "⏰", category: "vocab", name: "Tagesablauf",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-einkaufen", order: 15, icon: "🛒", category: "vocab", name: "Einkaufen & Preise",
+    id: "a1-einkaufen", order: 16, icon: "🛒", category: "vocab", name: "Einkaufen & Preise",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-kleidung-farben", order: 18, icon: "👕", category: "vocab", name: "Kleidung & Farben",
+    id: "a1-kleidung-farben", order: 19, icon: "👕", category: "vocab", name: "Kleidung & Farben",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-verkehr", order: 20, icon: "🚌", category: "vocab", name: "Verkehr & Wege",
+    id: "a1-verkehr", order: 22, icon: "🚌", category: "vocab", name: "Verkehr & Wege",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-freizeit", order: 22, icon: "⚽", category: "vocab", name: "Freizeit & Hobbys",
+    id: "a1-freizeit", order: 24, icon: "⚽", category: "vocab", name: "Freizeit & Hobbys",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-koerper", order: 24, icon: "💊", category: "vocab", name: "Körper & Gesundheit",
+    id: "a1-koerper", order: 26, icon: "💊", category: "vocab", name: "Körper & Gesundheit",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
   {
-    id: "a1-wetter", order: 25, icon: "🌦", category: "vocab", name: "Wetter & Jahreszeiten",
+    id: "a1-wetter", order: 27, icon: "🌦", category: "vocab", name: "Wetter & Jahreszeiten",
+    archetype: "stall", status: "built", module: "vocabTheme",
+  },
+
+  // Two decks that are not about a topic. The twelve above are topical, which
+  // is why they leak: a verb like `bringen` or an adverb like `leider` belongs
+  // to no theme, so nothing owned it. Checking the town against the Goethe A1
+  // Wortliste made the hole measurable — see vocabTheme/a1c.js.
+  {
+    id: "a1-verben", order: 4, icon: "🔤", category: "vocab", name: "Verben",
+    subtitle: "Die Verben, die überall vorkommen",
+    archetype: "stall", status: "built", module: "vocabTheme",
+  },
+  {
+    id: "a1-kleine-woerter", order: 21, icon: "✨", category: "vocab", name: "Kleine Wörter",
+    subtitle: "Eigenschaften, Zeit, Ort, Menge",
     archetype: "stall", status: "built", module: "vocabTheme",
   },
 
   // ---------------- Exam district (4) ----------------
-  // Start Deutsch 1 has the same four parts as A2, in shorter form. The
-  // trainers are not written yet; the houses stand so the route is complete.
+  // The trainers are not written yet; the houses stand so the route is complete.
+  // The subtitles name the real task types, read off the ZA1 Modellsatz
+  // (10.04.2024) — see infoHub/data.js for the full figures and their source.
   {
-    id: "a1-lesen", order: 10, icon: "📖", category: "examskill", name: "Lesen",
-    subtitle: "Start Deutsch 1 · 3 Teile", archetype: "pavilion", status: "stub",
+    id: "a1-lesen", order: 11, icon: "📖", category: "examskill", name: "Lesen",
+    subtitle: "3 Aufgaben · Anzeigen, Ja/Nein, Bilder", archetype: "pavilion", status: "stub",
   },
   {
-    id: "a1-hoeren", order: 16, icon: "🎧", category: "examskill", name: "Hören",
-    subtitle: "Start Deutsch 1 · 3 Teile", archetype: "pavilion", status: "stub",
+    id: "a1-hoeren", order: 17, icon: "🎧", category: "examskill", name: "Hören",
+    subtitle: "3 Aufgaben · alles nur ein Mal", archetype: "pavilion", status: "stub",
   },
   {
-    id: "a1-schreiben", order: 23, icon: "📝", category: "examskill", name: "Schreiben",
-    subtitle: "Formular · kurze Mitteilung", archetype: "pavilion", status: "stub",
+    id: "a1-schreiben", order: 25, icon: "📝", category: "examskill", name: "Schreiben",
+    subtitle: "Formular + Antwort-E-Mail", archetype: "pavilion", status: "stub",
   },
   {
-    id: "a1-sprechen", order: 26, icon: "💬", category: "examskill", name: "Sprechen",
-    subtitle: "Vorstellen · fragen & antworten · bitten", archetype: "pavilion", status: "stub",
+    id: "a1-sprechen", order: 28, icon: "💬", category: "examskill", name: "Sprechen",
+    subtitle: "Vorstellen · Bild · Rollenspiel", archetype: "pavilion", status: "stub",
   },
 
   // ---------------- Landmarks (5) ----------------

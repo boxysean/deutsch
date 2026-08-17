@@ -2,8 +2,11 @@
 // its exam. Split out of index.js so progress.js can total the checklist
 // without importing the page that draws it.
 //
-// Sources: the ÖSD Durchführungsbestimmungen and official Modellsätze for each
-// level — A2 (Okt. 2023) and A1 (Start Deutsch 1).
+// Every figure on both levels is read off the official ÖSD documents:
+// A2 — Durchführungsbestimmungen (Okt. 2023) + Modellsatz
+// A1 — ZA1 Durchführungsbestimmungen (Okt. 2023) + ZA1 Modellsatz (2024-04-10)
+// Nothing here is inferred. If a number is not in those documents, it does not
+// go in this file.
 
 // Everything the exam expects, grouped the way the exam itself is structured.
 // Sources: ÖSD Zertifikat A2 Durchführungsbestimmungen (Okt. 2023) and the
@@ -138,22 +141,30 @@ const MASTERY_A1 = [
   {
     group: "Prüfungsfertigkeiten",
     items: [
-      ["a1-f-lesen", "Lesen: kurze Notizen, Anzeigen und Schilder verstehen"],
-      ["a1-f-hoeren", "Hören: Durchsagen und kurze Gespräche in langsamem, klarem Deutsch"],
-      ["a1-f-formular", "Schreiben: ein einfaches Formular ausfüllen"],
-      ["a1-f-mitteilung", "Schreiben: eine kurze Mitteilung mit drei Leitpunkten"],
-      ["a1-f-vorstellen", "Sprechen: sich mit den Stichwörtern vorstellen"],
-      ["a1-f-fragen", "Sprechen: zu einem Stichwort fragen und antworten"],
-      ["a1-f-bitten", "Sprechen: eine Bitte formulieren und darauf reagieren"],
+      ["a1-f-lesen1", "Lesen 1: fünf Situationen der passenden Anzeige zuordnen (eine Anzeige ist zu viel)"],
+      ["a1-f-lesen2", "Lesen 2: drei Anzeigen, je zwei Fragen mit JA / NEIN"],
+      ["a1-f-lesen3", "Lesen 3: fünf kurze Texte dem passenden Bild zuordnen"],
+      ["a1-f-hoeren1", "Hören 1: fünf Texte den Fotos zuordnen — jeder Text nur ein Mal"],
+      ["a1-f-hoeren2", "Hören 2: eine Nachricht hören und die wichtigsten Informationen notieren"],
+      ["a1-f-hoeren3", "Hören 3: fünf befragte Personen, je eine Antwort ankreuzen"],
+      ["a1-f-formular", "Schreiben 1: ein Formular für eine andere Person ausfüllen"],
+      ["a1-f-mail", "Schreiben 2: eine Antwort-E-Mail schreiben — ohne Text gibt es null Punkte"],
+      ["a1-f-vorstellen", "Sprechen 1: vier Themen wählen und sich dazu vorstellen"],
+      ["a1-f-bild", "Sprechen 2: ein Bild beschreiben — wer, wo, was machen die Personen"],
+      ["a1-f-rollenspiel", "Sprechen 3: die Situation des Bildes mitspielen"],
+      ["a1-f-grenzen", "Wissen, dass unter 6 Punkten in Lesen oder Hören die ganze schriftliche Prüfung fällt"],
     ],
   },
 ];
 
+// ZA1 Durchführungsbestimmungen 1.4, 4.1–4.3, 5, 6.1, 6.3 and the Modellsatz's
+// Bestehensgrenzen page. Note that Lesen and Hören each carry a hard floor of
+// 6 points: miss it and the WHOLE written module fails, however good the rest.
 const EXAM_A1 = [
-  ["Lesen", "3 Teile", "25 Min", "—", "—"],
-  ["Hören", "3 Teile", "ca. 20 Min", "—", "—"],
-  ["Schreiben", "2 Teile · Formular + Mitteilung", "20 Min", "—", "—"],
-  ["Sprechen", "3 Teile", "ca. 15 Min", "—", "—"],
+  ["Lesen", "3 Aufgaben · 16 Items", "25 Min", "30 Punkte", "min. 6"],
+  ["Hören", "3 Aufgaben · 15 Items", "ca. 10 Min", "30 Punkte", "min. 6"],
+  ["Schreiben", "2 Aufgaben", "20 Min", "15 Punkte", "—"],
+  ["Sprechen", "3 Aufgaben", "ca. 10 Min", "25 Punkte", "—"],
 ];
 
 // Keyed by level id, so the Dom and the progress count both read the level on

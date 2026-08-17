@@ -6,7 +6,7 @@ export const THEMES_A1 = {
   "a1-begruessung": {
     phrasesTitle: "Redemittel — sich vorstellen",
     intro:
-      "Der allererste Wortschatz: grüßen, sich vorstellen, nach dem Namen fragen und sich verabschieden. Das ist auch genau die erste Sprechaufgabe der A1-Prüfung, in der du dich anhand von Stichwörtern vorstellst — Name, Alter, Land, Wohnort, Sprachen, Beruf.",
+      "Der allererste Wortschatz: grüßen, sich vorstellen, nach dem Namen fragen und sich verabschieden. Sich mit Name, Alter, Land, Wohnort, Sprachen und Beruf vorstellen zu können, ist die A1-Fertigkeit, auf die alles andere aufbaut.",
     words: [
       ["Guten Morgen", "good morning"],
       ["Guten Tag", "hello, good day"],
