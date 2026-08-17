@@ -161,6 +161,27 @@ function progressTower() {
   };
 }
 
+function tableHall() {
+  const learned = read("deutsch-info:tables", {});
+  let tables = 0;
+  let topics = 0;
+  Object.values(TOPICS).forEach((t) => {
+    if ((t.tables || []).length) {
+      topics++;
+      tables += t.tables.length;
+    }
+  });
+  return {
+    summary:
+      "Alle Grammatik-Tabellen an einem Ort — Artikelraster, Wechselpräpositionen, starke Partizipien, Adjektivendungen. Verdecke eine Spalte und lass dich abfragen, statt sie nur zu lesen.",
+    stats: [
+      { label: "Tabellen", value: String(tables) },
+      { label: "Aus Themen", value: String(topics) },
+      { label: "Sitzt", value: String(Object.values(learned).filter(Boolean).length) },
+    ],
+  };
+}
+
 function mixedDeck() {
   const themes = Object.keys(THEMES);
   let total = 0;
@@ -204,6 +225,7 @@ const BUILDERS = {
   progressTower,
   dataTransfer,
   mixedDeck,
+  tableHall,
 };
 
 export function getPreview(zone) {
