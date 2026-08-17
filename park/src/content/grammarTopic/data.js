@@ -4,6 +4,7 @@ import { MORE } from "./more.js";
 import { MORE2 } from "./more2.js";
 import { MORE3 } from "./more3.js";
 import { TOPICS_B1 } from "./b1.js";
+import { TOPICS_B1B } from "./b1b.js";
 import { TOPICS_A1 } from "./a1.js";
 import { TOPICS_A1B } from "./a1b.js";
 
@@ -17,6 +18,7 @@ export const TOPICS = {
   ...MORE2,
   ...MORE3,
   ...TOPICS_B1,
+  ...TOPICS_B1B,
   "verben-mit-praeposition": {
     intro:
       "Viele deutsche Verben haben eine feste Präposition, die man nicht logisch herleiten kann — man lernt sie zusammen mit dem Verb. Die Präposition bestimmt außerdem den Kasus. Das ist einer der häufigsten Fehlerbereiche auf A2 und kommt in Sprechen und Schreiben ständig vor.",
