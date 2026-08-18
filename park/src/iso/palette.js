@@ -105,6 +105,27 @@ const TERRAIN = {
     // all-blue town reads as a bug rather than a season.
     roofHues: [0.54, 0.58, 0.62, 0.47, 0.02, 0.56],
   },
+  b1: {
+    // Later in the year than A2: grass gone gold at the edges, darker stone
+    // underfoot, colder water. Third season, same encoding — the districts are
+    // still red / green / blue, only the land they stand on has moved on.
+    ground: {
+      grass: "#7ba650",
+      grassAlt: "#86af5b",
+      path: "#c9b48c",
+      pathAlt: "#c1ac83",
+      plaza: "#ded0ab",
+      water: "#35789f",
+    },
+    plots: {
+      grammar: [hslToHex(0.02, 0.34, 0.66), hslToHex(0.02, 0.32, 0.62)],
+      vocab: [hslToHex(0.18, 0.4, 0.64), hslToHex(0.18, 0.38, 0.6)],
+      examskill: [hslToHex(0.6, 0.34, 0.68), hslToHex(0.6, 0.32, 0.64)],
+      info: [hslToHex(0.78, 0.28, 0.68), hslToHex(0.78, 0.26, 0.64)],
+    },
+    // Autumn tiles: deep reds and browns, one slate so the street has contrast.
+    roofHues: [0.03, 0.06, 0.09, 0.98, 0.58, 0.11],
+  },
 };
 
 export function terrainFor(level) {
