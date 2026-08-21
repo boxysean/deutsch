@@ -744,3 +744,40 @@ kbd{
   .fx-tap::after{ content:" · Leertaste"; }
   .fx-grade span::after{ content:""; }
 }
+
+
+/* ---------------------------------------------------------------- dranbleiben
+   The habit block on the Fernsehturm: the streak figures, the goal picker and
+   thirteen weeks of practice as a calendar grid. */
+.hb-row{ display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; }
+.hb-stat{
+  flex:1 1 7rem; min-width:6.5rem;
+  border:2px solid var(--rule); border-radius:4px; padding:0.6rem 0.7rem;
+  background: var(--paper-2);
+}
+.hb-stat b{ display:block; font-size:1.2rem; line-height:1.1; white-space:nowrap; font-variant-numeric: tabular-nums; }
+.hb-stat span{ display:block; font-size:0.72rem; color: var(--ink-soft); margin-top:0.15rem; }
+
+.hb-goal{ display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; font-size:0.82rem; margin-bottom:1rem; }
+
+.hb-grid{
+  display:grid; grid-auto-flow:column; grid-template-rows: repeat(7, 1fr);
+  gap:3px; overflow-x:auto; padding-bottom:0.3rem;
+}
+.hb-cell{
+  width:12px; height:12px; border-radius:2px; background: var(--rule); flex:none;
+}
+/* A green ramp, not the red accent: a day you practised on is never a warning,
+   however short it was. Red here would say "you fell short" in the one place
+   that is meant to make showing up feel worth it. */
+.hb-cell[data-step="1"]{ background: color-mix(in srgb, var(--good, #1f9e52) 30%, var(--rule)); }
+.hb-cell[data-step="2"]{ background: color-mix(in srgb, var(--good, #1f9e52) 55%, var(--rule)); }
+.hb-cell[data-step="3"]{ background: color-mix(in srgb, var(--good, #1f9e52) 78%, var(--rule)); }
+.hb-cell[data-step="4"]{ background: var(--good, #1f9e52); }
+.hb-cell[data-blank="true"]{ background:transparent; }
+
+.hb-legend{
+  display:flex; justify-content:space-between; align-items:center; gap:0.6rem;
+  margin-top:0.4rem; font-size:0.7rem; color: var(--ink-soft);
+}
+.hb-key{ display:flex; align-items:center; gap:3px; }

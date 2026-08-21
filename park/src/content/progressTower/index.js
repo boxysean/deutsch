@@ -13,6 +13,16 @@ import {
   parseISO,
   daysBetween,
 } from "../lib/progress.js";
+import {
+  getGoalMinutes,
+  setGoalMinutes,
+  GOAL_CHOICES,
+  getLog,
+  computeStreak,
+  recentDays,
+  liveTodaySeconds,
+  onPracticeChange,
+} from "../lib/practice.js";
 
 // The Fernsehturm: one screen that answers "am I going to be ready in time?".
 //
@@ -99,6 +109,9 @@ export function mount(container, zone) {
     body.innerHTML = `
       ${heroHtml(progress, confidence, status, range)}
 
+      <div class="subhead">Dranbleiben</div>
+      ${habitHtml()}
+
       <div class="subhead">Fortschritt über die Zeit</div>
       <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
         Vom ${fmtDate(range.start)} bis zum ${fmtDate(range.end)}. Alle Kurven zeigen den Anteil am jeweils eigenen Maximum — ${fmtNum(
@@ -135,6 +148,7 @@ export function mount(container, zone) {
 
     wireChart(body, progress, confidence, status, range, history);
     wireRatings(body, render);
+    wireHabit(body, render);
 
     body.querySelector("#pt-refresh").addEventListener("click", () => {
       recordToday();
@@ -148,6 +162,22 @@ export function mount(container, zone) {
   }
 
   render();
+
+  // The clock keeps running while this page is open — the tower is not itself
+  // review, so the figure it shows is standing still, but a session started
+  // before you came here has banked seconds that should appear without a
+  // reload. Repainting the whole page on every tick would fight the date
+  // inputs, so only the habit block is redrawn.
+  const offPractice = onPracticeChange(() => {
+    const host = body.querySelector(".hb-row");
+    if (!host) return;
+    const tmp = document.createElement("div");
+    tmp.innerHTML = habitHtml();
+    body.querySelector(".hb-row").replaceWith(tmp.querySelector(".hb-row"));
+    body.querySelector(".hb-grid").replaceWith(tmp.querySelector(".hb-grid"));
+  });
+
+  return { destroy: offPractice };
 }
 
 // ------------------------------------------------------------------ headline
@@ -494,6 +524,109 @@ function wireChart(root, progress, confidence, status, range, history) {
     else return;
     e.preventDefault();
     show(g.points[cursor].day);
+  });
+}
+
+// --------------------------------------------------------------- dranbleiben
+
+// The habit section. Everything here is GLOBAL rather than per level — fifteen
+// minutes a day is one habit, and a streak that reset when you switched towns
+// would be measuring the wrong thing. The copy says so, because every other
+// number on this page is per level and the difference is not guessable.
+
+const WEEKS = 13;
+
+function fmtMinutes(sec) {
+  const m = Math.round(sec / 60);
+  if (m < 60) return `${m} Min`;
+  // "3 Std 52 Min" wraps onto two lines in a stat box; "3:52 Std" does not.
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")} Std`;
+}
+
+// Monday = 0, so the grid's rows are weekdays.
+function weekdayOf(iso) {
+  const [y, mo, d] = iso.split("-").map(Number);
+  return (new Date(y, mo - 1, d).getDay() + 6) % 7;
+}
+
+function dayLabel(iso) {
+  const [y, mo, d] = iso.split("-").map(Number);
+  return new Date(y, mo - 1, d).toLocaleDateString("de-AT", { day: "2-digit", month: "short" });
+}
+
+function habitHtml() {
+  const goal = getGoalMinutes();
+  const goalSec = goal * 60;
+  const log = getLog();
+  const st = computeStreak(log, goal);
+  const today = liveTodaySeconds();
+  const days = recentDays(WEEKS * 7, log);
+
+  // The grid fills column by column down seven rows, so unless the first cell
+  // is a Monday the rows are not weekdays and the columns are not weeks — the
+  // shape would look like a calendar while meaning nothing. Blanks at each end
+  // line the real days up with their actual weekday.
+  const lead = weekdayOf(days[0].date);
+  const tail = 6 - weekdayOf(days[days.length - 1].date);
+  const blank = `<span class="hb-cell" data-blank="true"></span>`;
+
+  const cells =
+    blank.repeat(lead) +
+    days
+      .map((d) => {
+        const frac = goalSec ? Math.min(1, d.s / goalSec) : 0;
+        const step = d.s === 0 ? 0 : frac >= 1 ? 4 : frac >= 0.66 ? 3 : frac >= 0.33 ? 2 : 1;
+        const mins = Math.round(d.s / 60);
+        return `<span class="hb-cell" data-step="${step}" title="${dayLabel(d.date)}: ${
+          d.s ? `${mins} Min` : "nicht geübt"
+        }${d.r ? `, ${d.r} Items` : ""}"></span>`;
+      })
+      .join("") +
+    blank.repeat(tail);
+
+  const picker = GOAL_CHOICES.map(
+    (n) =>
+      `<button type="button" class="seg-btn" data-goal="${n}" data-picked="${n === goal}">${n}</button>`
+  ).join("");
+
+  return `
+    <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
+      Gezählt wird nur, während eine Übungsseite offen ist, das Fenster im Vordergrund liegt und du in den letzten 90 Sekunden etwas getan hast — der Fernsehturm und das Riesenrad zählen nicht mit. Diese Zahlen gelten für <b>alle drei Städte zusammen</b>: ein Tagesziel, nicht drei.
+    </p>
+    <div class="hb-row">
+      <div class="hb-stat"><b class="mono">${st.current}</b><span>Tage in Folge</span></div>
+      <div class="hb-stat"><b class="mono">${st.best}</b><span>längste Serie</span></div>
+      <div class="hb-stat"><b class="mono">${fmtMinutes(today)}</b><span>heute</span></div>
+      <div class="hb-stat"><b class="mono">${st.daysMet}</b><span>Tage am Ziel</span></div>
+      <div class="hb-stat"><b class="mono">${fmtMinutes(st.totalSeconds)}</b><span>insgesamt</span></div>
+      <div class="hb-stat"><b class="mono">${fmtNum(st.totalReviewed)}</b><span>Items geübt</span></div>
+    </div>
+    <div class="hb-goal">
+      <span>Tagesziel</span>
+      <span class="seg" id="hb-goal" role="radiogroup" aria-label="Tagesziel in Minuten">${picker}</span>
+      <span style="color:var(--ink-soft)">Minuten</span>
+    </div>
+    <div class="hb-grid" role="img" aria-label="Übungszeit der letzten ${WEEKS} Wochen">${cells}</div>
+    <div class="hb-legend">
+      <span>${dayLabel(days[0].date)}</span>
+      <span class="hb-key">
+        weniger
+        ${[0, 1, 2, 3, 4].map((n) => `<span class="hb-cell" data-step="${n}"></span>`).join("")}
+        mehr
+      </span>
+      <span>heute</span>
+    </div>
+  `;
+}
+
+function wireHabit(root, rerender) {
+  const seg = root.querySelector("#hb-goal");
+  if (!seg) return;
+  seg.querySelectorAll(".seg-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setGoalMinutes(Number(btn.dataset.goal));
+      rerender();
+    });
   });
 }
 

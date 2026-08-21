@@ -1,4 +1,5 @@
 import { TOPICS } from "./data.js";
+import { noteReviewed } from "../lib/practice.js";
 import { makeLevelStore, normalize, wordsPresent } from "../lib/storage.js";
 
 // Generic renderer for a single grammar zone. Everything comes from data, so a
@@ -176,6 +177,8 @@ function buildGaps(host, section, zone, ex) {
     });
     section.querySelector(`#${ex.id}-score-n`).textContent = correct;
     section.querySelector(`#${ex.id}-score`).dataset.show = "true";
+    // Checked answers count as reviewed items, the same as a graded card.
+    noteReviewed(ex.items.length);
   });
 
   section.querySelector(`#${ex.id}-reset`).addEventListener("click", () => {

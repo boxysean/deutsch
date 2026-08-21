@@ -17,6 +17,7 @@ import {
 } from "./ui/overlay.js";
 import { recordToday, onConfidenceChange } from "./content/lib/progress.js";
 import { migrateToLevels } from "./content/lib/storage.js";
+import { startPracticeTracking } from "./content/lib/practice.js";
 
 const canvas = document.getElementById("scene");
 
@@ -41,7 +42,7 @@ function mountLevel() {
   renderer.resize();
   renderer.fit();
 
-  const hud = initHud();
+  const hud = initHud((id) => openZonePanel(id, true));
   const labels = createLabels(getZones(), renderer, (id) => openZonePanel(id));
 
   // Rating a topic anywhere — the drawer, its page, the Fernsehturm — repaints
@@ -89,6 +90,7 @@ onLevelChange(() => {
   recordToday();
 });
 
+startPracticeTracking();
 initOverlay();
 onZoneChange((id) => session.labels.setActive(id));
 

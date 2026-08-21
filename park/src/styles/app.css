@@ -48,6 +48,47 @@
 .hud-legend .dot{ width:0.6rem; height:0.6rem; border-radius:2px; display:inline-block; }
 .hud-progress{ font-family: ui-monospace, monospace; font-size:0.76rem; color: var(--ink-soft); white-space:nowrap; }
 .hud-progress b{ color: var(--ink); }
+
+/* The daily practice meter. Quiet by design: it reports what you did, it does
+   not tell you what to do, and it never turns red for being behind. */
+.practice-meter{
+  display:flex; align-items:center; gap:0.4rem;
+  padding:0.25rem 0.5rem; min-height:32px;
+  border:1px solid var(--rule); border-radius:999px;
+  background:transparent; color: var(--ink-soft); cursor:pointer;
+  font: inherit; line-height:1;
+}
+.practice-meter:hover{ border-color: var(--ink); color: var(--ink); }
+.pm-ring{ width:22px; height:22px; flex:none; transform: rotate(-90deg); }
+.pm-track{ fill:none; stroke: var(--rule); stroke-width:3; }
+.pm-fill{
+  /* Green while filling, not the red accent — being part-way through the day
+     is not an error state. */
+  fill:none; stroke: var(--good, #1f9e52); stroke-width:3; stroke-linecap:round;
+  transition: stroke-dashoffset 400ms ease;
+}
+.practice-meter[data-done="true"] .pm-fill{ stroke: var(--good, #1f9e52); }
+.pm-text{ display:flex; align-items:baseline; gap:0.25rem; font-size:0.76rem; white-space:nowrap; }
+.pm-text b{ color: var(--ink); font-size:0.82rem; }
+.practice-meter[data-done="true"] .pm-text b{ color: var(--good, #1f9e52); }
+.pm-goal{ color: var(--ink-soft); }
+.pm-streak{
+  display:flex; align-items:baseline; gap:0.2rem;
+  padding-left:0.45rem; margin-left:0.1rem; border-left:1px solid var(--rule);
+  font-size:0.82rem; color: var(--ink);
+}
+.pm-streak span{ font-size:0.66rem; color: var(--ink-soft); }
+.pm-short{ display:none; }
+
+/* On a phone the HUD is tight, so the words go — but not the units. Hiding
+   both labels left the meter reading "9 2": two bare numbers side by side,
+   which is worse than showing nothing. It keeps "9/15" and "2 T". */
+@media (max-width: 720px){
+  .pm-long{ display:none; }
+  .pm-short{ display:inline; }
+  .practice-meter{ padding:0.2rem 0.4rem; gap:0.3rem; }
+  .pm-streak{ padding-left:0.35rem; }
+}
 .hud-hint{ font-size:0.72rem; color: var(--ink-soft); }
 
 /* ---------- map labels ----------

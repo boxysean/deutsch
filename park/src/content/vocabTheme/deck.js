@@ -10,6 +10,8 @@
 // the accessors for a card's box. That is what lets the mixed session write
 // straight back into each theme's own state.
 
+import { noteReviewed } from "../lib/practice.js";
+
 export const BOXES = 5; // 0..4
 export const SICHER_AT = 3; // box 3 and up counts as "sicher"
 export const TOP_BOX = BOXES - 1; // "auswendig"
@@ -399,6 +401,9 @@ export function createDeck(host, cfg) {
 
     run.seen += 1;
     if (g.delta === null) run.again += 1;
+    // Minutes alone say nothing about whether anything was answered, so the
+    // practice log counts graded cards beside the clock.
+    noteReviewed(1);
 
     if (g.delta === null && queue.length > REINSERT_AFTER) {
       const key = queue[pos];

@@ -96,6 +96,12 @@ export function readLevel(key, fallback, level = getLevel()) {
 // overwritten.
 const MIGRATED_KEY = "deutsch:migrated-to-levels";
 
+// Areas that are deliberately NOT per level and must survive the sweep. The
+// practice log is one habit across all three towns, so "deutsch-uebung:log"
+// has no level segment by design — without this it would be filed under A2 and
+// the streak would belong to one town.
+const GLOBAL_AREAS = ["uebung:"];
+
 export function migrateToLevels(target = DEFAULT_LEVEL) {
   let done = null;
   try {
@@ -110,6 +116,7 @@ export function migrateToLevels(target = DEFAULT_LEVEL) {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (!key || key.indexOf(NS) !== 0 || levelled.test(key)) continue;
+    if (GLOBAL_AREAS.some((a) => key.slice(NS.length).startsWith(a))) continue;
     stale.push(key);
   }
 

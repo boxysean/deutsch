@@ -1,8 +1,9 @@
 import { getZones } from "../data/zones/index.js";
 import { CATEGORIES } from "../data/categories.js";
 import { LEVELS, getLevel, setLevel, levelInfo } from "../data/levels.js";
+import { initPracticeMeter } from "./practiceMeter.js";
 
-export function initHud() {
+export function initHud(onOpenZone) {
   const hud = document.getElementById("hud");
   const level = levelInfo();
   const learning = getZones().filter((z) => z.category !== "info");
@@ -41,6 +42,12 @@ export function initHud() {
     </div>
   `;
 
+  // The daily meter goes in front of the "Gebiete ausgebaut" count: both say
+  // what has happened, one about the town and one about you.
+  const tower = getZones().find((z) => z.module === "progressTower");
+  const meter = initPracticeMeter(tower && onOpenZone ? () => onOpenZone(tower.id) : null);
+  hud.querySelector(".hud-right").prepend(meter.el);
+
   hud.querySelectorAll(".lvl-btn").forEach((btn) => {
     btn.setAttribute("role", "radio");
     btn.setAttribute("aria-checked", btn.dataset.picked);
@@ -53,8 +60,11 @@ export function initHud() {
   // the route you are lives in the Dom's Lernpfad tab and on the Fernsehturm,
   // where you go to look at progress on purpose.
   return {
-    // Kept so the caller can tear the HUD down the same way for every level,
-    // even though there is no subscription left to drop.
-    destroy() {},
+    // The meter holds a subscription, so switching level has to drop it —
+    // otherwise every switch leaves another listener repainting a button that
+    // is no longer in the document.
+    destroy() {
+      meter.destroy();
+    },
   };
 }
