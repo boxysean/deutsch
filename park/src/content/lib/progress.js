@@ -10,7 +10,8 @@ import { themesFor, topicsFor, skillsFor } from "../registry.js";
 import { makeLevelStore, readLevel } from "./storage.js";
 import { masteryCount } from "../infoHub/data.js";
 import { getLevel } from "../../data/levels.js";
-import { wordIsSicher } from "../vocabTheme/deck.js";
+import { wordIsSicher, boxOf, SICHER_AT } from "../vocabTheme/deck.js";
+import { setsFor } from "../konjugationDrill/data.js";
 
 // Every number on this page belongs to ONE level. The stores and the content
 // slices below resolve against whichever level is on screen, so an A2 total
@@ -59,6 +60,19 @@ function grammarCounts() {
     const tagVocab = read("tag01:vocab", {});
     total += 28;
     done += Object.values(tagVocab).filter((v) => v && v.mastered).length;
+  }
+
+  // The verb drill at the castle. Counted here rather than as a fourth group:
+  // conjugation IS grammar, and the Fernsehturm's three bars are the three
+  // things the exam tests. Gated on the zone, like Tag 1 above.
+  if (getZones().some((z) => z.module === "konjugationDrill")) {
+    const state = read("konjugation:state", {});
+    setsFor(getLevel()).forEach((set) => {
+      total += set.cards.length;
+      // The produce direction only. Recognising "fuhr" as a past tense is worth
+      // having and much easier; counting both would pay twice for the easy half.
+      done += set.cards.filter((c) => boxOf(state[c.key], "de-en") >= SICHER_AT).length;
+    });
   }
 
   return { done: Math.min(done, total), total };

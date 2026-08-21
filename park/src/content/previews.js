@@ -2,6 +2,9 @@ import { computeProgress, planStatus, getHistory } from "./lib/progress.js";
 import { readLevel } from "./lib/storage.js";
 import { themesFor, topicsFor, skillsFor } from "./registry.js";
 import { localKeys, summarize, buildExport } from "./lib/transfer.js";
+import { setsFor } from "./konjugationDrill/data.js";
+import { boxOf, SICHER_AT } from "./vocabTheme/deck.js";
+import { getLevel } from "../data/levels.js";
 
 // Lightweight progress summaries for the bottom sheet. These read localStorage
 // directly rather than loading the (much larger) content modules, so opening a
@@ -197,6 +200,26 @@ function mixedDeck() {
   };
 }
 
+function konjugationDrill() {
+  const state = read("konjugation:state", {});
+  const sets = setsFor(getLevel());
+  let total = 0;
+  let sicher = 0;
+  sets.forEach((set) => {
+    total += set.cards.length;
+    sicher += set.cards.filter((c) => boxOf(state[c.key], "de-en") >= SICHER_AT).length;
+  });
+  return {
+    summary:
+      "Die Verbformen, die man nicht herleitet, sondern kann: Stammwechsel, Modalverben, Partizipien, Präteritum. Karteikarten mit denselben Boxen wie beim Wortschatz — und nur mit den Formen, die eine Regel nicht hergibt.",
+    stats: [
+      { label: "Karten", value: String(total) },
+      { label: "Davon sicher", value: String(sicher) },
+      { label: "Stapel", value: String(sets.length) },
+    ],
+  };
+}
+
 function dataTransfer() {
   const s = summarize(buildExport());
   return {
@@ -221,6 +244,7 @@ const BUILDERS = {
   dataTransfer,
   mixedDeck,
   tableHall,
+  konjugationDrill,
 };
 
 export function getPreview(zone) {

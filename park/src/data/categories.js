@@ -26,7 +26,10 @@ export const CATEGORIES = {
     rows: 2,
   },
   info: {
-    label: "Dom",
+    // Not "Dom" any more: six zones share this category — the Dom, the Kölner
+    // Dom, the Tor, the Riesenrad, the Fernsehturm and the Schloss — and the
+    // sheet chip was announcing every one of them as the Dom.
+    label: "Landmarke",
     color: 0x8a5cc4,
     anchor: { x: 0, z: 0 },
     cols: 1,

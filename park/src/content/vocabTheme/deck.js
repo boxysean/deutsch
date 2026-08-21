@@ -14,6 +14,16 @@ export const BOXES = 5; // 0..4
 export const SICHER_AT = 3; // box 3 and up counts as "sicher"
 export const TOP_BOX = BOXES - 1; // "auswendig"
 
+// What the direction switch offers. A vocabulary deck asks a word one way or
+// the other; a conjugation deck asks you to PRODUCE a form or to RECOGNISE one.
+// Same ladder, same focus mode, different question — so the two directions are
+// configuration rather than something the deck hardcodes.
+export const DEFAULT_DIRECTIONS = [
+  { id: "de-en", label: "DE → EN" },
+  { id: "en-de", label: "EN → DE" },
+  { id: "mixed", label: "Beide" },
+];
+
 export const GRADES = [
   { id: "again", label: "Nochmal", hint: "Zurück in Box 1", key: "1", delta: null },
   { id: "good", label: "Gut", hint: "Eine Box weiter", key: "2", delta: 1 },
@@ -62,6 +72,21 @@ export function escapeHtml(str) {
   })[c]);
 }
 
+// The two sides of a card. A caller that knows its own question supplies front,
+// back and side directly; the vocabulary decks predate that and are still asked
+// in terms of de / en, so their mapping stays here as the fallback.
+function facesOf(card) {
+  if (card.front != null) {
+    return { front: card.front, back: card.back, side: card.side || "" };
+  }
+  const fwd = card.facing === "de-en";
+  return {
+    front: fwd ? card.de : card.en,
+    back: fwd ? card.en : card.de,
+    side: fwd ? "Deutsch → Englisch" : "Englisch → Deutsch · mit Artikel",
+  };
+}
+
 /**
  * @param host    element to render into
  * @param cfg.cardsFor(dir)   the cards for a direction: [{ key, facing, de, en, hint?, source? }]
@@ -70,12 +95,16 @@ export function escapeHtml(str) {
  * @param cfg.onChange        called after any write, for outside counters
  * @param cfg.toolbarExtra    optional HTML appended to the toolbar
  * @param cfg.showSource      reveal which theme a card came from, on the back
+ * @param cfg.directions      the direction switch's options, default DE→EN / EN→DE / both
+ * @param cfg.countLabel      what wordCount() is counting — "Wörter komplett" by default
+ * @param cfg.countTitle      the tooltip for it
  */
 export function createDeck(host, cfg) {
   let queue = [];
   let pos = 0;
   let flipped = false;
-  let dir = cfg.dir || "de-en";
+  const directions = cfg.directions || DEFAULT_DIRECTIONS;
+  let dir = cfg.dir || directions[0].id;
 
   let cards = [];
   let byKey = new Map();
@@ -156,15 +185,22 @@ export function createDeck(host, cfg) {
           cfg.wordCount
             ? (() => {
                 const w = cfg.wordCount();
-                return `<span class="deck-words" title="Ein Wort zählt erst, wenn beide Richtungen sitzen">Wörter komplett: <b>${w.done}</b> / ${w.total}</span>`;
+                return `<span class="deck-words" title="${escapeHtml(
+                  cfg.countTitle || "Ein Wort zählt erst, wenn beide Richtungen sitzen"
+                )}">${escapeHtml(cfg.countLabel || "Wörter komplett")}: <b>${w.done}</b> / ${w.total}</span>`;
               })()
             : ""
         }
         <span class="deck-spacer"></span>
         <span class="seg" id="dk-dir" role="radiogroup" aria-label="Richtung">
-          <button class="seg-btn" data-dir="de-en" data-picked="${dir === "de-en"}">DE → EN</button>
-          <button class="seg-btn" data-dir="en-de" data-picked="${dir === "en-de"}">EN → DE</button>
-          <button class="seg-btn" data-dir="mixed" data-picked="${dir === "mixed"}">Beide</button>
+          ${directions
+            .map(
+              (d) =>
+                `<button class="seg-btn" data-dir="${d.id}" data-picked="${dir === d.id}"${
+                  d.title ? ` title="${escapeHtml(d.title)}"` : ""
+                }>${escapeHtml(d.label)}</button>`
+            )
+            .join("")}
         </span>
         <button class="ghost small" id="dk-shuffle">Mischen</button>
         ${cfg.toolbarExtra || ""}
@@ -245,9 +281,7 @@ export function createDeck(host, cfg) {
     if (pos >= queue.length) return renderSummary();
 
     const card = current();
-    const facing = card.facing;
-    const front = facing === "de-en" ? card.de : card.en;
-    const back = facing === "de-en" ? card.en : card.de;
+    const { front, back, side } = facesOf(card);
     const box = cfg.getBox(card) || 0;
     const done = pos;
 
@@ -262,9 +296,7 @@ export function createDeck(host, cfg) {
       <main class="fx-card" id="fx-card" data-flipped="${flipped}" role="button" tabindex="0"
             aria-label="${flipped ? "Karte" : "Antippen zum Aufdecken"}">
         <div class="fx-prompt">
-          <span class="fx-side mono">${
-            facing === "de-en" ? "Deutsch → Englisch" : "Englisch → Deutsch · mit Artikel"
-          }</span>
+          <span class="fx-side mono">${escapeHtml(side)}</span>
           <div class="fx-word">${escapeHtml(front)}</div>
         </div>
         <div class="fx-answer" ${flipped ? "" : "hidden"}>

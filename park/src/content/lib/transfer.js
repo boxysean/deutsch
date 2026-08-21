@@ -17,6 +17,7 @@ export const APP = "deutsche-welt";
 // just lands in "Sonstiges".
 const AREA_NAMES = [
   ["vokabel:", "Wortschatz"],
+  ["konjugation:", "Verbformen"],
   ["grammatik:", "Grammatik"],
   ["tag01:", "Tag 1"],
   ["lesen:", "Lesen"],

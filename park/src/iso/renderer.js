@@ -254,6 +254,7 @@ export function createRenderer(canvas, world) {
       riesenrad: (c) => drawFerrisWheel(sctx, c.x, c.y, state.time),
       brandenburg: (c) => drawBrandenburgGate(sctx, c.x, c.y),
       dom: (c) => drawCathedral(sctx, c.x, c.y),
+      castle: (c) => drawCastle(sctx, c.x, c.y),
     };
     if (LANDMARK[spec.render]) {
       LANDMARK[spec.render]({ x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) });
@@ -454,9 +455,6 @@ export function createRenderer(canvas, world) {
         break;
       case "pretzel":
         drawPretzelSign(sctx, c.x, c.y);
-        break;
-      case "castle":
-        drawCastle(sctx, c.x, c.y);
         break;
       case "matterhorn":
         drawMatterhorn(sctx, c.x, c.y, obj.scale || 1);
