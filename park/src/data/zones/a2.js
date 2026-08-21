@@ -147,6 +147,16 @@ export const ZONES_A2 = [
     status: "built", module: "progressTower",
   },
 
+  // ---------------- Schloss Neuschwanstein (1) ----------------
+  // Purple like the other landmarks, not grammar red. The district colours
+  // encode where a topic lives on the route; the castle belongs to no Schritt —
+  // it draws verb forms from all of them, the way the Tor draws vocabulary.
+  {
+    id: "schloss", icon: "\u2694\ufe0f", category: "info", name: "Schloss Neuschwanstein",
+    labelName: "Verben trainieren", subtitle: "Konjugation als Karteikarten", archetype: "castle",
+    status: "built", module: "konjugationDrill",
+  },
+
   // ---------------- Town square (1) ----------------
   {
     id: "dom", icon: "⛪", category: "info", name: "Dom",

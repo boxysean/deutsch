@@ -26,6 +26,7 @@ const MODULE_LOADERS = {
   dataTransfer: () => import("../content/dataTransfer/index.js"),
   mixedDeck: () => import("../content/mixedDeck/index.js"),
   tableHall: () => import("../content/tableHall/index.js"),
+  konjugationDrill: () => import("../content/konjugationDrill/index.js"),
 };
 
 let els = null;

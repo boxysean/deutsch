@@ -288,6 +288,11 @@ export function buildWorld() {
     // Dom is tall, and at the top of the map its label rides above the spire
     // and straight under the HUD bar when you zoom all the way out.
     { archetype: "cathedral", tx: -23, ty: 5, render: "dom", height: 9, roofH: 6, labelLevels: 16 },
+    // Neuschwanstein, on its crag on the mountain side of the map. It was pure
+    // skyline until the verb drill needed somewhere to live, and a castle up
+    // among the peaks is a better home for "the forms you climb up to" than
+    // another kiosk in the grammar street.
+    { archetype: "castle", tx: -23, ty: -8, render: "castle", height: 5, roofH: 2, labelLevels: 9 },
   ];
   clickableLandmarks.forEach((lm) => {
     const zone = byArchetype(lm.archetype);
@@ -313,19 +318,6 @@ export function buildWorld() {
         built: true,
       },
     });
-  });
-
-  // Decorative national landmarks — pure skyline flavour, not clickable.
-  // Each gets a small paved apron and sits clear of the streets.
-  const monuments = [
-    { kind: "castle", tx: -23, ty: -8 }, // Schloss Neuschwanstein
-  ];
-  monuments.forEach((m) => {
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) setTile(m.tx + dx, m.ty + dy, "plaza");
-    }
-    claim(m.tx, m.ty);
-    objects.push(m);
   });
 
   // The Matterhorn towers over the range behind the town — no apron, it's part

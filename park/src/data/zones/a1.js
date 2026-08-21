@@ -178,4 +178,13 @@ export const ZONES_A1 = [
     labelName: "Über das Spiel", subtitle: "Spiel & Prüfung", archetype: "dom",
     pinned: true, status: "built", module: "infoHub",
   },
+  // ---------------- Schloss Neuschwanstein (1) ----------------
+  // Purple like the other landmarks, not grammar red. The district colours
+  // encode where a topic lives on the route; the castle belongs to no Schritt —
+  // it draws verb forms from all of them, the way the Tor draws vocabulary.
+  {
+    id: "a1-schloss", icon: "\u2694\ufe0f", category: "info", name: "Schloss Neuschwanstein",
+    labelName: "Verben trainieren", subtitle: "Konjugation als Karteikarten", archetype: "castle",
+    status: "built", module: "konjugationDrill",
+  },
 ];
