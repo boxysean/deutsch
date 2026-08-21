@@ -35,6 +35,7 @@ let currentZoneId = null;
 // are disposed when their view closes rather than piling up.
 let sheetRating = null;
 let detailRating = null;
+let mountedModule = null;
 
 export function initOverlay() {
   els = {
@@ -70,6 +71,10 @@ export function initOverlay() {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
+    // The vocabulary drill opens a full-screen layer above this panel and
+    // handles its own Escape. Without this guard one press closed both, and
+    // the reader landed back on the map instead of the deck they came from.
+    if (document.body.dataset.deckFocus === "true") return;
     if (!els.panel.hidden && currentZoneId) location.hash = zoneHash(currentZoneId);
     else if (!els.sheet.hidden) location.hash = "";
   });
@@ -177,7 +182,10 @@ async function openDetail(zone) {
 
   try {
     const mod = await MODULE_LOADERS[zone.module]();
-    mod.mount(els.content, zone);
+    // A module may return { destroy } for anything it puts outside els.content
+    // — the vocabulary drill's focus layer lives on <body> and would otherwise
+    // survive the page being closed.
+    mountedModule = mod.mount(els.content, zone) || null;
     // Rating a topic makes most sense right after working on it, so every
     // learning zone carries the same strip; the Fernsehturm holds the full list.
     if (zone.category !== "info") {
@@ -287,6 +295,10 @@ function buildRatingControl(zone, { compact }) {
 }
 
 function closeDetail() {
+  if (mountedModule && typeof mountedModule.destroy === "function") {
+    mountedModule.destroy();
+  }
+  mountedModule = null;
   if (detailRating) {
     detailRating.dispose();
     detailRating = null;

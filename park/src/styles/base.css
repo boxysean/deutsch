@@ -626,3 +626,101 @@ kbd{
   background: var(--rule); border-radius:4px;
 }
 .hall-table[data-covered="true"] td.coverable[data-revealed="true"]{ background: var(--good-soft); }
+
+/* ---------- vocabulary focus mode ----------
+   A drill you do for ten minutes should show one word and one action. On a
+   phone the setup screen pushed the card below four rows of chrome and put the
+   reveal button under the fold; this layer sits above everything instead.
+
+   dvh, not vh: on mobile the URL bar counts against vh, so a 100vh layer is
+   taller than the visible page and the footer hides behind the browser chrome —
+   exactly the bug being fixed. */
+.deck-focus{
+  position:fixed; inset:0; z-index:40;
+  display:flex; flex-direction:column;
+  height:100dvh;
+  background: var(--paper);
+  padding: max(0.6rem, env(safe-area-inset-top)) 1rem
+           max(0.9rem, env(safe-area-inset-bottom)) 1rem;
+  /* body is already overflow:hidden app-wide, so the page behind cannot
+     scroll; this stops a scroll inside the card chaining out to it. */
+  overscroll-behavior: contain;
+}
+.fx-top{ display:flex; align-items:center; gap:0.7rem; flex:none; }
+.fx-progress{ font-size:0.78rem; color: var(--ink-soft); white-space:nowrap; }
+.fx-box{ font-size:0.72rem; color: var(--ink-soft); white-space:nowrap; }
+.fx-rail{
+  flex:1; height:3px; border-radius:2px; background: var(--rule); overflow:hidden;
+}
+.fx-rail-fill{ display:block; height:100%; background: var(--accent); transition: width 160ms ease; }
+.fx-close{
+  flex:none; border:none; background:transparent; color: var(--ink-soft);
+  font-size:1.6rem; line-height:1; padding:0.2rem 0.5rem; cursor:pointer;
+  min-width:44px; min-height:44px;   /* thumb-sized, per the touch guidance */
+}
+.fx-close:hover{ color: var(--ink); border:none; }
+
+/* The card takes all the room left over. Three rows — spacer, prompt, spacer —
+   so the word you are being asked sits dead centre and STAYS there when the
+   answer appears underneath it. Centring the whole column instead would slide
+   the question upward on every flip, and a drill should never move the thing
+   you are reading. The outer rows are minmax(0,1fr) so a long answer scrolls
+   in its own row rather than shoving the prompt off-centre. */
+.fx-card{
+  flex:1; min-height:0;
+  display:grid; grid-template-rows: minmax(0,1fr) auto minmax(0,1fr);
+  justify-items:center;
+  text-align:center; cursor:pointer;
+  padding:1rem 0.5rem; overflow:hidden;
+}
+.fx-prompt{
+  grid-row:2; display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+}
+.fx-side{ font-size:0.7rem; letter-spacing:0.05em; text-transform:uppercase; color: var(--ink-soft); }
+.fx-word{
+  font-size: clamp(1.9rem, 8vw, 3.2rem);
+  font-weight:800; line-height:1.15; text-wrap:balance;
+}
+.fx-answer{
+  grid-row:3; align-self:start; margin-top:0.9rem;
+  border-top:2px solid var(--rule); padding-top:0.9rem; width:100%; max-width:34rem;
+  max-height:100%; overflow-y:auto;
+}
+.fx-back{ font-size: clamp(1.4rem, 6vw, 2.2rem); font-weight:700; color: var(--accent); line-height:1.2; }
+.fx-hint-note{ margin-top:0.6rem; font-size:0.92rem; color: var(--ink-soft); }
+.fx-source{ margin-top:0.5rem; font-size:0.8rem; color: var(--ink-soft); }
+.fx-tap{ grid-row:3; align-self:start; margin-top:0.9rem; font-size:0.8rem; color: var(--ink-soft); }
+
+/* Actions live at the bottom, where a thumb already is. */
+.fx-actions{ flex:none; display:flex; gap:0.5rem; }
+.fx-reveal{ flex:1; padding:1rem; font-size:1rem; min-height:52px; }
+.fx-grade{
+  flex:1; min-height:56px; padding:0.6rem 0.3rem;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.15rem;
+  border:2px solid var(--ink); border-radius:4px; background: var(--paper-2);
+  cursor:pointer; font-weight:700; font-size:0.95rem; color: var(--ink);
+}
+.fx-grade span{ font-size:0.62rem; font-weight:400; color: var(--ink-soft); line-height:1.1; }
+.fx-grade:hover{ background: var(--accent); color: var(--accent-ink); border-color: var(--ink); }
+.fx-grade:hover span{ color: var(--accent-ink); }
+.fx-grade[data-grade="again"]{ border-color: var(--bad, #d92b3a); }
+.fx-grade[data-grade="easy"]{ border-color: var(--good, #1f9e52); }
+
+.fx-done{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:0.4rem;
+}
+.fx-done-big{ font-size:3.4rem; font-weight:800; line-height:1; color: var(--accent); }
+.fx-done-lead{ font-size:1rem; font-weight:600; }
+.fx-done-sub{ font-size:0.88rem; color: var(--ink-soft); max-width:26rem; }
+
+/* Start button on the setup screen. */
+.deck-start{ margin-top:1.1rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+.deck-start .big{ padding:0.8rem 2rem; font-size:1rem; min-height:48px; }
+.deck-start-note{ font-size:0.78rem; color: var(--ink-soft); }
+
+/* Keyboard hints are noise on a touch device, and a lie on a phone. */
+@media (hover: hover) and (pointer: fine){
+  .fx-tap::after{ content:" · Leertaste"; }
+  .fx-grade span::after{ content:""; }
+}
