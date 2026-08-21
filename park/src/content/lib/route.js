@@ -7,8 +7,8 @@
 // them. The four exam parts are dropped in early rather than saved for the end,
 // because format practice is what stops the last month being a panic.
 //
-// The route never reorders itself. "Next" is simply the first step you have not
-// yet called your own, so you always know where you are.
+// The route never reorders itself. It does not single out a "next" step either:
+// which one to do now is the reader's call, not the app's.
 
 import { getZones } from "../../data/zones/index.js";
 import { getConfidenceFor, MAX_CONFIDENCE } from "./progress.js";
@@ -30,18 +30,12 @@ export function isSettled(zoneId) {
   return v !== null && v >= SETTLED_AT;
 }
 
-// The first step still outstanding, or null once every topic is settled.
-export function nextZone() {
-  return route().find((z) => !isSettled(z.id)) || null;
-}
-
 export function routeProgress() {
   const all = route();
   const settled = all.filter((z) => isSettled(z.id));
   return {
     total: all.length,
     settled: settled.length,
-    next: nextZone(),
     maxConfidence: MAX_CONFIDENCE,
   };
 }

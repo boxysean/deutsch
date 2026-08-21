@@ -256,25 +256,13 @@
 
 /* The next step on the route: one label wears the flag, so the map itself
    answers "what now?" without anything being opened. */
-.map-label .ml-next{
-  flex:none; font-size:0.6rem; font-weight:800; letter-spacing:0.04em;
-  text-transform:uppercase; padding:0.1rem 0.3rem; border-radius:3px;
-  background:#ffd23f; color:#21202b; border:1.5px solid #21202b;
-}
-.map-label .ml-next[hidden]{ display:none; }
-.map-label[data-next="true"]{
-  border-color:#21202b;
-  box-shadow: 0 3px 0 rgba(33,32,43,0.7);
-}
 /* A collapsed label keeps its flag — but only the one label that has one.
    Without :not([hidden]) this rule un-hides all 35 empty chips. */
-.map-label[data-collapsed="true"] .ml-next:not([hidden]){ display:inline; }
 /* The route position, in front of the name. */
 .map-label .ml-step{
   flex:none; font-size:0.68rem; font-weight:800; color:#6b6a78;
   font-variant-numeric: tabular-nums;
 }
-.map-label[data-next="true"] .ml-step{ color:#21202b; }
 .map-label:hover .ml-step,
 .map-label[data-hovered="true"] .ml-step,
 .map-label[data-active="true"] .ml-step{ color: rgba(255,253,247,0.85); }

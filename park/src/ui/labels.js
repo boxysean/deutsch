@@ -1,6 +1,5 @@
 import { DISTRICT } from "../iso/palette.js";
 import { getConfidenceFor } from "../content/lib/progress.js";
-import { nextZone } from "../content/lib/route.js";
 
 // Always-on map labels as DOM, anchored to each building's roof. Kept out of
 // the canvas so the type stays crisp against the pixelated scene.
@@ -37,14 +36,12 @@ export function createLabels(zones, renderer, onSelect) {
       : `<span class="ml-dot"></span>`;
     // The self-rating rides next to the icon so a glance at the map shows where
     // you feel weak. Absent until the topic has been rated.
-    // Reading order: which step, which topic, how confident. The score sits at
-    // the end so the two numbers are never adjacent.
+    // Reading order: which step, which topic, how confident.
     const step =
       typeof zone.order === "number" ? `<span class="ml-step mono">${zone.order}</span>` : "";
     el.innerHTML =
       `${marker}${step}` +
       `<span class="ml-name">${zone.labelName || zone.name}</span>` +
-      `<span class="ml-next" hidden>Als Nächstes</span>` +
       `<span class="ml-score" hidden></span>`;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -58,8 +55,8 @@ export function createLabels(zones, renderer, onSelect) {
       zone,
       el,
       // Fixed precedence: pinned zones first, then built zones, then stubs,
-      // tie-broken by original zone order. Never derived from screen position
-      // or hover, so collision winners are stable.
+      // tie-broken by original zone order. Never derived from screen position,
+      // hover or progress, so collision winners are stable.
       tier: zone.pinned ? -1 : zone.status === "built" ? 0 : 1,
       rank: index,
       w: 0,
@@ -176,18 +173,7 @@ export function createLabels(zones, renderer, onSelect) {
   // A rating changed somewhere: repaint the badges. Widths change with them, so
   // the cache is refreshed and the next update re-runs the de-clutter.
   function refreshScores(remeasure = true) {
-    const next = nextZone();
     items.forEach((it) => {
-      // Exactly one label wears the "Als Nächstes" flag, so the map answers
-      // "what now?" without opening anything.
-      const isNext = !!next && next.id === it.zone.id;
-      it.el.dataset.next = isNext ? "true" : "false";
-      // The next step must never be crowded out — it is the one label that has
-      // to stay readable. Tier changes only when a rating does, not per frame,
-      // so the de-clutter stays stable.
-      it.tier = it.zone.pinned || isNext ? -1 : it.zone.status === "built" ? 0 : 1;
-      const flag = it.el.querySelector(".ml-next");
-      if (flag) flag.hidden = !isNext;
       const badge = it.el.querySelector(".ml-score");
       if (!badge) return;
       const value = it.zone.category === "info" ? null : getConfidenceFor(it.zone.id);

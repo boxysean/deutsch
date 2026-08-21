@@ -1,10 +1,8 @@
 import { getZones } from "../data/zones/index.js";
 import { CATEGORIES } from "../data/categories.js";
-import { routeProgress } from "../content/lib/route.js";
-import { onConfidenceChange } from "../content/lib/progress.js";
 import { LEVELS, getLevel, setLevel, levelInfo } from "../data/levels.js";
 
-export function initHud(onPick) {
+export function initHud() {
   const hud = document.getElementById("hud");
   const level = levelInfo();
   const learning = getZones().filter((z) => z.category !== "info");
@@ -39,7 +37,6 @@ export function initHud(onPick) {
       <span class="hud-hint">Ziehen zum Verschieben · Scrollen zum Zoomen · Klick zum Öffnen</span>
     </div>
     <div class="hud-right">
-      <button type="button" id="hud-next" class="hud-next"></button>
       <div class="hud-progress"><b>${built}</b> / ${learning.length} Gebiete ausgebaut</div>
     </div>
   `;
@@ -50,34 +47,14 @@ export function initHud(onPick) {
     btn.addEventListener("click", () => setLevel(btn.dataset.level));
   });
 
-  const nextBtn = hud.querySelector("#hud-next");
-
-  function paintNext() {
-    const { next, settled, total } = routeProgress();
-    if (!next) {
-      nextBtn.innerHTML = `<span class="hud-next-label">Route</span><b>Alles durch — ${settled}/${total}</b>`;
-      nextBtn.disabled = true;
-      nextBtn.dataset.done = "true";
-      return;
-    }
-    nextBtn.disabled = false;
-    nextBtn.dataset.done = "false";
-    nextBtn.innerHTML =
-      `<span class="hud-next-label">Als Nächstes</span>` +
-      `<b>${next.name}</b>` +
-      `<span class="hud-next-step mono">${next.order}/${total}</span>`;
-    nextBtn.title = `Schritt ${next.order} von ${total} — öffnen`;
-    nextBtn.onclick = () => onPick && onPick(next.id);
-  }
-
-  paintNext();
-  // Returned so the caller can drop the subscription when it rebuilds the HUD
-  // for another level — otherwise every switch leaves a listener repainting a
-  // button that is no longer in the document.
-  const off = onConfidenceChange(paintNext);
+  // Nothing here reacts to a rating any more. The bar says what the town HAS
+  // — how many areas are built — and deliberately not what to do next: a
+  // single highlighted house turned the map into a to-do list. How far along
+  // the route you are lives in the Dom's Lernpfad tab and on the Fernsehturm,
+  // where you go to look at progress on purpose.
   return {
-    destroy() {
-      off();
-    },
+    // Kept so the caller can tear the HUD down the same way for every level,
+    // even though there is no subscription left to drop.
+    destroy() {},
   };
 }
