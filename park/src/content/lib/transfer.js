@@ -26,9 +26,13 @@ const AREA_NAMES = [
   ["plan:", "Lernplan"],
 ];
 
+// The practice log has no level segment — it is one habit across all three
+// towns — so it is listed on its own rather than once per level.
+const GLOBAL_AREA_NAMES = [["uebung:", "Übungszeit"]];
+
 const AREAS = LEVELS.flatMap((lvl) =>
   AREA_NAMES.map(([area, label]) => [`${NAMESPACE}${lvl.id}-${area}`, `${lvl.label} · ${label}`])
-);
+).concat(GLOBAL_AREA_NAMES.map(([area, label]) => [`${NAMESPACE}${area}`, label]));
 
 // The plan keys are per level, so the summary's headline figures are read from
 // whichever level has a history at all — usually the one being backed up.
@@ -62,11 +66,17 @@ export function upgradeLegacyKeys(data, rawKeys, target = DEFAULT_LEVEL) {
     if (raw.has(from)) nextRaw.push(key);
   };
 
+  // The practice log is un-levelled ON PURPOSE, so it must not be swept into A2
+  // with the genuine pre-levels keys — an import would otherwise hand one town
+  // the streak and leave the other two with none.
+  const isGlobal = (k) =>
+    GLOBAL_AREA_NAMES.some(([area]) => k.startsWith(NAMESPACE + area));
+
   // Levelled keys first, so a stray legacy duplicate can never overwrite one.
   const all = Object.keys(data);
-  all.filter((k) => LEVELLED.test(k)).forEach((k) => put(k, k));
+  all.filter((k) => LEVELLED.test(k) || isGlobal(k)).forEach((k) => put(k, k));
   all
-    .filter((k) => !LEVELLED.test(k) && k.startsWith(NAMESPACE))
+    .filter((k) => !LEVELLED.test(k) && !isGlobal(k) && k.startsWith(NAMESPACE))
     .forEach((k) => {
       const next = NAMESPACE + target + "-" + k.slice(NAMESPACE.length);
       const before = next in out;

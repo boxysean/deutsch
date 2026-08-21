@@ -12,6 +12,9 @@ import { masteryCount } from "../infoHub/data.js";
 import { getLevel } from "../../data/levels.js";
 import { wordIsSicher, boxOf, SICHER_AT } from "../vocabTheme/deck.js";
 import { setsFor } from "../konjugationDrill/data.js";
+// Re-exported: this was todayISO's home before the practice log needed it too.
+export { todayISO } from "./day.js";
+import { todayISO } from "./day.js";
 
 // Every number on this page belongs to ONE level. The stores and the content
 // slices below resolve against whichever level is on screen, so an A2 total
@@ -287,10 +290,7 @@ export function computeConfidence() {
 
 // ------------------------------------------------------------------- history
 
-export function todayISO(d = new Date()) {
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+
 
 // Each entry is { p: points, c: confidence }. Entries written before the
 // self-rating existed are plain numbers, so they are read as points-only and

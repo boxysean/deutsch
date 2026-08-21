@@ -14,6 +14,7 @@ import {
   onTopicNoteChange,
   recordToday,
 } from "../content/lib/progress.js";
+import { setReviewing, isReviewModule } from "../content/lib/practice.js";
 
 const MODULE_LOADERS = {
   grammarFoundations: () => import("../content/grammarFoundations/index.js"),
@@ -172,6 +173,11 @@ function showSheet(zone) {
 async function openDetail(zone) {
   if (zone.status !== "built" || !MODULE_LOADERS[zone.module]) return;
 
+  // The practice clock runs only while a page you can actually review on is
+  // open. The Fernsehturm and the Riesenrad are not review — reading your own
+  // statistics must never be the thing that earns the streak.
+  setReviewing(isReviewModule(zone.module));
+
   const color = DISTRICT[zone.category].label;
   els.badge.style.background = color;
   els.title.textContent =
@@ -296,6 +302,7 @@ function buildRatingControl(zone, { compact }) {
 }
 
 function closeDetail() {
+  setReviewing(false);
   if (mountedModule && typeof mountedModule.destroy === "function") {
     mountedModule.destroy();
   }
@@ -326,8 +333,8 @@ export function zoneHash(id, detail = false) {
   return `${getLevel()}/zone/${id}${detail ? "/detail" : ""}`;
 }
 
-export function openZonePanel(id) {
-  location.hash = zoneHash(id);
+export function openZonePanel(id, detail = false) {
+  location.hash = zoneHash(id, detail);
 }
 
 // Called by main.js after it has rebuilt the map for a new level, so the
