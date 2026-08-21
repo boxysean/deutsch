@@ -16,7 +16,6 @@ import {
   refreshOverlay,
 } from "./ui/overlay.js";
 import { recordToday, onConfidenceChange } from "./content/lib/progress.js";
-import { nextZone } from "./content/lib/route.js";
 import { migrateToLevels } from "./content/lib/storage.js";
 
 const canvas = document.getElementById("scene");
@@ -42,18 +41,13 @@ function mountLevel() {
   renderer.resize();
   renderer.fit();
 
-  const hud = initHud((id) => openZonePanel(id));
+  const hud = initHud();
   const labels = createLabels(getZones(), renderer, (id) => openZonePanel(id));
 
-  // Rating a topic anywhere — the drawer, its page, the Fernsehturm — updates
-  // the number on its map label and, when it settles a step, moves the route on.
-  function syncRoute() {
-    const next = nextZone();
-    renderer.state.nextId = next ? next.id : null;
-    labels.refreshScores();
-  }
-  const offConfidence = onConfidenceChange(syncRoute);
-  syncRoute();
+  // Rating a topic anywhere — the drawer, its page, the Fernsehturm — repaints
+  // the score on its map label.
+  const offConfidence = onConfidenceChange(() => labels.refreshScores());
+  labels.refreshScores();
 
   const interaction = setupInteraction(canvas, renderer, {
     onHover: (id) => labels.setHovered(id),

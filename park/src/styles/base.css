@@ -525,19 +525,6 @@ button[data-danger="true"]{ background: var(--accent); color: var(--accent-ink);
 
 /* HUD: the next step on the route. */
 .hud-right{ display:flex; align-items:center; gap:0.9rem; flex-wrap:wrap; justify-content:flex-end; }
-.hud-next{
-  display:inline-flex; align-items:baseline; gap:0.45rem;
-  padding:0.3rem 0.65rem; border-radius:999px;
-  border:2px solid #21202b; background:#ffd23f; color:#21202b;
-  font-size:0.78rem; line-height:1.2; box-shadow:0 2px 0 rgba(33,32,43,0.55);
-}
-.hud-next:hover{ background:#fffdf7; border-color:#21202b; }
-.hud-next[data-done="true"]{ background: var(--good-soft); color: var(--good); border-color: var(--good); }
-.hud-next:disabled{ opacity:1; cursor:default; box-shadow:none; }
-.hud-next-label{ font-size:0.6rem; font-weight:800; letter-spacing:0.05em; text-transform:uppercase; opacity:0.75; }
-.hud-next b{ font-weight:800; }
-.hud-next-step{ font-size:0.68rem; opacity:0.7; }
-.sheet-tag[data-next="true"]{ color: var(--ink); font-weight:700; }
 
 /* Dom: the route tab. */
 .route-week{ margin-bottom:1.2rem; }

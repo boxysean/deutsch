@@ -3,7 +3,7 @@ import { makeLevelStore } from "../lib/storage.js";
 import { masteryFor, examFor } from "./data.js";
 import { getLevel, levelInfo } from "../../data/levels.js";
 import { DISTRICT } from "../../iso/palette.js";
-import { route, isSettled, nextZone, routeProgress } from "../lib/route.js";
+import { route, isSettled, routeProgress } from "../lib/route.js";
 import { getRange, daysBetween } from "../lib/progress.js";
 
 // The Dom on the town square. Not a learning zone — it explains what this is,
@@ -80,7 +80,6 @@ function gameHtml() {
       <p><b>Ziehen</b> — Karte verschieben · <b>Scrollen</b> — zoomen · <b>Klick</b> — Haus öffnen</p>
       <p>Häuser mit einem goldenen Ring sind fertig ausgebaut. Blasse Häuser warten noch auf Inhalt.</p>
       <p>Vier Denkmäler kannst du anklicken: der <b>Fernsehturm</b> zeigt deinen Fortschritt, das <b>Riesenrad</b> nimmt deine Daten mit auf ein anderes Gerät, der <b>Kölner Dom</b> sammelt alle Grammatik-Tabellen, und am <b>Brandenburger Tor</b> übst du Vokabeln aus allen Themen gemischt. Neuschwanstein und Matterhorn sind reine Dekoration.</p>
-      <p>Das Haus mit der <b>goldenen Fahne</b> ist dein nächster Schritt auf dem Lernpfad — oben in der Leiste steht es auch. Den ganzen Pfad siehst du im Tab <em>Lernpfad</em>.</p>
     </div>
 
     <div class="subhead">Dein Fortschritt</div>
@@ -96,7 +95,6 @@ function gameHtml() {
 function routeHtml() {
   const steps = route();
   const prog = routeProgress();
-  const next = nextZone();
   const range = getRange();
 
   const days = Math.max(7, daysBetween(range.start, range.end));
@@ -108,10 +106,8 @@ function routeHtml() {
   let html = `
     <div class="measure rule-box">
       <p>Eine feste Reihenfolge — sie ändert sich nicht, damit du immer weißt, wo du stehst. <b>Grammatik</b> trägt die Abhängigkeiten: erst die Satzklammer, dann die Fälle, dann alles, was auf ihnen aufbaut. <b>Wortschatz</b> hat keine Reihenfolge, deshalb stehen die Themen vorne, nach denen die Prüfung sicher fragt. Die <b>Prüfungsteile</b> kommen früh statt erst im Dezember.</p>
-      <p>Ein Thema gilt als erledigt, sobald du es mit <b>2 (mittel)</b> oder <b>3 (hoch)</b> bewertest — dann rückt der Pfad weiter. Du musst dich nicht daran halten: die Reihenfolge ist ein Vorschlag, keine Sperre.</p>
-      <p><b>${prog.settled} von ${prog.total}</b> Schritten erledigt${
-        next ? ` · als Nächstes: <b>${next.name}</b> (Schritt ${next.order})` : " — alles durch."
-      }</p>
+      <p>Ein Thema gilt als erledigt, sobald du es mit <b>2 (mittel)</b> oder <b>3 (hoch)</b> bewertest. Du musst dich nicht an die Reihenfolge halten: sie ist ein Vorschlag, keine Sperre — und welches Thema als Nächstes dran ist, entscheidest du.</p>
+      <p><b>${prog.settled} von ${prog.total}</b> Schritten erledigt.</p>
     </div>
   `;
 
@@ -123,12 +119,12 @@ function routeHtml() {
     html += `<div class="route-week"><h4>Woche ${w + 1} · Schritte ${from}–${to}</h4>` +
       slice
         .map((z) => {
-          const state = isSettled(z.id) ? "settled" : next && next.id === z.id ? "next" : "open";
+          const state = isSettled(z.id) ? "settled" : "open";
           return `<div class="route-step" data-state="${state}">
             <span class="n mono">${z.order}</span>
             <span class="dot" style="background:${DISTRICT[z.category].label}"></span>
             <span class="name">${z.name}</span>
-            <span class="cat">${state === "next" ? "als Nächstes" : CAT[z.category] || ""}</span>
+            <span class="cat">${CAT[z.category] || ""}</span>
           </div>`;
         })
         .join("") +
