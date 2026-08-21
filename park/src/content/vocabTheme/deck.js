@@ -79,7 +79,15 @@ export function escapeHtml(str) {
 // in terms of de / en, so their mapping stays here as the fallback.
 function facesOf(card) {
   if (card.front != null) {
-    return { front: card.front, back: card.back, side: card.side || "" };
+    // backHtml is markup the CALLER built and escaped — the conjugation drill
+    // answers with a six-cell table, which does not survive being a string.
+    // Nothing user-typed ever reaches it.
+    return {
+      front: card.front,
+      back: card.back,
+      backHtml: card.backHtml || null,
+      side: card.side || "",
+    };
   }
   const fwd = card.facing === "de-en";
   return {
@@ -283,7 +291,7 @@ export function createDeck(host, cfg) {
     if (pos >= queue.length) return renderSummary();
 
     const card = current();
-    const { front, back, side } = facesOf(card);
+    const { front, back, backHtml, side } = facesOf(card);
     const box = cfg.getBox(card) || 0;
     const done = pos;
 
@@ -302,7 +310,7 @@ export function createDeck(host, cfg) {
           <div class="fx-word">${escapeHtml(front)}</div>
         </div>
         <div class="fx-answer" ${flipped ? "" : "hidden"}>
-          <div class="fx-back">${escapeHtml(back)}</div>
+          <div class="fx-back">${backHtml || escapeHtml(back)}</div>
           ${card.hint ? `<div class="fx-hint-note">${escapeHtml(card.hint)}</div>` : ""}
           ${
             cfg.showSource && card.source

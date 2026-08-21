@@ -707,6 +707,25 @@ kbd{
   max-height:100%; overflow-y:auto;
 }
 .fx-back{ font-size: clamp(1.4rem, 6vw, 2.2rem); font-weight:700; color: var(--accent); line-height:1.2; }
+/* The conjugation drill's answer: the six forms in the textbook's two columns,
+   because the shape of the table is part of what is being memorised. */
+.kj-grid{
+  display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:0.3rem 1.2rem; text-align:left; width:100%; max-width:26rem; margin:0 auto;
+}
+.kj-cell{
+  display:flex; align-items:baseline; gap:0.4rem;
+  font-size: clamp(0.95rem, 4.2vw, 1.35rem); font-weight:700; line-height:1.25;
+  white-space:nowrap;
+}
+.kj-cell i{
+  font-style:normal; font-weight:400; font-size:0.72em; color: var(--ink-soft);
+  min-width:4.2em; text-align:right; flex:none;
+}
+/* The forms a rule would not have given you. */
+.kj-odd{ color: var(--accent); }
+.kj-cell:not(.kj-odd){ color: var(--ink); }
+
 .fx-hint-note{ margin-top:0.6rem; font-size:0.92rem; color: var(--ink-soft); }
 .fx-source{ margin-top:0.5rem; font-size:0.8rem; color: var(--ink-soft); }
 .fx-tap{ grid-row:3; align-self:start; margin-top:0.9rem; font-size:0.8rem; color: var(--ink-soft); }

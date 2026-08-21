@@ -31,6 +31,11 @@ const sibilant = (stem) => /[sßzx]$/.test(stem);
  * @param verb.praesens  per-person overrides — the stem changes and the
  *                       wholly irregular verbs
  */
+/** The forms the rules alone would produce, ignoring the verb's overrides. */
+export function conjugateRegular(verb) {
+  return conjugate(Object.assign({}, verb, { praesens: null }));
+}
+
 export function conjugate(verb) {
   const stem = verb.stem || verb.inf.replace(/e?n$/, "");
   const wantsE = verb.stemE || /[dt]$/.test(stem);
