@@ -144,5 +144,7 @@ export function mount(container) {
   }
 
   startSession();
+
+  return { destroy: () => deck && deck.destroy() };
 }
 

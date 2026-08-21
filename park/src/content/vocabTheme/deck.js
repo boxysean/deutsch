@@ -124,6 +124,21 @@ export function createDeck(host, cfg) {
     return byKey.get(queue[Math.min(pos, queue.length - 1)]);
   }
 
+  // Two views, deliberately separate.
+  //
+  // SETUP lives in the panel: the counters, the direction switch, the box
+  // distribution, and one button that starts a session. It is where you decide
+  // what to practise.
+  //
+  // FOCUS is a fixed layer over everything: one word, one action, nothing else.
+  // It exists because practising on a phone through the setup screen meant the
+  // card sat below four rows of chrome with the reveal button under the fold.
+  // A drill you do for ten minutes at a time should not make you read the
+  // instructions again on every card.
+  let focusEl = null;
+
+  // --------------------------------------------------------------- setup
+
   function render() {
     if (!cards.length) loadCards();
     if (!queue.length) buildQueue();
@@ -132,15 +147,10 @@ export function createDeck(host, cfg) {
       return;
     }
     const { sicher, byBox } = counts();
-    const card = current();
-    const facing = card.facing;
-    const front = facing === "de-en" ? card.de : card.en;
-    const back = facing === "de-en" ? card.en : card.de;
-    const box = cfg.getBox(card) || 0;
+    const left = queue.length - pos;
 
     host.innerHTML = `
       <div class="deck-bar">
-        <span class="deck-count mono">Karte ${pos + 1} / ${queue.length}</span>
         <span class="deck-sicher">Diese Auswahl: <b>${sicher}</b> / ${cards.length} sicher</span>
         ${
           cfg.wordCount
@@ -150,9 +160,6 @@ export function createDeck(host, cfg) {
               })()
             : ""
         }
-        <span class="deck-facing mono">${
-          facing === "de-en" ? "Bedeutung" : "Wort + Artikel"
-        }</span>
         <span class="deck-spacer"></span>
         <span class="seg" id="dk-dir" role="radiogroup" aria-label="Richtung">
           <button class="seg-btn" data-dir="de-en" data-picked="${dir === "de-en"}">DE → EN</button>
@@ -169,46 +176,17 @@ export function createDeck(host, cfg) {
           .join("")}
       </div>
 
-      <div class="flashcard" id="dk-card" data-flipped="${flipped}" tabindex="0"
-           role="button" aria-label="Karte umdrehen">
-        <span class="fc-side mono">${facing === "de-en" ? "Deutsch" : "Englisch"}</span>
-        <span class="fc-box mono">Box ${box + 1}</span>
-        <div class="fc-front">${escapeHtml(front)}</div>
-        <div class="fc-back">
-          <div class="fc-answer">${escapeHtml(back)}</div>
-          ${card.hint ? `<div class="fc-note">${escapeHtml(card.hint)}</div>` : ""}
-          ${
-            cfg.showSource && card.source
-              ? `<div class="fc-source">aus <b>${escapeHtml(card.source)}</b></div>`
-              : ""
-          }
-        </div>
-        <div class="fc-hint">${flipped ? "" : "Klicken oder Leertaste zum Aufdecken"}</div>
-      </div>
-
-      <div class="deck-actions" data-flipped="${flipped}">
-        <div class="grade-row">
-          ${GRADES.map(
-            (g) => `<button class="grade-btn" data-grade="${g.id}"><b>${g.label}</b><span>${g.hint} · ${g.key}</span></button>`
-          ).join("")}
-        </div>
-        <button class="primary reveal-btn" id="dk-flip">Aufdecken <kbd>Leertaste</kbd></button>
-      </div>
-
-      <div class="deck-nav">
-        <button class="ghost small" id="dk-prev" ${pos === 0 ? "disabled" : ""}>← Zurück</button>
-        <span class="deck-hint">Leertaste umdrehen · 1 / 2 / 3 bewerten · ← → blättern</span>
-        <button class="ghost small" id="dk-next" ${pos >= queue.length - 1 ? "disabled" : ""}>Weiter →</button>
+      <div class="deck-start">
+        <button class="primary big" id="dk-start">Üben starten</button>
+        <span class="deck-start-note">${
+          left === queue.length
+            ? `${queue.length} Karten in dieser Runde`
+            : `weiter bei Karte ${pos + 1} von ${queue.length}`
+        }</span>
       </div>
     `;
 
-    host.querySelector("#dk-card").addEventListener("click", flip);
-    host.querySelector("#dk-flip").addEventListener("click", flip);
-    host.querySelectorAll(".grade-btn").forEach((btn) => {
-      btn.addEventListener("click", () => grade(btn.dataset.grade));
-    });
-    host.querySelector("#dk-prev").addEventListener("click", () => step(-1));
-    host.querySelector("#dk-next").addEventListener("click", () => step(1));
+    host.querySelector("#dk-start").addEventListener("click", enterFocus);
     host.querySelectorAll("#dk-dir .seg-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         flushNote();
@@ -230,6 +208,136 @@ export function createDeck(host, cfg) {
     if (cfg.wireToolbar) cfg.wireToolbar(host);
   }
 
+  // --------------------------------------------------------------- focus
+
+  // Counted per session so the summary can say something true about the run
+  // you just did, rather than repeating the lifetime totals.
+  let run = { seen: 0, again: 0 };
+
+  function enterFocus() {
+    if (focusEl) return;
+    run = { seen: 0, again: 0 };
+    flipped = false;
+    focusEl = document.createElement("div");
+    focusEl.className = "deck-focus";
+    focusEl.setAttribute("role", "dialog");
+    focusEl.setAttribute("aria-label", "Vokabeltraining");
+    document.body.appendChild(focusEl);
+    document.body.dataset.deckFocus = "true";
+    renderFocus();
+  }
+
+  function exitFocus() {
+    if (!focusEl) return;
+    flushNote();
+    focusEl.remove();
+    focusEl = null;
+    delete document.body.dataset.deckFocus;
+    // Closing the page while a session runs destroys the deck, which detaches
+    // the host; rendering the setup view into it then would be writing to a
+    // node nobody can see.
+    if (host.isConnected) render();
+    if (cfg.onChange) cfg.onChange();
+  }
+
+  function renderFocus() {
+    if (!focusEl) return;
+    if (pos >= queue.length) return renderSummary();
+
+    const card = current();
+    const facing = card.facing;
+    const front = facing === "de-en" ? card.de : card.en;
+    const back = facing === "de-en" ? card.en : card.de;
+    const box = cfg.getBox(card) || 0;
+    const done = pos;
+
+    focusEl.innerHTML = `
+      <header class="fx-top">
+        <span class="fx-progress mono">${pos + 1} / ${queue.length}</span>
+        <span class="fx-rail"><span class="fx-rail-fill" style="width:${(done / queue.length) * 100}%"></span></span>
+        <span class="fx-box mono">Box ${box + 1}</span>
+        <button class="fx-close" id="fx-close" aria-label="Training beenden">&times;</button>
+      </header>
+
+      <main class="fx-card" id="fx-card" data-flipped="${flipped}" role="button" tabindex="0"
+            aria-label="${flipped ? "Karte" : "Antippen zum Aufdecken"}">
+        <div class="fx-prompt">
+          <span class="fx-side mono">${
+            facing === "de-en" ? "Deutsch → Englisch" : "Englisch → Deutsch · mit Artikel"
+          }</span>
+          <div class="fx-word">${escapeHtml(front)}</div>
+        </div>
+        <div class="fx-answer" ${flipped ? "" : "hidden"}>
+          <div class="fx-back">${escapeHtml(back)}</div>
+          ${card.hint ? `<div class="fx-hint-note">${escapeHtml(card.hint)}</div>` : ""}
+          ${
+            cfg.showSource && card.source
+              ? `<div class="fx-source">aus <b>${escapeHtml(card.source)}</b></div>`
+              : ""
+          }
+        </div>
+        ${flipped ? "" : `<div class="fx-tap">Antippen zum Aufdecken</div>`}
+      </main>
+
+      <footer class="fx-actions" data-flipped="${flipped}">
+        ${
+          flipped
+            ? GRADES.map(
+                (g) =>
+                  `<button class="fx-grade" data-grade="${g.id}"><b>${g.label}</b><span>${g.hint}</span></button>`
+              ).join("")
+            : `<button class="primary fx-reveal" id="fx-flip">Aufdecken</button>`
+        }
+      </footer>
+    `;
+
+    focusEl.querySelector("#fx-close").addEventListener("click", exitFocus);
+    focusEl.querySelector("#fx-card").addEventListener("click", flip);
+    const flipBtn = focusEl.querySelector("#fx-flip");
+    if (flipBtn) flipBtn.addEventListener("click", (e) => { e.stopPropagation(); flip(); });
+    focusEl.querySelectorAll(".fx-grade").forEach((btn) => {
+      btn.addEventListener("click", () => grade(btn.dataset.grade));
+    });
+  }
+
+  function renderSummary() {
+    const { sicher } = counts();
+    focusEl.innerHTML = `
+      <header class="fx-top">
+        <span class="fx-progress mono">fertig</span>
+        <span class="fx-rail"><span class="fx-rail-fill" style="width:100%"></span></span>
+        <button class="fx-close" id="fx-close" aria-label="Schließen">&times;</button>
+      </header>
+      <main class="fx-done">
+        <div class="fx-done-big">${run.seen}</div>
+        <p class="fx-done-lead">Karten in dieser Runde</p>
+        <p class="fx-done-sub">${
+          run.again
+            ? `<b>${run.again}</b> davon noch einmal — die kommen als Erstes zurück.`
+            : "Alles auf Anhieb gewusst."
+        }</p>
+        <p class="fx-done-sub">Diese Auswahl: <b>${sicher}</b> / ${cards.length} sicher</p>
+      </main>
+      <footer class="fx-actions">
+        <button class="primary fx-reveal" id="fx-again">Noch eine Runde</button>
+        <button class="ghost fx-reveal" id="fx-stop">Fertig</button>
+      </footer>
+    `;
+    focusEl.querySelector("#fx-close").addEventListener("click", exitFocus);
+    focusEl.querySelector("#fx-stop").addEventListener("click", exitFocus);
+    focusEl.querySelector("#fx-again").addEventListener("click", () => {
+      run = { seen: 0, again: 0 };
+      shuffleQueue();
+      renderFocus();
+    });
+  }
+
+  // One repaint entry point: whichever view is up gets redrawn.
+  function paint() {
+    if (focusEl) renderFocus();
+    else render();
+  }
+
   // Kept as a no-op hook so callers can flush their own pending edits.
   function flushNote() {
     if (cfg.onLeaveCard) cfg.onLeaveCard();
@@ -238,14 +346,14 @@ export function createDeck(host, cfg) {
   function flip() {
     flushNote();
     flipped = !flipped;
-    render();
+    paint();
   }
 
   function step(by) {
     flushNote();
     pos = Math.min(queue.length - 1, Math.max(0, pos + by));
     flipped = false;
-    render();
+    paint();
   }
 
   function grade(id) {
@@ -257,28 +365,43 @@ export function createDeck(host, cfg) {
     cfg.setBox(card, box);
     if (cfg.onChange) cfg.onChange();
 
+    run.seen += 1;
+    if (g.delta === null) run.again += 1;
+
     if (g.delta === null && queue.length > REINSERT_AFTER) {
       const key = queue[pos];
       queue.splice(pos, 1);
       queue.splice(Math.min(queue.length, pos + REINSERT_AFTER), 0, key);
       flipped = false;
-      render();
+      paint();
       return;
     }
-    if (pos < queue.length - 1) pos += 1;
+    // Past the last card, pos lands on queue.length — in focus mode that is
+    // what shows the summary instead of clamping onto the final card forever.
+    pos += 1;
     flipped = false;
-    render();
+    if (!focusEl) pos = Math.min(pos, queue.length - 1);
+    paint();
   }
 
   // Self-cleaning: the panel's content is discarded when the page closes, so
   // the listener drops itself once its card is gone from the document.
   function onKey(e) {
-    if (!document.body.contains(host)) {
+    if (!document.body.contains(host) && !focusEl) {
       document.removeEventListener("keydown", onKey);
       return;
     }
-    if (!host.offsetParent && host.dataset.active !== "true") return;
     if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+
+    if (focusEl) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        exitFocus();
+        return;
+      }
+    } else if (!host.offsetParent && host.dataset.active !== "true") {
+      return;
+    }
 
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -301,13 +424,20 @@ export function createDeck(host, cfg) {
     rebuild() {
       loadCards();
       queue = [];
-      render();
+      paint();
     },
     flushNote,
     // Callers that build a second deck into the same host must destroy the
     // first, or every keystroke is handled once per deck ever created.
     destroy() {
       document.removeEventListener("keydown", onKey);
+      // The focus layer lives on <body>, not in the panel, so closing the page
+      // would otherwise leave a full-screen drill floating over the map.
+      if (focusEl) {
+        focusEl.remove();
+        focusEl = null;
+        delete document.body.dataset.deckFocus;
+      }
     },
   };
 }

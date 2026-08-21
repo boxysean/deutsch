@@ -250,6 +250,8 @@ export function mount(container, zone) {
   }
 
   activate("deck");
+
+  return { destroy: () => deck.destroy() };
 }
 
 function phrasesHtml(theme) {
