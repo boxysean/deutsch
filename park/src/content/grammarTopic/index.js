@@ -14,19 +14,24 @@ export function mount(container, zone) {
   }
 
   container.innerHTML = `
-    <p class="lede measure">${topic.intro}</p>
+    <p class="lede measure" id="gt-intro">${topic.intro}</p>
     <div class="tabs" id="gt-tabs"></div>
     <div id="gt-panels"></div>
   `;
 
+  // Three ways in, and inside each one a short stack of pages rather than a
+  // single long scroll. A rule you have to hunt for in a column of six is a
+  // rule you skim; one rule on the screen with a Weiter button under it is one
+  // you read. Same reason the flashcards got a focus mode.
   const tabs = [
-    { id: "regeln", label: "Regeln", render: () => renderRules(topic) },
-    { id: "uebungen", label: "Übungen", render: (el) => renderExercises(el, zone, topic) },
-    { id: "selbstcheck", label: "Selbstcheck", render: (el) => renderSelfcheck(el, zone, topic) },
+    { id: "regeln", label: "Regeln", pages: () => rulePages(topic) },
+    { id: "uebungen", label: "Üben", pages: () => exercisePages(zone, topic) },
+    { id: "selbstcheck", label: "Selbstcheck", pages: () => selfcheckPages(zone, topic) },
   ];
 
   const tabsEl = container.querySelector("#gt-tabs");
   const panelsEl = container.querySelector("#gt-panels");
+  const pagers = [];
 
   tabs.forEach((tab) => {
     const btn = document.createElement("button");
@@ -43,69 +48,191 @@ export function mount(container, zone) {
     panelsEl.appendChild(panel);
     tab.panel = panel;
 
-    const html = tab.render(panel);
-    if (typeof html === "string") panel.innerHTML = html;
+    tab.pager = createPager(panel, tab.pages(), `${zone.id}:page:${tab.id}`);
+    pagers.push(tab.pager);
   });
+
+  let activeTab = tabs[0];
+
+  // The intro belongs to Regeln. On the other two tabs it is a paragraph you
+  // have already read sitting on top of the thing you came to do — on a phone
+  // it cost most of a screen before every single exercise.
+  const introEl = container.querySelector("#gt-intro");
 
   function activate(id) {
     tabs.forEach((t) => {
       const on = t.id === id;
       t.button.dataset.active = on ? "true" : "false";
       t.panel.dataset.active = on ? "true" : "false";
+      if (on) activeTab = t;
     });
+    introEl.hidden = id !== "regeln";
   }
   activate(tabs[0].id);
+
+  // Left and right page the visible tab. Ignored while typing, so an answer
+  // field still takes its own cursor keys.
+  function onKey(e) {
+    if (!container.isConnected) {
+      document.removeEventListener("keydown", onKey);
+      return;
+    }
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      activeTab.pager.step(1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      activeTab.pager.step(-1);
+    }
+  }
+  document.addEventListener("keydown", onKey);
+
+  return {
+    destroy() {
+      document.removeEventListener("keydown", onKey);
+    },
+  };
+}
+
+// ----------------------------------------------------------------- der Pager
+
+const el = (tag, cls, html) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html != null) n.innerHTML = html;
+  return n;
+};
+
+/**
+ * Pages are built once and hidden, never rebuilt: an exercise page holds typed
+ * answers and revealed solutions, and re-rendering it on every Weiter would
+ * throw that away mid-session.
+ *
+ * @param pages  [{ title, node }]
+ * @param key    where to remember the reader's place
+ */
+function createPager(host, pages, key) {
+  host.innerHTML = "";
+  if (!pages.length) {
+    host.appendChild(el("p", null, "Für diesen Teil gibt es noch keinen Inhalt."));
+    return { step() {}, show() {} };
+  }
+
+  const stage = el("div", "pg-stage");
+  pages.forEach((p) => {
+    const page = el("div", "pg-page");
+    page.dataset.active = "false";
+    if (p.title) page.appendChild(el("div", "pg-title", p.title));
+    page.appendChild(p.node);
+    stage.appendChild(page);
+    p.el = page;
+  });
+
+  const nav = el("div", "pg-nav");
+  const prev = el("button", "pg-btn", "<span aria-hidden=\"true\">←</span> Zurück");
+  const next = el("button", "pg-btn pg-next", "Weiter <span aria-hidden=\"true\">→</span>");
+  prev.type = "button";
+  next.type = "button";
+  const dots = el("span", "pg-dots");
+  pages.forEach((p, i) => {
+    const d = el("button", "pg-dot");
+    d.type = "button";
+    d.title = p.title || `Seite ${i + 1}`;
+    d.setAttribute("aria-label", p.title || `Seite ${i + 1}`);
+    d.addEventListener("click", () => show(i));
+    dots.appendChild(d);
+  });
+  nav.append(prev, dots, next);
+  host.append(stage, nav);
+
+  let at = 0;
+  const saved = store.load(key, 0);
+  if (Number.isInteger(saved) && saved >= 0 && saved < pages.length) at = saved;
+
+  function show(n) {
+    at = Math.max(0, Math.min(pages.length - 1, n));
+    pages.forEach((p, i) => {
+      p.el.dataset.active = i === at ? "true" : "false";
+      dots.children[i].dataset.active = i === at ? "true" : "false";
+    });
+    prev.disabled = at === 0;
+    next.disabled = at === pages.length - 1;
+    nav.dataset.single = pages.length === 1 ? "true" : "false";
+    store.save(key, at);
+    // Paging is a new screenful; keep the reader at the top of it rather than
+    // wherever the last page happened to be scrolled to.
+    const scroller = host.closest(".panel-content") || host.parentElement;
+    if (scroller && scroller.scrollTop > 0) scroller.scrollTop = 0;
+  }
+
+  prev.addEventListener("click", () => show(at - 1));
+  next.addEventListener("click", () => show(at + 1));
+  show(at);
+
+  return {
+    step: (by) => show(at + by),
+    show,
+  };
 }
 
 // ---------------------------------------------------------------- Regeln
 
-function renderRules(topic) {
-  const rules = topic.rules
-    .map(
-      (r) => `
-      <div class="subhead">${r.title}</div>
-      <div class="measure rule-box">${r.body}</div>
-      ${r.note ? `<p class="note measure">${r.note}</p>` : ""}
-    `
-    )
-    .join("");
+// One rule per page, then one table per page. A topic's rules are numbered and
+// build on each other, which is exactly the shape a stack of pages has and a
+// scroll does not.
+function rulePages(topic) {
+  const pages = topic.rules.map((r) => ({
+    title: r.title,
+    node: el(
+      "div",
+      null,
+      `<div class="measure rule-box">${r.body}</div>` +
+        (r.note ? `<p class="note measure">${r.note}</p>` : "")
+    ),
+  }));
 
-  const tables = (topic.tables || [])
-    .map(
-      (t) => `
-      <div class="subhead">${t.caption}</div>
-      ${t.lede ? `<p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">${t.lede}</p>` : ""}
-      <div class="tablewrap">
-        <table>
-          <thead><tr>${t.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-          <tbody>
-            ${t.rows
-              .map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`)
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    `
-    )
-    .join("");
+  (topic.tables || []).forEach((t) => {
+    pages.push({
+      title: t.caption,
+      node: el(
+        "div",
+        null,
+        (t.lede
+          ? `<p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">${t.lede}</p>`
+          : "") +
+          `<div class="tablewrap">
+            <table>
+              <thead><tr>${t.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+              <tbody>
+                ${t.rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`
+      ),
+    });
+  });
 
-  return rules + tables;
+  return pages;
 }
 
 // ---------------------------------------------------------------- Übungen
 
-function renderExercises(panel, zone, topic) {
-  topic.exercises.forEach((ex) => {
-    const section = document.createElement("div");
-    section.innerHTML = `
-      <div class="subhead">${ex.title}</div>
-      ${ex.lede ? `<p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">${ex.lede}</p>` : ""}
-      <div class="measure" id="ex-${ex.id}"></div>
-    `;
-    panel.appendChild(section);
+// One exercise per page, with its own check button and score at the foot.
+function exercisePages(zone, topic) {
+  return topic.exercises.map((ex) => {
+    const section = el(
+      "div",
+      null,
+      (ex.lede
+        ? `<p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">${ex.lede}</p>`
+        : "") + `<div class="measure" id="ex-${ex.id}"></div>`
+    );
     const host = section.querySelector(`#ex-${ex.id}`);
     if (ex.kind === "reveal") buildReveal(host, zone, ex);
     else buildGaps(host, section, zone, ex);
+    return { title: ex.title, node: section };
   });
 }
 
@@ -248,29 +375,30 @@ function buildReveal(host, zone, ex) {
 
 // ---------------------------------------------------------------- Selbstcheck
 
-function renderSelfcheck(panel, zone, topic) {
-  panel.innerHTML =
-    `<p class="measure" style="color:var(--ink-soft);margin-bottom:1rem;">Antworte ohne nachzuschauen, dann aufdecken.</p>` +
-    topic.selfcheck
-      .map(
-        (item, i) => `
-      <div class="sc-item" data-q="${i + 1}">
-        <p class="q">${item.q}</p>
-        <textarea placeholder="Deine Antwort…"></textarea>
-        <div class="actions"><button class="ghost small sc-reveal">Antwort zeigen</button></div>
-        <div class="reveal-panel">${item.reveal}</div>
-      </div>
-    `
-      )
-      .join("");
+// One question per page — which is what a self-check IS: answer from memory,
+// then turn it over. Reading the next question while still writing the last
+// answer is the one thing this tab should not let you do.
+function selfcheckPages(zone, topic) {
+  return topic.selfcheck.map((item, i) => {
+    const n = i + 1;
+    const node = el(
+      "div",
+      "sc-item",
+      `<p class="q">${item.q}</p>
+       <textarea placeholder="Deine Antwort…" rows="3"></textarea>
+       <div class="actions"><button type="button" class="ghost small sc-reveal">Antwort zeigen</button></div>
+       <div class="reveal-panel">${item.reveal}</div>`
+    );
+    node.dataset.q = String(n);
 
-  panel.querySelectorAll(".sc-item").forEach((el) => {
-    const key = `${zone.id}:sc-${el.dataset.q}`;
-    const ta = el.querySelector("textarea");
+    const key = `${zone.id}:sc-${n}`;
+    const ta = node.querySelector("textarea");
     ta.value = store.load(key, "");
     ta.addEventListener("input", () => store.save(key, ta.value));
-    el.querySelector(".sc-reveal").addEventListener("click", () => {
-      el.querySelector(".reveal-panel").style.display = "block";
+    node.querySelector(".sc-reveal").addEventListener("click", () => {
+      node.querySelector(".reveal-panel").style.display = "block";
     });
+
+    return { title: `Frage ${n} von ${topic.selfcheck.length}`, node };
   });
 }

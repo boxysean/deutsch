@@ -800,3 +800,50 @@ kbd{
   margin-top:0.4rem; font-size:0.7rem; color: var(--ink-soft);
 }
 .hb-key{ display:flex; align-items:center; gap:3px; }
+
+
+/* -------------------------------------------------------------------- Pager
+   Grammar topics page rather than scroll: one rule, one exercise or one
+   self-check question at a time, with the controls where a thumb already is. */
+.pg-page{ display:none; }
+.pg-page[data-active="true"]{ display:block; }
+.pg-title{
+  font-family: var(--display, inherit);
+  font-size:1.05rem; font-weight:700; letter-spacing:0.01em;
+  margin:0.2rem 0 0.9rem; padding-bottom:0.5rem;
+  border-bottom:2px solid var(--rule);
+}
+.pg-nav{
+  display:flex; align-items:center; gap:0.6rem;
+  margin-top:1.4rem; padding-top:0.9rem; border-top:1px solid var(--rule);
+}
+/* A single page needs no controls; the row would just be furniture. */
+.pg-nav[data-single="true"]{ display:none; }
+.pg-btn{
+  flex:0 0 auto; min-height:44px; padding:0.55rem 0.9rem;
+  border:2px solid var(--ink); border-radius:4px; background: var(--paper-2);
+  color: var(--ink); font: inherit; font-weight:700; font-size:0.85rem; cursor:pointer;
+  white-space:nowrap;
+}
+.pg-btn:hover:not(:disabled){ background: var(--accent); color: var(--accent-ink); }
+.pg-btn:disabled{ opacity:0.32; cursor:default; border-color: var(--rule); }
+.pg-next{ margin-left:auto; }
+.pg-dots{ display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap; justify-content:center; }
+.pg-dot{
+  width:26px; height:26px; padding:0; flex:none;
+  border:none; background:transparent; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+/* The dot is small; the button around it is not, so it stays tappable. */
+.pg-dot::after{
+  content:""; width:8px; height:8px; border-radius:50%;
+  background: var(--rule); transition: background 140ms ease, transform 140ms ease;
+}
+.pg-dot:hover::after{ background: var(--ink-soft); }
+.pg-dot[data-active="true"]::after{ background: var(--accent); transform: scale(1.35); }
+
+@media (max-width: 560px){
+  /* On a phone the words go and the arrows stay; the dots say where you are. */
+  .pg-btn{ padding:0.55rem 0.75rem; font-size:0; gap:0; }
+  .pg-btn span{ font-size:1.1rem; }
+}
