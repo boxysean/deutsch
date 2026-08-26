@@ -24,6 +24,40 @@ const DIRECTIONS = [
   { id: "mixed", label: "Beide" },
 ];
 
+// The Präsens stacks used to ask one person at a time, so a verb held up to six
+// separate boxes: "praes:fahren:du", "praes:fahren:er/sie/es" and so on. They
+// are one card now, and those boxes would simply be orphaned — work the reader
+// did, still sitting in localStorage, never counted again.
+//
+// So they are folded in, at the LOWEST of the boxes they held: having "du
+// fährst" and "er fährt" secure is not the same as having the paradigm secure,
+// and a ladder that starts too high stops asking before you know it.
+function mergeParadigmBoxes(state) {
+  const groups = new Map();
+  Object.keys(state).forEach((k) => {
+    const m = k.match(/^((?:praes|praetA1):[^:]+):.+$/);
+    if (m) {
+      if (!groups.has(m[1])) groups.set(m[1], []);
+      groups.get(m[1]).push(k);
+    }
+  });
+  if (!groups.size) return false;
+
+  groups.forEach((oldKeys, target) => {
+    if (!state[target]) {
+      const low = (side) =>
+        oldKeys.reduce((n, k) => Math.min(n, boxOf(state[k], side)), BOXES - 1);
+      const fwd = low("de-en");
+      const rev = low("en-de");
+      if (fwd > 0 || rev > 0) {
+        state[target] = withBox(withBox(null, "de-en", fwd), "en-de", rev);
+      }
+    }
+    oldKeys.forEach((k) => delete state[k]);
+  });
+  return true;
+}
+
 export function mount(container) {
   const sets = setsFor(getLevel());
   const byId = new Map(sets.map((s) => [s.id, s]));
@@ -31,6 +65,7 @@ export function mount(container) {
   // Boxes are keyed by the card's own key, so adding a verb to a stack never
   // shifts anybody else's progress.
   const state = store.load("state", {}) || {};
+  if (mergeParadigmBoxes(state)) store.save("state", state);
 
   let setId = store.load("set", sets[0].id);
   if (!byId.has(setId)) setId = sets[0].id;
@@ -44,9 +79,18 @@ export function mount(container) {
       facing,
       front: facing === "produce" ? c.q : c.a,
       back: facing === "produce" ? c.a : `${c.q} — ${c.cue}`,
+      // The paradigm cards answer with a table rather than a line of text; the
+      // deck renders backHtml as markup, so it is built and escaped in data.js.
+      backHtml: facing === "produce" ? c.backHtml : null,
       side: facing === "produce" ? c.cue : "Welches Verb? Welche Form?",
       hint: c.note,
     }));
+
+  // A paradigm stack has no meaningful reverse: showing all six forms and
+  // asking which verb they belong to answers itself, since wir and sie/Sie ARE
+  // the infinitive. Those stacks are produce-only rather than carrying a
+  // direction switch that leads somewhere pointless.
+  const directionsFor = (set) => (set.oneWay ? [DIRECTIONS[0]] : DIRECTIONS);
 
   const getBox = (c) => boxOf(state[c.cardKey], c.facing === "produce" ? "de-en" : "en-de");
 
@@ -95,6 +139,10 @@ export function mount(container) {
     if (deck) deck.destroy();
     const set = byId.get(setId);
     ledeEl.textContent = set.lede;
+    const dirs = directionsFor(set);
+    // Switching from a two-way stack to a one-way one must not leave the deck
+    // asking for a direction that stack does not have.
+    const active = dirs.some((d) => d.id === dir) ? dir : dirs[0].id;
     deck = createDeck(deckHost, {
       cardsFor(which) {
         dir = which;
@@ -103,8 +151,8 @@ export function mount(container) {
         facings.forEach((f) => pool.push(...cardsOf(set, f)));
         return pool;
       },
-      dir,
-      directions: DIRECTIONS,
+      dir: active,
+      directions: dirs,
       setDir(next) {
         dir = next;
         store.save("dir", next);

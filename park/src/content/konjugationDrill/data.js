@@ -1,4 +1,5 @@
-import { conjugate } from "./forms.js";
+import { conjugate, conjugateRegular, PERSONS } from "./forms.js";
+import { escapeHtml } from "../vocabTheme/deck.js";
 import {
   STEM_CHANGE, AUXILIARIES, MODALS, SEPARABLE,
   PERFEKT, PRAETERITUM, IMPERATIV, KONJUNKTIV,
@@ -19,31 +20,57 @@ const card = (key, q, cue, a, note) => ({ key, q, cue, a, note: note || "" });
 
 // --- Präsens ---------------------------------------------------------------
 
-// Only du and er/sie/es: those are the two persons a stem change touches.
-const stemCards = (verbs) => {
-  const out = [];
-  verbs.forEach((v) => {
-    const f = conjugate(v);
-    ["du", "er/sie/es"].forEach((p) => {
-      out.push(card(`praes:${v.inf}:${p}`, v.inf, `${p} · Präsens`, `${p === "du" ? "du" : "er"} ${f[p]}`, v.type));
-    });
-  });
-  return out;
-};
+// One card per verb, and the answer is the whole paradigm.
+//
+// The first version asked a person at a time — "fahren · du" → "du fährst" —
+// which made six small cards where the thing actually being learned is one
+// pattern. You do not know a German verb when you can produce its du-form on
+// request; you know it when the six forms come out in order. So the card asks
+// for the table, and the ladder is honest about it: "Gut" means all six.
+//
+// Laid out in the textbook's two columns because the SHAPE is part of what is
+// memorised — singular on the left, plural on the right, and the eye learns
+// where the odd one lives.
+function paradigmGrid(v, markOdd) {
+  const f = conjugate(v);
+  const reg = markOdd ? conjugateRegular(v) : f;
+  const cell = (p) => {
+    const subject = p === "er/sie/es" ? "er/sie/es" : p === "sie/Sie" ? "sie/Sie" : p;
+    // Forms a rule would not have produced are marked, so the eye lands on the
+    // part of the table that has to be remembered rather than worked out.
+    const odd = f[p] !== reg[p];
+    return `<span class="kj-cell${odd ? " kj-odd" : ""}"><i>${escapeHtml(subject)}</i>${escapeHtml(
+      f[p]
+    )}</span>`;
+  };
+  const order = ["ich", "wir", "du", "ihr", "er/sie/es", "sie/Sie"]; // row-major over 2 columns
+  return `<span class="kj-grid">${order.map(cell).join("")}</span>`;
+}
 
-const fullCards = (verbs, persons) => {
-  const out = [];
-  verbs.forEach((v) => {
-    const f = conjugate(v);
-    persons.forEach((p) => {
-      const subj = p === "er/sie/es" ? "er" : p === "sie/Sie" ? "sie" : p;
-      out.push(card(`praes:${v.inf}:${p}`, v.inf, `${p} · Präsens`, `${subj} ${f[p]}`));
-    });
-  });
-  return out;
-};
+function paradigmPlain(v) {
+  const f = conjugate(v);
+  return PERSONS.map((p) => `${p === "er/sie/es" ? "er" : p === "sie/Sie" ? "sie" : p} ${f[p]}`).join(" · ");
+}
 
-const ALL_PERSONS = ["ich", "du", "er/sie/es", "wir", "ihr", "sie/Sie"];
+/**
+ * @param opts.prefix   storage-key prefix, so Präsens and Präteritum paradigms
+ *                      for the same verb are different cards
+ * @param opts.cue      the small line above the verb
+ * @param opts.markOdd  whether "differs from the regular rule" means anything.
+ *                      It does for the present tense; for a Präteritum table it
+ *                      would be comparing against the present stem, which is a
+ *                      category error rather than a hint.
+ */
+const paradigmCards = (verbs, opts = {}) => {
+  const prefix = opts.prefix || "praes";
+  const cue = opts.cue || "Präsens · alle sechs Formen";
+  const markOdd = opts.markOdd !== false;
+  return verbs.map((v) => {
+    const c = card(`${prefix}:${v.inf}`, v.inf, cue, paradigmPlain(v), v.type || "");
+    c.backHtml = paradigmGrid(v, markOdd);
+    return c;
+  });
+};
 
 const separableCards = () =>
   SEPARABLE.map((v) => card(`trenn:${v.inf}`, v.q, `${v.inf} · Präsens`, v.a, v.note));
@@ -100,15 +127,18 @@ const patternCards = (prefix, rows) =>
 const SETS = {
   "praesens-stamm": {
     name: "Präsens — Stammwechsel",
-    lede: "Nur du und er/sie/es ändern den Stamm — die anderen vier Personen sind regelmäßig und stehen gar nicht erst im Stapel.",
+    lede: "Ein Verb, eine Karte, sechs Formen. Hervorgehoben ist, was keine Regel hergibt — bei diesen Verben also du und er/sie/es.",
+    oneWay: true,
   },
   "praesens-hilfsverben": {
     name: "Präsens — sein, haben, werden",
-    lede: "Alle sechs Formen, alle drei Verben. Ohne sie geht kein Perfekt, kein Passiv und kaum ein Satz.",
+    lede: "Die drei Verben, bei denen jede einzelne Form gelernt sein will. Ohne sie geht kein Perfekt, kein Passiv und kaum ein Satz.",
+    oneWay: true,
   },
   "praesens-modalverben": {
     name: "Präsens — Modalverben",
     lede: "Der Singular wechselt den Vokal und die ich-Form hat gar keine Endung: ich kann, nicht ich kanne.",
+    oneWay: true,
   },
   trennbar: {
     name: "Trennbare Verben",
@@ -116,7 +146,8 @@ const SETS = {
   },
   "praeteritum-a1": {
     name: "Präteritum — war & hatte",
-    lede: "Die zwei Vergangenheitsformen, die man auch im Gespräch benutzt. Alles andere erzählt man auf A1 im Perfekt.",
+    lede: "Die zwei Vergangenheitsformen, die man auch im Gespräch benutzt — auch hier die ganze Reihe. Alles andere erzählt man auf A1 im Perfekt.",
+    oneWay: true,
   },
   perfekt: {
     name: "Perfekt — Partizip II",
@@ -165,23 +196,25 @@ const A1_STEM = STEM_CHANGE.filter((v) => !["empfehlen", "laden", "halten", "fal
 // inheriting A1's shortened list AND adding the full one, and shipped a town
 // with two identically named stacks in it.
 const praesensSets = (stemList) => [
-  make("praesens-stamm", stemCards(stemList)),
-  make("praesens-hilfsverben", fullCards(AUXILIARIES, ALL_PERSONS)),
-  make("praesens-modalverben", fullCards(MODALS, ["ich", "du", "er/sie/es", "ihr"])),
+  make("praesens-stamm", paradigmCards(stemList)),
+  make("praesens-hilfsverben", paradigmCards(AUXILIARIES)),
+  make("praesens-modalverben", paradigmCards(MODALS)),
   make("trennbar", separableCards()),
 ];
 
 export const SETS_BY_LEVEL = {
   a1: [
     ...praesensSets(A1_STEM),
-    make("praeteritum-a1", fullCards(
-      [{ inf: "sein", praesens: { ich: "war", du: "warst", "er/sie/es": "war", wir: "waren", ihr: "wart", "sie/Sie": "waren" } },
-       { inf: "haben", praesens: { ich: "hatte", du: "hattest", "er/sie/es": "hatte", wir: "hatten", ihr: "hattet", "sie/Sie": "hatten" } }],
-      ALL_PERSONS
-    ).map((c) => Object.assign({}, c, {
-      key: c.key.replace("praes:", "praetA1:"),
-      cue: c.cue.replace("Präsens", "Präteritum"),
-    }))),
+    make(
+      "praeteritum-a1",
+      paradigmCards(
+        [
+          { inf: "sein", praesens: { ich: "war", du: "warst", "er/sie/es": "war", wir: "waren", ihr: "wart", "sie/Sie": "waren" } },
+          { inf: "haben", praesens: { ich: "hatte", du: "hattest", "er/sie/es": "hatte", wir: "hatten", ihr: "hattet", "sie/Sie": "hatten" } },
+        ],
+        { prefix: "praetA1", cue: "Präteritum · alle sechs Formen", markOdd: false }
+      )
+    ),
   ],
   a2: [
     ...praesensSets(STEM_CHANGE),
