@@ -35,7 +35,6 @@ let onChangeCallback = null;
 let currentZoneId = null;
 // The rating controls currently on screen. Each holds a subscription, so they
 // are disposed when their view closes rather than piling up.
-let sheetRating = null;
 let detailRating = null;
 let mountedModule = null;
 
@@ -47,7 +46,6 @@ export function initOverlay() {
     sheetTitle: document.getElementById("sheet-title"),
     sheetDesc: document.getElementById("sheet-desc"),
     sheetStats: document.getElementById("sheet-stats"),
-    sheetRating: document.getElementById("sheet-rating"),
     sheetOpen: document.getElementById("sheet-open"),
     sheetClose: document.getElementById("sheet-close"),
     backdrop: document.getElementById("panel-backdrop"),
@@ -154,16 +152,10 @@ function showSheet(zone) {
   els.sheetOpen.disabled = !built;
   els.sheetOpen.textContent = built ? "Ausführlich öffnen" : "Noch kein Inhalt";
 
-  // Score the topic straight from the drawer — no need to open the full page.
-  // The Dom, the Fernsehturm and the Riesenrad are not topics, so they get none.
-  if (sheetRating) sheetRating.dispose();
-  sheetRating = null;
-  els.sheetRating.innerHTML = "";
-  if (zone.category !== "info") {
-    sheetRating = buildRatingControl(zone, { compact: true });
-    els.sheetRating.appendChild(sheetRating.el);
-  }
-  els.sheetRating.hidden = zone.category === "info";
+  // No rating here. The drawer is what you get from a single click on the map,
+  // so it was asking "how sure are you about this?" before you had opened
+  // anything — and it asked again on the page behind it. Rating belongs where
+  // you have just done the work; the Fernsehturm holds the full list.
 
   els.sheet.hidden = false;
 }
@@ -201,11 +193,15 @@ async function openDetail(zone) {
     // survive the page being closed.
     mountedModule = mod.mount(els.content, zone) || null;
     // Rating a topic makes most sense right after working on it, so every
-    // learning zone carries the same strip; the Fernsehturm holds the full list.
+    // learning zone carries the strip. A module may return a ratingSlot to say
+    // WHERE — the grammar topics keep it on their overview rather than under
+    // every rule and every exercise. Anything that returns none gets it at the
+    // foot of the page, as before.
     if (zone.category !== "info") {
-      const rating = buildRatingControl(zone, { compact: false });
+      const rating = buildRatingControl(zone);
       detailRating = rating;
-      els.content.appendChild(rating.el);
+      const slot = mountedModule && mountedModule.ratingSlot;
+      (slot || els.content).appendChild(rating.el);
     }
   } catch (err) {
     console.error("Failed to load zone module", zone.module, err);
@@ -216,18 +212,18 @@ async function openDetail(zone) {
 // One rating control, used in two places: the drawer that opens when you click
 // a house, and the foot of that house's full page. Both write through
 // setConfidenceFor, which announces the change so every other view follows.
-function buildRatingControl(zone, { compact }) {
+function buildRatingControl(zone) {
   const wrap = document.createElement("div");
-  wrap.className = compact ? "conf-strip conf-compact" : "conf-strip";
+  wrap.className = "conf-strip";
   wrap.innerHTML = `
     <div class="conf-row">
-      <span class="conf-q">${compact ? "Wie sicher?" : "Wie sicher fühlst du dich bei diesem Thema?"}</span>
+      <span class="conf-q">Wie sicher fühlst du dich bei diesem Thema?</span>
       <span class="rate-buttons" role="radiogroup"></span>
       <span class="rate-word"></span>
     </div>
     <div class="topic-note">
       <label for="tn-${zone.id}">Notiz zu diesem Thema — woran du zuletzt gehangen bist</label>
-      <textarea id="tn-${zone.id}" rows="${compact ? 2 : 3}" spellcheck="false"
+      <textarea id="tn-${zone.id}" rows="3" spellcheck="false"
         placeholder="z. B. „Wechselpräpositionen: wohin = Akkusativ. Verwechsle ich ständig mit dem Dativ.“"></textarea>
       <span class="note-state"></span>
     </div>
@@ -328,10 +324,6 @@ function closeDetail() {
 function closeAll() {
   currentZoneId = null;
   closeDetail();
-  if (sheetRating) {
-    sheetRating.dispose();
-    sheetRating = null;
-  }
   if (els.sheet) els.sheet.hidden = true;
   if (onChangeCallback) onChangeCallback(null);
 }
