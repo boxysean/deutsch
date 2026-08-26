@@ -34,11 +34,24 @@ export function mount(container, zone) {
   const pagers = [];
 
   tabs.forEach((tab) => {
+    const pages = tab.pages();
     const btn = document.createElement("button");
     btn.className = "small";
+    btn.type = "button";
+    // The page count belongs on the choosing screen: "a few pages" is the
+    // promise, and knowing whether it is four or eleven is how you decide
+    // which one you have time for. It is drawn from a data attribute rather
+    // than put in the button, so the button's text stays exactly its label —
+    // otherwise every selector and screen reader gets "Regeln6".
     btn.textContent = tab.label;
+    btn.dataset.count = String(pages.length);
     btn.dataset.active = "false";
-    btn.addEventListener("click", () => activate(tab.id));
+    btn.title = `${tab.label} — ${pages.length} ${pages.length === 1 ? "Seite" : "Seiten"}`;
+    btn.addEventListener("click", () => {
+      // Tapping the tab you are already on goes back to the overview, which is
+      // the only way back to the intro without closing the topic.
+      activate(activeTab && activeTab.id === tab.id ? null : tab.id);
+    });
     tabsEl.appendChild(btn);
     tab.button = btn;
 
@@ -48,27 +61,37 @@ export function mount(container, zone) {
     panelsEl.appendChild(panel);
     tab.panel = panel;
 
-    tab.pager = createPager(panel, tab.pages(), `${zone.id}:page:${tab.id}`);
+    tab.pager = createPager(panel, pages, `${zone.id}:page:${tab.id}`);
     pagers.push(tab.pager);
   });
 
-  let activeTab = tabs[0];
+  let activeTab = null;
 
-  // The intro belongs to Regeln. On the other two tabs it is a paragraph you
-  // have already read sitting on top of the thing you came to do — on a phone
-  // it cost most of a screen before every single exercise.
+  // The intro is the START of the topic, not a header on top of it. You read it
+  // once, choose one of the three, and it goes — otherwise it sits above every
+  // rule and every exercise costing most of a phone screen, having already
+  // said what it had to say.
   const introEl = container.querySelector("#gt-intro");
 
   function activate(id) {
+    activeTab = null;
     tabs.forEach((t) => {
       const on = t.id === id;
       t.button.dataset.active = on ? "true" : "false";
+      t.button.setAttribute("aria-expanded", on ? "true" : "false");
       t.panel.dataset.active = on ? "true" : "false";
       if (on) activeTab = t;
     });
-    introEl.hidden = id !== "regeln";
+    introEl.hidden = !!id;
+    // Choosing is a new screenful, and so is going back to the overview.
+    const scroller = container.closest(".panel-content") || container.parentElement;
+    if (scroller) scroller.scrollTop = 0;
   }
-  activate(tabs[0].id);
+
+  // Deliberately no tab is open to begin with: the topic opens on what it is
+  // about plus the three ways in, and NOT on whichever one happened to be
+  // first. Which page you were on inside a tab is still remembered.
+  activate(null);
 
   // Left and right page the visible tab. Ignored while typing, so an answer
   // field still takes its own cursor keys.
@@ -79,6 +102,7 @@ export function mount(container, zone) {
     }
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!activeTab) return; // the overview has nothing to page
     if (e.key === "ArrowRight") {
       e.preventDefault();
       activeTab.pager.step(1);
