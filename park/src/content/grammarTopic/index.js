@@ -17,6 +17,7 @@ export function mount(container, zone) {
     <p class="lede measure" id="gt-intro">${topic.intro}</p>
     <div class="tabs" id="gt-tabs"></div>
     <div id="gt-panels"></div>
+    <div id="gt-rating"></div>
   `;
 
   // Three ways in, and inside each one a short stack of pages rather than a
@@ -72,6 +73,7 @@ export function mount(container, zone) {
   // rule and every exercise costing most of a phone screen, having already
   // said what it had to say.
   const introEl = container.querySelector("#gt-intro");
+  const ratingEl = container.querySelector("#gt-rating");
 
   function activate(id) {
     activeTab = null;
@@ -83,6 +85,10 @@ export function mount(container, zone) {
       if (on) activeTab = t;
     });
     introEl.hidden = !!id;
+    // The rating keeps the intro company on the overview. Under a rule or an
+    // exercise it is a second thing asking for your attention on a screen that
+    // should hold one — and it was asking on all six pages of a tab.
+    ratingEl.hidden = !!id;
     // Choosing is a new screenful, and so is going back to the overview.
     const scroller = container.closest(".panel-content") || container.parentElement;
     if (scroller) scroller.scrollTop = 0;
@@ -114,6 +120,9 @@ export function mount(container, zone) {
   document.addEventListener("keydown", onKey);
 
   return {
+    // Where the page's rating strip goes. Without this the overlay puts it at
+    // the foot of the content, which here means below every page of every tab.
+    ratingSlot: ratingEl,
     destroy() {
       document.removeEventListener("keydown", onKey);
     },
