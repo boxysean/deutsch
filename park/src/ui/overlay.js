@@ -171,7 +171,14 @@ function showSheet(zone) {
 // ---------------------------------------------------------------- detail page
 
 async function openDetail(zone) {
-  if (zone.status !== "built" || !MODULE_LOADERS[zone.module]) return;
+  // A stub has no page. Returning here without closing left whatever was open
+  // before still on the screen — deep-link from a built topic straight to a
+  // stub's /detail URL and you got the previous topic's rules under the new
+  // title. Nothing on the map does that, but a shared link does.
+  if (zone.status !== "built" || !MODULE_LOADERS[zone.module]) {
+    closeDetail();
+    return;
+  }
 
   // The practice clock runs only while a page you can actually review on is
   // open. The Fernsehturm and the Riesenrad are not review — reading your own

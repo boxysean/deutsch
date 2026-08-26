@@ -847,3 +847,18 @@ kbd{
   .pg-btn{ padding:0.55rem 0.75rem; font-size:0; gap:0; }
   .pg-btn span{ font-size:1.1rem; }
 }
+
+
+/* The three ways into a grammar topic. Until one is chosen the topic shows
+   what it is about and nothing else, so these read as a choice rather than as
+   a header — hence the page count on each. */
+#gt-tabs{ margin-bottom:1.1rem; }
+#gt-tabs button[data-count]::after{
+  content: attr(data-count);
+  margin-left:0.45rem; padding:0.05rem 0.35rem;
+  border-radius:999px; background: var(--rule); color: var(--ink-soft);
+  font-family: ui-monospace, monospace; font-size:0.68rem; font-weight:400;
+}
+#gt-tabs button[data-active="true"]::after{
+  background: var(--ink); color: var(--paper);
+}
