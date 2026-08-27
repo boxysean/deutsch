@@ -135,26 +135,83 @@ export function createDeck(host, cfg) {
     return { sicher, byBox };
   }
 
-  // Weakest boxes first, so the words you keep missing lead the deck.
+  // Cards from the same word must not follow each other. In "Beide" a word
+  // makes two cards, and the answer to one IS the question of the other — meet
+  // them back to back and the second is free. The gap is in cards, so a word's
+  // two directions are always at least this far apart.
+  const SIBLING_GAP = 4;
+
+  // What counts as "the same word". Supplied by the caller, because only the
+  // caller knows: a vocabulary card is grouped by its word, a conjugation card
+  // by its verb and tense. Without one, a card is its own group and nothing is
+  // spread.
+  const groupOf = (card) => (card.group != null ? String(card.group) : card.key);
+
+  function shuffleInPlace(list) {
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  // Greedy: take the first card whose group has not been seen recently, so the
+  // running order is disturbed as little as the gap allows.
+  //
+  // Near the end of a deck nothing qualifies — the last few cards are all
+  // partners of ones just seen, and no order can hold the gap open. Rather
+  // than take the next card and land a pair two apart, take the one whose
+  // group was seen LONGEST ago, which is the widest gap still available.
+  function spreadSiblings(list) {
+    const out = [];
+    const pending = list.slice();
+    const lastAt = new Map();
+    const seenAt = (c) => {
+      const at = lastAt.get(groupOf(c));
+      return at === undefined ? -Infinity : at;
+    };
+    while (pending.length) {
+      let pick = pending.findIndex((c) => out.length - seenAt(c) > SIBLING_GAP);
+      if (pick === -1) {
+        pick = 0;
+        for (let i = 1; i < pending.length; i++) {
+          if (seenAt(pending[i]) < seenAt(pending[pick])) pick = i;
+        }
+      }
+      const [card] = pending.splice(pick, 1);
+      lastAt.set(groupOf(card), out.length);
+      out.push(card);
+    }
+    return out;
+  }
+
+  // Weakest boxes first, so the words you keep missing lead the deck — but
+  // shuffled WITHIN a box. Sorting alone was stable, and every card starts in
+  // box 1, so the deck came out in the order the caller happened to build it:
+  // both directions of word one, then both of word two.
+  function orderCards(list) {
+    const byBox = new Map();
+    list.forEach((c) => {
+      const b = cfg.getBox(c) || 0;
+      if (!byBox.has(b)) byBox.set(b, []);
+      byBox.get(b).push(c);
+    });
+    const ordered = [];
+    [...byBox.keys()]
+      .sort((a, b) => a - b)
+      .forEach((b) => ordered.push(...shuffleInPlace(byBox.get(b))));
+    return spreadSiblings(ordered).map((c) => c.key);
+  }
+
   function buildQueue() {
-    queue = cards
-      .slice()
-      .sort((a, b) => {
-        const ba = cfg.getBox(a) || 0;
-        const bb = cfg.getBox(b) || 0;
-        if (ba !== bb) return ba - bb;
-        return 0;
-      })
-      .map((c) => c.key);
+    queue = orderCards(cards.slice());
     pos = 0;
     flipped = false;
   }
 
   function shuffleQueue() {
-    for (let i = queue.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [queue[i], queue[j]] = [queue[j], queue[i]];
-    }
+    const list = shuffleInPlace(queue.map((k) => byKey.get(k)).filter(Boolean));
+    queue = spreadSiblings(list).map((c) => c.key);
     pos = 0;
     flipped = false;
   }
