@@ -76,6 +76,7 @@ export function mount(container) {
     set.cards.map((c) => ({
       key: `${c.key}:${facing}`,
       cardKey: c.key,
+      group: c.key,
       facing,
       front: facing === "produce" ? c.q : c.a,
       back: facing === "produce" ? c.a : `${c.q} — ${c.cue}`,

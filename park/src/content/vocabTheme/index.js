@@ -105,6 +105,9 @@ export function mount(container, zone) {
         out.push({
           key: `${w.id}:${facing}`,
           id: w.id,
+          // Both directions of one word are one group, so the deck never puts
+          // them back to back — the answer to one is the question of the other.
+          group: String(w.id),
           facing,
           de: w.de,
           en: w.en,

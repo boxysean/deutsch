@@ -35,7 +35,11 @@ export function mount(container) {
   });
 
   const cardsOf = (w, facing) =>
-    Object.assign({}, w, { key: `${w.themeId}:${w.wordId}:${facing}`, facing });
+    Object.assign({}, w, {
+      key: `${w.themeId}:${w.wordId}:${facing}`,
+      group: `${w.themeId}:${w.wordId}`,
+      facing,
+    });
 
   const getBox = (c) => boxOf(state[c.themeId][c.wordId], c.facing);
 
