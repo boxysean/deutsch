@@ -210,8 +210,8 @@ const PRAET = {
       ],
     },
     {
-      caption: "Modalverben im Präteritum",
-      lede: "Nur die ich-Form lernen — der Rest folgt der Reihe -te, -test, -te, -ten, -tet, -ten.",
+      caption: "Die sechs Modalverben im Überblick",
+      lede: "Erst der Stamm: hier fällt der Umlaut weg. Die Endungen stehen auf den nächsten beiden Seiten.",
       head: ["Infinitiv", "Präteritum (ich)", "Beispiel"],
       rows: [
         ["können", "<b>konnte</b>", "Ich konnte nicht schlafen."],
@@ -220,6 +220,32 @@ const PRAET = {
         ["dürfen", "<b>durfte</b>", "Als Kind durfte ich das nicht."],
         ["sollen", "<b>sollte</b>", "Du solltest mehr schlafen."],
         ["mögen", "<b>mochte</b>", "Ich mochte das Essen nicht."],
+      ],
+    },
+    {
+      caption: "können, müssen, wollen im Präteritum",
+      lede: "Alle sechs Personen. Wie bei war und hatte sind ich und er/sie/es gleich und haben keine Endung.",
+      head: ["", "können", "müssen", "wollen"],
+      rows: [
+        ["ich", "<b>konnte</b>", "<b>musste</b>", "<b>wollte</b>"],
+        ["du", "konntest", "musstest", "wolltest"],
+        ["er/sie/es", "<b>konnte</b>", "<b>musste</b>", "<b>wollte</b>"],
+        ["wir", "konnten", "mussten", "wollten"],
+        ["ihr", "konntet", "musstet", "wolltet"],
+        ["sie/Sie", "konnten", "mussten", "wollten"],
+      ],
+    },
+    {
+      caption: "dürfen, sollen, mögen im Präteritum",
+      lede: "Dieselben Endungen noch einmal. sollen hatte nie einen Umlaut, verliert also auch keinen.",
+      head: ["", "dürfen", "sollen", "mögen"],
+      rows: [
+        ["ich", "<b>durfte</b>", "<b>sollte</b>", "<b>mochte</b>"],
+        ["du", "durftest", "solltest", "mochtest"],
+        ["er/sie/es", "<b>durfte</b>", "<b>sollte</b>", "<b>mochte</b>"],
+        ["wir", "durften", "sollten", "mochten"],
+        ["ihr", "durftet", "solltet", "mochtet"],
+        ["sie/Sie", "durften", "sollten", "mochten"],
       ],
     },
   ],
