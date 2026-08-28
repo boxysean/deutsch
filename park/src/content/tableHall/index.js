@@ -1,6 +1,11 @@
 import { topicsFor } from "../registry.js";
 import { getZones } from "../../data/zones/index.js";
-import { makeLevelStore } from "../lib/storage.js";
+import {
+  coverableTableHtml,
+  wireCoverableTables,
+  setCovered,
+  learnedTables,
+} from "../lib/tableView.js";
 
 // The Kölner Dom: every grammar table in one nave.
 //
@@ -9,52 +14,7 @@ import { makeLevelStore } from "../lib/storage.js";
 // across eleven topics, which is the right place to meet them and the wrong
 // place to memorise them. Here they stand together, in route order, each one
 // coverable so the page can ask instead of tell.
-const store = makeLevelStore("info:");
-
-const STATE_KEY = "tables";
-
-// Schritt 1 is the one topic whose tables are written straight into its page
-// rather than declared as data, so they have to be restated here. Only the two
-// that are genuinely learned by heart come along: the stem-changing verbs and
-// sein/haben/werden. The Position-1 table on that page shows one verb in four
-// sentences — a demonstration, not a paradigm, so it stays there.
-//
-// The Typ column is second, not first: given an infinitive you should be able
-// to produce the pattern and both forms, which only works if the infinitive is
-// the key you are handed.
-const EXTRA_TABLES = {
-  "grammar-foundations": [
-    {
-      caption: "Stammveränderung (2./3. Person Singular)",
-      lede: "Nur du und er/sie/es ändern den Stamm — ich, wir, ihr, sie bleiben regelmäßig.",
-      head: ["Infinitiv", "Typ", "du", "er/sie/es"],
-      rows: [
-        ["fahren", "a → ä", "fährst", "fährt"],
-        ["schlafen", "a → ä", "schläfst", "schläft"],
-        ["sprechen", "e → i", "sprichst", "spricht"],
-        ["essen", "e → i", "isst", "isst"],
-        ["geben", "e → i", "gibst", "gibt"],
-        ["sehen", "e → ie", "siehst", "sieht"],
-        ["lesen", "e → ie", "liest", "liest"],
-        ["nehmen", "irregulär", "nimmst", "nimmt"],
-        ["wissen", "irregulär", "weißt", "weiß"],
-      ],
-    },
-    {
-      caption: "sein, haben, werden",
-      lede: "Die drei Hilfsverben. Ohne sie geht kein Perfekt, kein Passiv und kaum ein Satz.",
-      head: ["", "sein", "haben", "werden"],
-      rows: [
-        ["ich", "bin", "habe", "werde"],
-        ["du", "bist", "hast", "wirst"],
-        ["er/sie/es", "ist", "hat", "wird"],
-        ["wir", "sind", "haben", "werden"],
-        ["ihr", "seid", "habt", "werdet"],
-        ["sie/Sie", "sind", "haben", "werden"],
-      ],
-    },
-  ],
-};
+import { EXTRA_TABLES } from "./extraTables.js";
 
 export function mount(container) {
   const zones = getZones();
@@ -81,7 +41,6 @@ export function mount(container) {
     }));
 
   const allTables = groups.reduce((n, g) => n + g.tables.length, 0);
-  let learned = store.load(STATE_KEY, {}) || {};
 
   container.innerHTML = `
     <p class="lede measure">Ein Teil von A2 ist Verstehen, ein Teil ist schlicht Wissen: das Artikelraster, die neun Wechselpräpositionen, die starken Partizipien. Hier stehen <b>alle ${allTables} Tabellen</b> aus ${groups.length} Grammatik-Themen zusammen — verdecke eine Spalte und lass dich abfragen, statt sie nur zu lesen.</p>
@@ -109,7 +68,7 @@ export function mount(container) {
         <div class="subhead">
           <span class="mono" style="color:var(--ink-soft)">Schritt ${g.step}</span> · ${g.name}
         </div>
-        ${g.tables.map((t) => tableHtml(t)).join("")}
+        ${g.tables.map((t) => coverableTableHtml(t, { key: t.key })).join("")}
       </section>`
     )
     .join("");
@@ -124,93 +83,20 @@ export function mount(container) {
   });
 
   function paintCount() {
-    container.querySelector("#th-count").textContent = Object.values(learned).filter(Boolean).length;
+    container.querySelector("#th-count").textContent = Object.values(learnedTables()).filter(Boolean).length;
   }
 
-  container.querySelectorAll(".th-learned").forEach((box) => {
-    box.checked = !!learned[box.dataset.key];
-    box.addEventListener("change", () => {
-      if (box.checked) learned[box.dataset.key] = true;
-      else delete learned[box.dataset.key];
-      store.save(STATE_KEY, learned);
-      box.closest(".hall-table").dataset.learned = box.checked ? "true" : "false";
-      paintCount();
-    });
-    box.closest(".hall-table").dataset.learned = box.checked ? "true" : "false";
-  });
-
-  // Covering blanks every column but the first — the first is the key you are
-  // given, the rest is what you have to produce. A covered cell reveals itself
-  // on click, so a single lapse does not mean starting the table again.
-  function setCovered(el, on) {
-    el.dataset.covered = on ? "true" : "false";
-    el.querySelectorAll("td.coverable").forEach((td) => {
-      td.dataset.revealed = "false";
-    });
-  }
-
-  container.querySelectorAll(".th-cover-one").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const wrap = btn.closest(".hall-table");
-      const on = wrap.dataset.covered !== "true";
-      setCovered(wrap, on);
-      btn.textContent = on ? "Aufdecken" : "Verdecken";
-    });
-  });
-
-  container.querySelectorAll(".hall-table td.coverable").forEach((td) => {
-    td.addEventListener("click", () => {
-      if (td.closest(".hall-table").dataset.covered !== "true") return;
-      td.dataset.revealed = td.dataset.revealed === "true" ? "false" : "true";
-    });
-  });
+  wireCoverableTables(container, paintCount);
 
   container.querySelector("#th-cover").addEventListener("click", () => {
-    container.querySelectorAll(".hall-table").forEach((w) => {
-      setCovered(w, true);
-      w.querySelector(".th-cover-one").textContent = "Aufdecken";
-    });
+    container.querySelectorAll(".hall-table").forEach((w) => setCovered(w, true));
   });
   container.querySelector("#th-show").addEventListener("click", () => {
-    container.querySelectorAll(".hall-table").forEach((w) => {
-      setCovered(w, false);
-      w.querySelector(".th-cover-one").textContent = "Verdecken";
-    });
+    container.querySelectorAll(".hall-table").forEach((w) => setCovered(w, false));
   });
 
   paintCount();
 }
 
-function tableHtml(t) {
-  return `
-    <div class="hall-table" data-covered="false">
-      <div class="hall-table-head">
-        <b>${t.caption}</b>
-        <span class="deck-spacer"></span>
-        <button class="ghost small th-cover-one">Verdecken</button>
-        <label class="hall-learned">
-          <input type="checkbox" class="th-learned" data-key="${t.key}"> sitzt
-        </label>
-      </div>
-      ${t.lede ? `<p class="hall-lede">${t.lede}</p>` : ""}
-      <div class="tablewrap">
-        <table>
-          <thead><tr>${t.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-          <tbody>
-            ${t.rows
-              .map(
-                (row) =>
-                  `<tr>${row
-                    .map((c, i) =>
-                      i === 0
-                        ? `<td class="key-col">${c}</td>`
-                        : `<td class="coverable" data-revealed="false"><span>${c}</span></td>`
-                    )
-                    .join("")}</tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    </div>`;
-}
+// The table itself is rendered by lib/tableView.js, which the lesson pages
+// use as well, so the two can never drift apart.

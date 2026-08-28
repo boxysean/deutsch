@@ -1,5 +1,7 @@
 import { konjData } from "./data.js";
 import { save, load, normalize } from "./storage.js";
+import { EXTRA_TABLES } from "../tableHall/extraTables.js";
+import { coverableTableHtml, wireCoverableTables } from "../lib/tableView.js";
 
 export function mount(container) {
   container.innerHTML = `
@@ -36,36 +38,8 @@ export function mount(container) {
     </div>
 
     <div class="subhead">Regel 3 — Stammveränderung (2./3. Person Singular)</div>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>Typ</th><th>Infinitiv</th><th>du</th><th>er/sie/es</th></tr></thead>
-        <tbody>
-          <tr><td>a → ä</td><td>fahren</td><td>fährst</td><td>fährt</td></tr>
-          <tr><td>a → ä</td><td>schlafen</td><td>schläfst</td><td>schläft</td></tr>
-          <tr><td>e → i</td><td>sprechen</td><td>sprichst</td><td>spricht</td></tr>
-          <tr><td>e → i</td><td>essen</td><td>isst</td><td>isst</td></tr>
-          <tr><td>e → i</td><td>geben</td><td>gibst</td><td>gibt</td></tr>
-          <tr><td>e → ie</td><td>sehen</td><td>siehst</td><td>sieht</td></tr>
-          <tr><td>e → ie</td><td>lesen</td><td>liest</td><td>liest</td></tr>
-          <tr><td>irregulär</td><td>nehmen</td><td>nimmst</td><td>nimmt</td></tr>
-          <tr><td>irregulär</td><td>wissen</td><td>weißt</td><td>weiß</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="measure" style="margin:0.9rem 0 0.5rem;font-size:0.86rem;color:var(--ink-soft)"><strong style="color:var(--ink)">sein / haben / werden</strong> — know these cold:</p>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th></th><th>sein</th><th>haben</th><th>werden</th></tr></thead>
-        <tbody>
-          <tr><td>ich</td><td>bin</td><td>habe</td><td>werde</td></tr>
-          <tr><td>du</td><td>bist</td><td>hast</td><td>wirst</td></tr>
-          <tr><td>er/sie/es</td><td>ist</td><td>hat</td><td>wird</td></tr>
-          <tr><td>wir</td><td>sind</td><td>haben</td><td>werden</td></tr>
-          <tr><td>ihr</td><td>seid</td><td>habt</td><td>werdet</td></tr>
-          <tr><td>sie/Sie</td><td>sind</td><td>haben</td><td>werden</td></tr>
-        </tbody>
-      </table>
-    </div>
+    ${coverableTableHtml(EXTRA_TABLES["grammar-foundations"][0], { key: "grammar-foundations:0" })}
+    ${coverableTableHtml(EXTRA_TABLES["grammar-foundations"][1], { key: "grammar-foundations:1" })}
 
     <div class="subhead">Übung B — Konjugiere</div>
     <div id="konj-items" class="measure"></div>
@@ -77,6 +51,8 @@ export function mount(container) {
       <div class="scoreline"><span class="big mono" id="konj-score-n">0</span><span class="of">/ 10</span></div>
     </div>
   `;
+
+  wireCoverableTables(container);
 
   const konjContainer = container.querySelector("#konj-items");
   konjData.forEach((item) => {
