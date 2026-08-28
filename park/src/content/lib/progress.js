@@ -155,11 +155,14 @@ export function computeProgress() {
 // A manual gut-check per topic, alongside the mechanical point count. Points
 // say what you have worked through; this says whether you would back yourself
 // on it in the exam.
+// Two labels each. The rating strip on a topic page is part of the German
+// surface and stays German; the Fernsehturm is the one screen that is ABOUT
+// your study rather than about German, and reads in English.
 export const CONFIDENCE_LEVELS = [
-  { value: 0, label: "keine", hint: "Noch gar nicht sicher" },
-  { value: 1, label: "gering", hint: "Erkenne ich, kann es aber nicht anwenden" },
-  { value: 2, label: "mittel", hint: "Meistens richtig, mit Nachdenken" },
-  { value: 3, label: "hoch", hint: "Sitzt — auch unter Prüfungsdruck" },
+  { value: 0, label: "keine", hint: "Noch gar nicht sicher", en: "none", enHint: "Not confident at all yet" },
+  { value: 1, label: "gering", hint: "Erkenne ich, kann es aber nicht anwenden", en: "low", enHint: "I recognise it but can't use it" },
+  { value: 2, label: "mittel", hint: "Meistens richtig, mit Nachdenken", en: "medium", enHint: "Usually right, with some thought" },
+  { value: 3, label: "hoch", hint: "Sitzt — auch unter Prüfungsdruck", en: "high", enHint: "Solid — even under exam pressure" },
 ];
 export const MAX_CONFIDENCE = 3;
 

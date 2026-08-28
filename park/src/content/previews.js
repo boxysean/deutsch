@@ -148,12 +148,14 @@ function progressTower() {
   const status = planStatus();
   const points = Object.keys(getHistory()).length;
   return {
+    // English, like the page it introduces: this is the one screen about your
+    // study rather than about German.
     summary:
-      "Der Fernsehturm hält den Überblick: dein Fortschritt als Kurve zwischen Kursbeginn und Prüfungstag, das Soll daneben, und wie viele Punkte pro Tag noch offen sind.",
+      "The tower keeps the overview: your progress as a curve between the day you started and the exam, the even-plan line beside it, how many points a day are still open — and whether you have kept up your daily practice.",
     stats: [
-      { label: "Erledigt", value: `${Math.round(status.percent * 100)} %` },
-      { label: "Tage bis zur Prüfung", value: String(status.daysLeft) },
-      { label: "Messpunkte", value: String(points) },
+      { label: "Done", value: `${Math.round(status.percent * 100)} %` },
+      { label: "Days to the exam", value: String(status.daysLeft) },
+      { label: "Daily readings", value: String(points) },
     ],
   };
 }
