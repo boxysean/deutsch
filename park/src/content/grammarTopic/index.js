@@ -1,6 +1,7 @@
 import { TOPICS } from "./data.js";
 import { noteReviewed } from "../lib/practice.js";
 import { makeLevelStore, normalize, wordsPresent } from "../lib/storage.js";
+import { coverableTableHtml, wireCoverableTables } from "../lib/tableView.js";
 
 // Generic renderer for a single grammar zone. Everything comes from data, so a
 // new grammar topic is a data entry plus flipping that zone to status "built".
@@ -25,7 +26,7 @@ export function mount(container, zone) {
   // rule you skim; one rule on the screen with a Weiter button under it is one
   // you read. Same reason the flashcards got a focus mode.
   const tabs = [
-    { id: "regeln", label: "Regeln", pages: () => rulePages(topic) },
+    { id: "regeln", label: "Regeln", pages: () => rulePages(zone, topic) },
     { id: "uebungen", label: "Üben", pages: () => exercisePages(zone, topic) },
     { id: "selbstcheck", label: "Selbstcheck", pages: () => selfcheckPages(zone, topic) },
   ];
@@ -63,6 +64,7 @@ export function mount(container, zone) {
     tab.panel = panel;
 
     tab.pager = createPager(panel, pages, `${zone.id}:page:${tab.id}`);
+    if (tab.id === "regeln") wireCoverableTables(panel);
     pagers.push(tab.pager);
   });
 
@@ -215,7 +217,7 @@ function createPager(host, pages, key) {
 // One rule per page, then one table per page. A topic's rules are numbered and
 // build on each other, which is exactly the shape a stack of pages has and a
 // scroll does not.
-function rulePages(topic) {
+function rulePages(zone, topic) {
   const pages = topic.rules.map((r) => ({
     title: r.title,
     node: el(
@@ -226,24 +228,21 @@ function rulePages(topic) {
     ),
   }));
 
-  (topic.tables || []).forEach((t) => {
+  // Tables render exactly as they do in the Kölner Dom: a Verdecken button
+  // blanks every column but the first, a covered cell reveals itself on click,
+  // and "sitzt" writes the same state the Dom counts. Reading a reference table
+  // teaches you very little; being asked from it teaches you a lot, and there
+  // was no reason that only worked two clicks away in another building.
+  //
+  // The key matches the Dom's — "<zoneId>:<index>" over topic.tables, which is
+  // what tablesOf() there enumerates first — so a tick in either place is the
+  // same tick.
+  (topic.tables || []).forEach((t, i) => {
     pages.push({
       title: t.caption,
-      node: el(
-        "div",
-        null,
-        (t.lede
-          ? `<p class="measure" style="color:var(--ink-soft);margin-bottom:0.8rem;">${t.lede}</p>`
-          : "") +
-          `<div class="tablewrap">
-            <table>
-              <thead><tr>${t.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-              <tbody>
-                ${t.rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}
-              </tbody>
-            </table>
-          </div>`
-      ),
+      // The caption is the page title already, so the table's own head would
+      // say it twice.
+      node: el("div", null, coverableTableHtml({ ...t, caption: "" }, { key: `${zone.id}:${i}` })),
     });
   });
 
