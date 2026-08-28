@@ -19,17 +19,17 @@ const WECHSEL = {
     {
       title: "Regel 2 — Die Verbpaare",
       body: `
-        <p>Deutsch unterscheidet, ob man etwas hinstellt oder ob es schon steht. Die Bewegungsverben sind regelmäßig, die Positionsverben unregelmäßig:</p>
-        <p><b>stellen</b> (Akk.) → <b>stehen</b> (Dat.) · <b>legen</b> (Akk.) → <b>liegen</b> (Dat.) · <b>setzen</b> (Akk.) → <b>sitzen</b> (Dat.) · <b>hängen</b> (Akk.) → <b>hängen</b> (Dat.)</p>
-        <p><span class="mono">Ich lege das Buch auf <b>den</b> Tisch.</span> → <span class="mono">Das Buch liegt auf <b>dem</b> Tisch.</span></p>
+        <p>Deutsch unterscheidet, ob man etwas hinstellt oder ob es schon steht. Die Bewegungsverben sind regelmäßig, die Positionsverben unregelmäßig — die vier Paare stehen als Tabelle weiter hinten.</p>
+        <p><span class="mono">Ich lege das Buch auf <b>den</b> Tisch.</span> <span style="color:var(--ink-soft)">(wohin? Akkusativ)</span><br>
+           <span class="mono">Das Buch liegt auf <b>dem</b> Tisch.</span> <span style="color:var(--ink-soft)">(wo? Dativ)</span></p>
       `,
     },
     {
       title: "Regel 3 — Verschmelzungen",
       body: `
-        <p>Sehr häufig und im Alltag fast Pflicht:</p>
-        <p>in + das → <b>ins</b> · in + dem → <b>im</b> · an + das → <b>ans</b> · an + dem → <b>am</b> · auf + das → <b>aufs</b></p>
-        <p><span class="mono">Ich gehe <b>ins</b> Kino.</span> <span style="color:var(--ink-soft)">(wohin?)</span> · <span class="mono">Ich bin <b>im</b> Kino.</span> <span style="color:var(--ink-soft)">(wo?)</span></p>
+        <p>Sehr häufig und im Alltag fast Pflicht — die Formen stehen in der letzten Tabelle.</p>
+        <p><span class="mono">Ich gehe <b>ins</b> Kino.</span> <span style="color:var(--ink-soft)">(wohin? Akkusativ)</span> · <span class="mono">Ich bin <b>im</b> Kino.</span> <span style="color:var(--ink-soft)">(wo? Dativ)</span></p>
+        <p>An der Verschmelzung erkennt man den Fall sofort: <b>ins</b> und <b>ans</b> sind Akkusativ, <b>im</b> und <b>am</b> sind Dativ.</p>
       `,
     },
   ],
@@ -47,6 +47,29 @@ const WECHSEL = {
         ["hinter", "Ich gehe hinter <b>das</b> Haus.", "Der Garten ist hinter <b>dem</b> Haus."],
         ["neben", "Setz dich neben <b>mich</b>!", "Er sitzt neben <b>mir</b>."],
         ["zwischen", "Ich stelle es zwischen <b>die</b> Bücher.", "Es steht zwischen <b>den</b> Büchern."],
+      ],
+    },
+    {
+      caption: "Die vier Verbpaare",
+      lede: "Links die Bewegung (wohin? → Akkusativ), rechts die Position (wo? → Dativ). Die Bewegungsverben sind regelmäßig, die Positionsverben nicht.",
+      head: ["Bewegung · Akkusativ", "Position · Dativ", "Beispielpaar"],
+      rows: [
+        ["<b>stellen</b> (stellte, gestellt)", "<b>stehen</b> (stand, gestanden)", "Ich stelle die Flasche auf <b>den</b> Tisch. → Sie steht auf <b>dem</b> Tisch."],
+        ["<b>legen</b> (legte, gelegt)", "<b>liegen</b> (lag, gelegen)", "Ich lege das Buch auf <b>den</b> Tisch. → Es liegt auf <b>dem</b> Tisch."],
+        ["<b>setzen</b> (setzte, gesetzt)", "<b>sitzen</b> (saß, gesessen)", "Ich setze mich auf <b>den</b> Stuhl. → Ich sitze auf <b>dem</b> Stuhl."],
+        ["<b>hängen</b> (hängte, gehängt)", "<b>hängen</b> (hing, gehangen)", "Ich hänge das Bild an <b>die</b> Wand. → Es hängt an <b>der</b> Wand."],
+      ],
+    },
+    {
+      caption: "Verschmelzungen",
+      lede: "Die Verschmelzung verrät den Fall: -s-Formen sind Akkusativ, die anderen Dativ.",
+      head: ["Präposition + Artikel", "wird zu", "Fall", "Beispiel"],
+      rows: [
+        ["in + das", "<b>ins</b>", "Akkusativ", "Ich gehe <b>ins</b> Kino."],
+        ["in + dem", "<b>im</b>", "Dativ", "Ich bin <b>im</b> Kino."],
+        ["an + das", "<b>ans</b>", "Akkusativ", "Wir fahren <b>ans</b> Meer."],
+        ["an + dem", "<b>am</b>", "Dativ", "Wir sind <b>am</b> Meer."],
+        ["auf + das", "<b>aufs</b>", "Akkusativ", "Sie geht <b>aufs</b> Land."],
       ],
     },
   ],

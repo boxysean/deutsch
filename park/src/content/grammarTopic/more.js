@@ -30,8 +30,9 @@ const AKK = {
     {
       title: "Regel 3 — Personalpronomen im Akkusativ",
       body: `
-        <p>ich → <b>mich</b> · du → <b>dich</b> · er → <b>ihn</b> · sie → <b>sie</b> · es → <b>es</b> · wir → <b>uns</b> · ihr → <b>euch</b> · sie/Sie → <b>sie/Sie</b></p>
+        <p>Auch die Pronomen ändern sich — und wieder ist es vor allem das Maskulinum: <b>er</b> wird zu <b style="color:var(--accent)">ihn</b>. Die ganze Reihe steht auf der nächsten Tabellenseite.</p>
         <p>Kennst du den Film? – Ja, ich kenne <b>ihn</b>. <span style="color:var(--ink-soft)">(der Film → ihn)</span></p>
+        <p>Ein Pronomen ersetzt eine ganze Nomengruppe, also steht es im selben Fall wie das Nomen, das es ersetzt.</p>
       `,
       note: "Häufiger Fehler: <em>Ich kenne er</em> ✗ → <strong>Ich kenne ihn.</strong> ✓",
     },
@@ -45,6 +46,22 @@ const AKK = {
         ["<b>Akkusativ</b>", "<b>den / einen</b>", "die / eine", "das / ein", "die / —"],
         ["negativ", "<b>keinen</b>", "keine", "kein", "keine"],
         ["mein-", "<b>meinen</b>", "meine", "mein", "meine"],
+      ],
+    },
+    {
+      caption: "Personalpronomen im Akkusativ",
+      lede: "Hervorgehoben ist, was sich ändert — die vier anderen sehen im Akkusativ aus wie im Nominativ.",
+      head: ["Nominativ", "Akkusativ", "Beispiel"],
+      rows: [
+        ["ich", "<b>mich</b>", "Er sieht <b>mich</b>."],
+        ["du", "<b>dich</b>", "Ich sehe <b>dich</b>."],
+        ["er", "<b>ihn</b>", "Ich kenne <b>ihn</b>."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Sg.)</span>", "sie", "Ich frage <b>sie</b>."],
+        ["es", "es", "Ich nehme <b>es</b>."],
+        ["wir", "<b>uns</b>", "Sie besuchen <b>uns</b>."],
+        ["ihr", "<b>euch</b>", "Ich rufe <b>euch</b> an."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Pl.)</span>", "sie", "Wir treffen <b>sie</b>."],
+        ["Sie <span style=\"color:var(--ink-soft)\">(formell)</span>", "Sie", "Ich verstehe <b>Sie</b>."],
       ],
     },
     {
