@@ -30,8 +30,9 @@ const AKK = {
     {
       title: "Regel 3 — Personalpronomen im Akkusativ",
       body: `
-        <p>ich → <b>mich</b> · du → <b>dich</b> · er → <b>ihn</b> · sie → <b>sie</b> · es → <b>es</b> · wir → <b>uns</b> · ihr → <b>euch</b> · sie/Sie → <b>sie/Sie</b></p>
+        <p>Auch die Pronomen ändern sich — und wieder ist es vor allem das Maskulinum: <b>er</b> wird zu <b style="color:var(--accent)">ihn</b>. Die ganze Reihe steht auf der nächsten Tabellenseite.</p>
         <p>Kennst du den Film? – Ja, ich kenne <b>ihn</b>. <span style="color:var(--ink-soft)">(der Film → ihn)</span></p>
+        <p>Ein Pronomen ersetzt eine ganze Nomengruppe, also steht es im selben Fall wie das Nomen, das es ersetzt.</p>
       `,
       note: "Häufiger Fehler: <em>Ich kenne er</em> ✗ → <strong>Ich kenne ihn.</strong> ✓",
     },
@@ -45,6 +46,22 @@ const AKK = {
         ["<b>Akkusativ</b>", "<b>den / einen</b>", "die / eine", "das / ein", "die / —"],
         ["negativ", "<b>keinen</b>", "keine", "kein", "keine"],
         ["mein-", "<b>meinen</b>", "meine", "mein", "meine"],
+      ],
+    },
+    {
+      caption: "Personalpronomen im Akkusativ",
+      lede: "Hervorgehoben ist, was sich ändert — die vier anderen sehen im Akkusativ aus wie im Nominativ.",
+      head: ["Nominativ", "Akkusativ", "Beispiel"],
+      rows: [
+        ["ich", "<b>mich</b>", "Er sieht <b>mich</b>."],
+        ["du", "<b>dich</b>", "Ich sehe <b>dich</b>."],
+        ["er", "<b>ihn</b>", "Ich kenne <b>ihn</b>."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Sg.)</span>", "sie", "Ich frage <b>sie</b>."],
+        ["es", "es", "Ich nehme <b>es</b>."],
+        ["wir", "<b>uns</b>", "Sie besuchen <b>uns</b>."],
+        ["ihr", "<b>euch</b>", "Ich rufe <b>euch</b> an."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Pl.)</span>", "sie", "Wir treffen <b>sie</b>."],
+        ["Sie <span style=\"color:var(--ink-soft)\">(formell)</span>", "Sie", "Ich verstehe <b>Sie</b>."],
       ],
     },
     {
@@ -101,6 +118,50 @@ const AKK = {
         { n: 4, prompt: "Rufst du mich an? – Ja, ich rufe ________ an. <em>(→ du)</em>", answers: ["dich"] },
         { n: 5, prompt: "Besucht ihr uns? – Ja, wir besuchen ________. <em>(→ ihr)</em>", answers: ["euch"] },
         { n: 6, prompt: "Verstehst du deinen Chef? – Ja, ich verstehe ________.", answers: ["ihn"] },
+      ],
+    },
+    {
+      id: "nom-akk",
+      kind: "gap",
+      title: "Übung D — Nominativ oder Akkusativ?",
+      lede: "Dasselbe Wort, zwei Rollen: einmal ist es das Subjekt, einmal das Objekt. Nur im zweiten Fall ändert sich der maskuline Artikel.",
+      items: [
+        { n: 1, prompt: "________ Mann kauft einen Hund. <em>(der Mann)</em>", answers: ["Der"] },
+        { n: 2, prompt: "Ich sehe ________ Mann. <em>(der Mann)</em>", answers: ["den"] },
+        { n: 3, prompt: "________ Hund ist müde. <em>(der Hund)</em>", answers: ["Der"] },
+        { n: 4, prompt: "Wir brauchen ________ Tisch. <em>(ein Tisch)</em>", answers: ["einen"] },
+        { n: 5, prompt: "________ Tisch ist neu. <em>(ein Tisch)</em>", answers: ["Ein"] },
+        { n: 6, prompt: "Kennst du ________ Lehrer? <em>(mein Lehrer)</em>", answers: ["meinen"] },
+        { n: 7, prompt: "________ Lehrer kommt gleich. <em>(mein Lehrer)</em>", answers: ["Mein"] },
+      ],
+    },
+    {
+      id: "zeit",
+      kind: "gap",
+      title: "Übung E — Zeitangaben ohne Präposition",
+      lede: "Regel 2, dritter Punkt: eine Zeitangabe ohne Präposition steht im Akkusativ — auch wenn nichts sie zu verlangen scheint.",
+      items: [
+        { n: 1, prompt: "Ich bleibe ________ Woche in Wien. <em>(eine Woche)</em>", answers: ["eine"] },
+        { n: 2, prompt: "________ Tag stehe ich um sechs auf. <em>(jeder Tag)</em>", answers: ["Jeden"] },
+        { n: 3, prompt: "Wir waren ________ Monat in Italien. <em>(ein Monat)</em>", answers: ["einen"] },
+        { n: 4, prompt: "________ Abend sehe ich fern. <em>(jeder Abend)</em>", answers: ["Jeden"] },
+        { n: 5, prompt: "Der Kurs dauert ________ ganzen Tag. <em>(der ganze Tag)</em>", answers: ["den"] },
+        { n: 6, prompt: "________ Morgen trinke ich Kaffee. <em>(jeder Morgen)</em>", answers: ["Jeden"] },
+      ],
+    },
+    {
+      id: "saetze",
+      kind: "reveal",
+      title: "Übung F — Ganze Sätze bilden",
+      lede: "Bau aus den Teilen einen Satz. Sag ihn laut, dann aufdecken.",
+      items: [
+        { n: 1, frag: "ich · brauchen · ein Kugelschreiber", answer: "Ich brauche <b>einen</b> Kugelschreiber." },
+        { n: 2, frag: "wir · suchen · der Schlüssel", answer: "Wir suchen <b>den</b> Schlüssel." },
+        { n: 3, frag: "sie (Sg.) · haben · kein Auto", answer: "Sie hat <b>kein</b> Auto.", hint: "Neutrum — im Akkusativ unverändert." },
+        { n: 4, frag: "er · kaufen · ein Geschenk · für · seine Mutter", answer: "Er kauft <b>ein</b> Geschenk für <b>seine</b> Mutter.", hint: "Mutter ist feminin, also bleibt seine wie im Nominativ." },
+        { n: 5, frag: "ich · kennen · dein Bruder", answer: "Ich kenne <b>deinen</b> Bruder." },
+        { n: 6, frag: "ihr · trinken · der Kaffee · ohne · die Milch", answer: "Ihr trinkt <b>den</b> Kaffee ohne <b>die</b> Milch." },
+        { n: 7, frag: "wir · gehen · durch · der Park", answer: "Wir gehen durch <b>den</b> Park." },
       ],
     },
   ],
