@@ -217,6 +217,16 @@ const DATIV = {
       `,
       note: "Kurzregel: <strong>Pronomen zuerst.</strong> Sonst Dativ vor Akkusativ.",
     },
+    {
+      title: "Regel 4 — Personalpronomen im Dativ",
+      body: `
+        <p>Anders als im Akkusativ ändert sich hier <b>jede</b> Form — keine sieht aus wie der Nominativ. Die ganze Reihe steht als Tabelle weiter hinten.</p>
+        <p><span class="mono">Kannst du <b>mir</b> helfen?</span> · <span class="mono">Das gefällt <b>uns</b>.</span> · <span class="mono">Wie geht es <b>Ihnen</b>?</span></p>
+        <p>Die Dativ-Verben aus Regel 2 stehen im Alltag fast immer mit einem Pronomen: <em>Das gehört <b>mir</b>. Es tut <b>mir</b> leid. Wie geht es <b>dir</b>?</em></p>
+      `,
+      note:
+        "Häufiger Fehler: <em>Kannst du mich helfen?</em> ✗ → <strong>Kannst du mir helfen?</strong> ✓ — helfen verlangt den Dativ.",
+    },
   ],
   tables: [
     {
@@ -240,6 +250,22 @@ const DATIV = {
         ["von", "from, of", "Das ist ein Brief von meiner Tante."],
         ["zu", "to (people, places)", "Ich gehe zum Arzt."],
         ["aus", "out of, from (origin)", "Ich komme aus der Schweiz."],
+      ],
+    },
+    {
+      caption: "Personalpronomen im Dativ",
+      lede: "Im Akkusativ bleiben vier Formen wie im Nominativ — im Dativ keine einzige. Jede Zeile ist eine eigene Vokabel.",
+      head: ["Nominativ", "Dativ", "Beispiel"],
+      rows: [
+        ["ich", "<b>mir</b>", "Kannst du <b>mir</b> helfen?"],
+        ["du", "<b>dir</b>", "Ich gebe <b>dir</b> das Buch."],
+        ["er", "<b>ihm</b>", "Das Auto gehört <b>ihm</b>."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Sg.)</span>", "<b>ihr</b>", "Ich danke <b>ihr</b>."],
+        ["es", "<b>ihm</b>", "Das Baby weint — gib <b>ihm</b> die Flasche."],
+        ["wir", "<b>uns</b>", "Der Film gefällt <b>uns</b>."],
+        ["ihr", "<b>euch</b>", "Ich schicke <b>euch</b> eine Karte."],
+        ["sie <span style=\"color:var(--ink-soft)\">(Pl.)</span>", "<b>ihnen</b>", "Das Haus gehört <b>ihnen</b>."],
+        ["Sie <span style=\"color:var(--ink-soft)\">(formell)</span>", "<b>Ihnen</b>", "Wie geht es <b>Ihnen</b>?"],
       ],
     },
     {
@@ -305,6 +331,52 @@ const DATIV = {
         { n: 2, frag: "ich / geben / es / dem Kind", answer: "Ich gebe es dem Kind.", hint: "Akkusativpronomen steht vor dem Dativ." },
         { n: 3, frag: "er / schenken / seiner Frau / Blumen", answer: "Er schenkt seiner Frau Blumen." },
         { n: 4, frag: "ich / zeigen / ihn / meinem Bruder", answer: "Ich zeige ihn meinem Bruder." },
+      ],
+    },
+    {
+      id: "dat-praep",
+      kind: "gap",
+      title: "Übung E — Dativ-Präpositionen",
+      lede: "mit, nach, bei, seit, von, zu, aus — nach diesen sieben steht immer der Dativ, ohne Ausnahme und ohne Nachdenken.",
+      items: [
+        { n: 1, prompt: "Ich fahre mit ________ Fahrrad. <em>(das Fahrrad)</em>", answers: ["dem"] },
+        { n: 2, prompt: "Nach ________ Arbeit gehe ich einkaufen. <em>(die Arbeit)</em>", answers: ["der"] },
+        { n: 3, prompt: "Ich wohne bei ________ Freundin. <em>(meine Freundin)</em>", answers: ["meiner"] },
+        { n: 4, prompt: "Seit ________ Woche bin ich krank. <em>(eine Woche)</em>", answers: ["einer"] },
+        { n: 5, prompt: "Das ist ein Geschenk von ________ Kollegen. <em>(meine Kollegen, Pl.)</em>", answers: ["meinen"] },
+        { n: 6, prompt: "Ich komme gerade aus ________ Schule. <em>(die Schule)</em>", answers: ["der"] },
+        { n: 7, prompt: "Wir gehen zu ________ Nachbarn. <em>(unsere Nachbarn, Pl.)</em>", answers: ["unseren"] },
+        { n: 8, prompt: "Ich spreche mit ________ Chef. <em>(der Chef)</em>", answers: ["dem"] },
+      ],
+    },
+    {
+      id: "dat-pron",
+      kind: "gap",
+      title: "Übung F — Personalpronomen im Dativ",
+      lede: "Setze das Pronomen ein. In Klammern steht die Person im Nominativ.",
+      items: [
+        { n: 1, prompt: "Kannst du ________ helfen? <em>(→ ich)</em>", answers: ["mir"], why: "helfen ist ein Dativ-Verb — nie „mich“." },
+        { n: 2, prompt: "Ich gebe ________ das Buch. <em>(→ du)</em>", answers: ["dir"] },
+        { n: 3, prompt: "Das Auto gehört ________. <em>(→ er)</em>", answers: ["ihm"] },
+        { n: 4, prompt: "Ich danke ________ für die Hilfe. <em>(→ sie, Sg.)</em>", answers: ["ihr"] },
+        { n: 5, prompt: "Der Film gefällt ________. <em>(→ wir)</em>", answers: ["uns"] },
+        { n: 6, prompt: "Ich schicke ________ eine Karte aus Wien. <em>(→ ihr)</em>", answers: ["euch"] },
+        { n: 7, prompt: "Das Haus gehört ________. <em>(→ sie, Pl.)</em>", answers: ["ihnen"] },
+        { n: 8, prompt: "Wie geht es ________? <em>(→ Sie, formell)</em>", answers: ["Ihnen"], why: "Groß geschrieben, wie die Anrede selbst." },
+      ],
+    },
+    {
+      id: "dat-verschmelzung",
+      kind: "gap",
+      title: "Übung G — Verschmelzungen",
+      lede: "zu, bei und von verschmelzen mit dem Artikel. Aber nicht jede Präposition tut das — eine Aufgabe hier ist eine Falle.",
+      items: [
+        { n: 1, prompt: "Ich gehe ________ Bahnhof. <em>(zu + der Bahnhof)</em>", answers: ["zum"] },
+        { n: 2, prompt: "Sie fährt ________ Schule. <em>(zu + die Schule)</em>", answers: ["zur"] },
+        { n: 3, prompt: "Das ist ein Brief ________ Chef. <em>(von + der Chef)</em>", answers: ["vom"] },
+        { n: 4, prompt: "Ich war gestern ________ Arzt. <em>(bei + der Arzt)</em>", answers: ["beim"] },
+        { n: 5, prompt: "Nach ________ Essen trinken wir Kaffee. <em>(nach + das Essen)</em>", answers: ["dem"], why: "nach verschmilzt nicht — „nachm“ gibt es nicht." },
+        { n: 6, prompt: "Wir gehen ________ Bäckerei. <em>(zu + die Bäckerei)</em>", answers: ["zur"] },
       ],
     },
   ],
