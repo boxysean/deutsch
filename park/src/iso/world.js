@@ -293,6 +293,12 @@ export function buildWorld() {
     // among the peaks is a better home for "the forms you climb up to" than
     // another kiosk in the grammar street.
     { archetype: "castle", tx: -23, ty: -8, render: "castle", height: 5, roofH: 2, labelLevels: 9 },
+    // Tempelhof needs room either side for its runway. The first attempt put it
+    // at (22,8), which looked like open map but is four tiles from Arbeit &
+    // Beruf — close enough that the label collapsed to a bare icon. This spot
+    // is twelve clear, the same as the Fernsehturm and the Riesenrad, on the
+    // open ground between the wheel and the gate.
+    { archetype: "airfield", tx: -7, ty: 16, render: "tempelhof", height: 5, roofH: 1, labelLevels: 7 },
   ];
   clickableLandmarks.forEach((lm) => {
     const zone = byArchetype(lm.archetype);

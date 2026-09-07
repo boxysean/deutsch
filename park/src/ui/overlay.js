@@ -28,6 +28,7 @@ const MODULE_LOADERS = {
   mixedDeck: () => import("../content/mixedDeck/index.js"),
   tableHall: () => import("../content/tableHall/index.js"),
   konjugationDrill: () => import("../content/konjugationDrill/index.js"),
+  nicosWeg: () => import("../content/nicosWeg/index.js"),
 };
 
 let els = null;

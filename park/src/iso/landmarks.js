@@ -417,6 +417,68 @@ export function drawCastle(ctx, x, y) {
   castleTower(ctx, x + 4, baseY - 40, 20, 7, roofBlue);
 }
 
+// ------------------------------------------------- Flughafen Tempelhof (Berlin)
+//
+// The one landmark here that is not a monument: a working-looking building,
+// which is the point — it holds the Nico's-Weg tracker rather than a lesson.
+// Drawn from what makes Tempelhof recognisable at this size: the very long,
+// low limestone block, the cantilevered hangar canopy along the apron, the
+// squat control tower, and a strip of runway with its dashes.
+
+export function drawTempelhof(ctx, x, y) {
+  const stone = "#d8d2c4";
+  const stoneDark = "#b3ac9b";
+  const shade = "#8f8877";
+  const glass = "#4d5a74";
+  const tarmac = "#5a5a5f";
+
+  const baseY = y - 2;
+  const span = 76;
+  const left = x - span / 2;
+
+  // apron and runway, with the centre-line dashes that say "airfield"
+  poly(
+    ctx,
+    [[x - 44, baseY + 10], [x + 44, baseY + 10], [x + 34, baseY], [x - 34, baseY]],
+    tarmac,
+    OUTLINE
+  );
+  for (let i = -3; i <= 3; i++) px(ctx, x + i * 11 - 3, baseY + 4, 6, 2, "#c9c4b4");
+
+  // the long terminal block
+  const h = 22;
+  px(ctx, left, baseY - h, span, h, stone);
+  px(ctx, left, baseY - h, span, 3, stoneDark); // parapet
+  px(ctx, left + span - 6, baseY - h, 6, h, shade); // shaded end
+  outlineRect(ctx, left, baseY - h, span, h);
+
+  // the window grid — Tempelhof's façade is almost nothing else
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 12; c++) {
+      px(ctx, left + 5 + c * 6, baseY - h + 6 + r * 8, 3, 5, glass);
+    }
+  }
+
+  // the cantilevered hangar canopy reaching out over the apron
+  poly(
+    ctx,
+    [[left + 6, baseY - h + 2], [left + 46, baseY - h + 2], [left + 40, baseY - h - 7], [left + 12, baseY - h - 7]],
+    stoneDark,
+    OUTLINE
+  );
+
+  // control tower on the far end
+  const tw = 11;
+  const tx = left + span - 20;
+  px(ctx, tx, baseY - h - 20, tw, 20, stone);
+  px(ctx, tx + tw - 3, baseY - h - 20, 3, 20, shade);
+  outlineRect(ctx, tx, baseY - h - 20, tw, 20);
+  px(ctx, tx - 2, baseY - h - 27, tw + 4, 7, glass); // glazed cab
+  outlineRect(ctx, tx - 2, baseY - h - 27, tw + 4, 7);
+  px(ctx, tx - 3, baseY - h - 29, tw + 6, 2, stoneDark); // roof lip
+  px(ctx, tx + 4, baseY - h - 35, 1, 6, shade); // mast
+}
+
 // ------------------------------------------------- Matterhorn (Switzerland)
 
 export function drawMatterhorn(ctx, x, baseY, scale = 1) {

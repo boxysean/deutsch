@@ -17,6 +17,7 @@ import {
   drawCathedral,
   drawBrandenburgGate,
   drawCastle,
+  drawTempelhof,
   drawMatterhorn,
 } from "./landmarks.js";
 import { faces, hsl, DISTRICT, terrainFor, TRIM, OUTLINE } from "./palette.js";
@@ -255,6 +256,7 @@ export function createRenderer(canvas, world) {
       brandenburg: (c) => drawBrandenburgGate(sctx, c.x, c.y),
       dom: (c) => drawCathedral(sctx, c.x, c.y),
       castle: (c) => drawCastle(sctx, c.x, c.y),
+      tempelhof: (c) => drawTempelhof(sctx, c.x, c.y),
     };
     if (LANDMARK[spec.render]) {
       LANDMARK[spec.render]({ x: o.x, y: o.y + TILE_H / 2 - (hovered ? 4 : 0) });
