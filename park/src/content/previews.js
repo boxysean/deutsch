@@ -3,6 +3,7 @@ import { readLevel } from "./lib/storage.js";
 import { themesFor, topicsFor, skillsFor } from "./registry.js";
 import { localKeys, summarize, buildExport } from "./lib/transfer.js";
 import { setsFor } from "./konjugationDrill/data.js";
+import { CHAPTERS } from "./nicosWeg/data.js";
 import { boxOf, SICHER_AT } from "./vocabTheme/deck.js";
 import { getLevel } from "../data/levels.js";
 
@@ -222,6 +223,20 @@ function konjugationDrill() {
   };
 }
 
+function nicosWeg() {
+  const done = read("nico:done", {});
+  const n = CHAPTERS.filter((c) => done[c.key]).length;
+  return {
+    summary:
+      "Der Videokurs der Deutschen Welle — 18 Kapitel plus Intro und Abschlusstest. Der Kurs läuft bei der DW; hier hakst du ab, wie weit du gekommen bist, und kommst mit einem Klick zurück zur Kursseite.",
+    stats: [
+      { label: "Kapitel geschafft", value: String(n) },
+      { label: "Insgesamt", value: String(CHAPTERS.length) },
+      { label: "Anteil", value: `${Math.round((n / CHAPTERS.length) * 100)} %` },
+    ],
+  };
+}
+
 function dataTransfer() {
   const s = summarize(buildExport());
   return {
@@ -247,6 +262,7 @@ const BUILDERS = {
   mixedDeck,
   tableHall,
   konjugationDrill,
+  nicosWeg,
 };
 
 export function getPreview(zone) {

@@ -18,6 +18,7 @@ export const APP = "deutsche-welt";
 const AREA_NAMES = [
   ["vokabel:", "Wortschatz"],
   ["konjugation:", "Verbformen"],
+  ["nico:", "Nico's Weg"],
   ["grammatik:", "Grammatik"],
   ["tag01:", "Tag 1"],
   ["lesen:", "Lesen"],

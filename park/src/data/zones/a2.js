@@ -157,6 +157,15 @@ export const ZONES_A2 = [
     status: "built", module: "konjugationDrill",
   },
 
+  // ---------------- Flughafen Tempelhof (1) ----------------
+  // Not a lesson: the place where the DW video course is tracked. Purple like
+  // the other landmarks, and like them it is not counted as a Gebiet.
+  {
+    id: "tempelhof", icon: "\u2708\ufe0f", category: "info", name: "Flughafen Tempelhof",
+    labelName: "Nico's Weg", subtitle: "Videokurs — Fortschritt", archetype: "airfield",
+    status: "built", module: "nicosWeg",
+  },
+
   // ---------------- Town square (1) ----------------
   {
     id: "dom", icon: "⛪", category: "info", name: "Dom",

@@ -13,6 +13,8 @@ import {
   parseISO,
   daysBetween,
 } from "../lib/progress.js";
+import { nicosWegProgress } from "../nicosWeg/progress.js";
+import { getZones } from "../../data/zones/index.js";
 import {
   getGoalMinutes,
   setGoalMinutes,
@@ -134,6 +136,7 @@ export function mount(container, zone) {
 
       <div class="subhead">Where you stand</div>
       ${metersHtml(progress)}
+      ${asideHtml()}
 
       <div class="subhead">How confident you feel</div>
       <p class="measure" style="color:var(--ink-soft);margin-bottom:0.9rem;">
@@ -667,6 +670,32 @@ function metersHtml(progress) {
         </div>`;
     })
     .join("")}</div>`;
+}
+
+// Tracked alongside, NOT counted in.
+//
+// Nico's Weg is a video course, not exam material. The percentage above answers
+// "am I ready for the exam?", and folding a DW series into it would move that
+// number without moving the readiness. So it gets its own line, below the rule,
+// saying plainly that it is not in the total.
+function asideHtml() {
+  if (!getZones().some((z) => z.module === "nicosWeg")) return "";
+  const nw = nicosWegProgress();
+  const pct = nw.total ? Math.round((nw.done / nw.total) * 100) : 0;
+  return `
+    <div class="meters meters-aside">
+      <div class="meter">
+        <div class="meter-head">
+          <span class="key-line" style="background:var(--ink-soft)"></span>
+          <span class="meter-name">Nico's Weg A2 <span class="meter-note">— tracked separately, not in the total</span></span>
+          <span class="meter-val">${fmtNum(nw.done)} / ${fmtNum(nw.total)}</span>
+        </div>
+        <div class="meter-track" style="--meter:var(--ink-soft)">
+          <div class="meter-fill" style="width:${pct}%; background:var(--ink-soft)"></div>
+        </div>
+        <div class="meter-pct">${pct} %</div>
+      </div>
+    </div>`;
 }
 
 // ---------------------------------------------------------------- table view
