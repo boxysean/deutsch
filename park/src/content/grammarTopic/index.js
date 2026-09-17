@@ -268,6 +268,30 @@ function exercisePages(zone, topic) {
   });
 }
 
+// Does an answer count?
+//
+// `answers` is an AND-list: every entry has to appear. That is right for an
+// answer made of several words — Dativ's Plural-n asks for "den Kindern" and
+// wants both halves.
+//
+// It is exactly wrong for a list of SYNONYMS, and it was being used for those
+// too: ["weil", "da"] silently demanded you type both, so the answer the page
+// printed as the solution was marked ✗. Alternatives go in `alt` now, and each
+// one is judged by the same rule as `answers`.
+//
+// A single-entry list must match exactly; a multi-entry one only needs its
+// parts present, so a fuller sentence still counts.
+function matchesList(value, list) {
+  return list.length === 1
+    ? normalize(value) === normalize(list[0])
+    : wordsPresent(value, list);
+}
+
+function accepts(value, item) {
+  if (matchesList(value, item.answers)) return true;
+  return (item.alt || []).some((a) => matchesList(value, Array.isArray(a) ? a : [a]));
+}
+
 // Auto-checked gap fills, same shape as the Day 1 diagnostic.
 function buildGaps(host, section, zone, ex) {
   const key = `${zone.id}:${ex.id}`;
@@ -324,12 +348,7 @@ function buildGaps(host, section, zone, ex) {
       const v = section.querySelector(`#${ex.id}-v-${item.n}`);
       const row = section.querySelector(`#ex-${ex.id} .item[data-n="${item.n}"]`);
       row.dataset.checked = "true";
-      // A single-token answer must match exactly; multi-token answers only need
-      // their parts present, so a fuller sentence still counts.
-      const ok =
-        item.answers.length === 1
-          ? normalize(inp.value) === normalize(item.answers[0])
-          : wordsPresent(inp.value, item.answers);
+      const ok = accepts(inp.value, item);
       if (ok) correct++;
       v.textContent = ok ? "✓" : "✗";
       v.className = "verdict " + (ok ? "ok" : "no");

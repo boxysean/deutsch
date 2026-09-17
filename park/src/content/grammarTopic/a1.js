@@ -341,7 +341,7 @@ export const TOPICS_A1 = {
           { n: 5, prompt: "________ ist das? — Meine Schwester.", answers: ["Wer", "wer"] },
           { n: 6, prompt: "________ beginnt der Kurs? — Um neun.", answers: ["Wann", "wann"] },
           { n: 7, prompt: "________ lernst du Deutsch? — Für die Arbeit.", answers: ["Warum", "warum"] },
-          { n: 8, prompt: "________ kostet der Kaffee? — Drei Euro.", answers: ["Wie viel", "wie viel", "Was", "was"] },
+          { n: 8, prompt: "________ kostet der Kaffee? — Drei Euro.", answers: ["Wie viel"], alt: ["Was"] },
         ],
       },
       {

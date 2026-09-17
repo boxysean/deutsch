@@ -326,7 +326,7 @@ export const TOPICS_A1B = {
         lede: "Achte auf den Stammwechsel.",
         items: [
           { n: 1, prompt: "________ mir bitte das Salz! <em>(geben)</em>", answers: ["Gib", "gib"] },
-          { n: 2, prompt: "________ nicht so schnell! <em>(fahren)</em>", answers: ["Fahr", "fahr", "Fahre", "fahre"] },
+          { n: 2, prompt: "________ nicht so schnell! <em>(fahren)</em>", answers: ["Fahr"], alt: ["Fahre"] },
           { n: 3, prompt: "________ bitte lauter! <em>(sprechen)</em>", answers: ["Sprich", "sprich"] },
           { n: 4, prompt: "________ einen Moment! <em>(warten)</em>", answers: ["Warte", "warte"] },
           { n: 5, prompt: "________ bitte pünktlich! <em>(sein)</em>", answers: ["Sei", "sei"] },
@@ -457,7 +457,7 @@ export const TOPICS_A1B = {
           { n: 1, prompt: "Der Kurs beginnt ________ neun Uhr.", answers: ["um"] },
           { n: 2, prompt: "________ Montag habe ich frei.", answers: ["Am", "am"] },
           { n: 3, prompt: "________ Sommer fahren wir ans Meer.", answers: ["Im", "im"] },
-          { n: 4, prompt: "Ich arbeite ________ acht ________ fünf. <em>(zwei Wörter, mit Leerzeichen)</em>", answers: ["von bis", "von … bis"] },
+          { n: 4, prompt: "Ich arbeite ________ acht ________ fünf. <em>(zwei Wörter, mit Leerzeichen)</em>", answers: ["von bis"], alt: ["von … bis"] },
           { n: 5, prompt: "________ Abend sehe ich fern.", answers: ["Am", "am"] },
           { n: 6, prompt: "Ich wohne ________ zwei Jahren in Graz.", answers: ["seit"] },
         ],
